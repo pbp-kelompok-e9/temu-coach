@@ -28,6 +28,7 @@ Selain itu, Temu Coach juga menyediakan fitur booking yang praktis, memungkinkan
   </ul>
   <br>
   <li>Dataset</li>
+  <br>
   <ul>
     <li>Initial dataset</li>
     <a href="https://www.kaggle.com/datasets/vaske93/football-coaches-stats-and-tropheys">
@@ -38,7 +39,6 @@ Selain itu, Temu Coach juga menyediakan fitur booking yang praktis, memungkinkan
       Link
     </a>
   </ul>
-  <br>
   <li>Role atau Peran User</li>
   <ul>
     <li>Customer</li>
