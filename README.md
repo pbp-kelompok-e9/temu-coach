@@ -20,11 +20,11 @@ Selain itu, Temu Coach juga menyediakan fitur booking yang praktis, memungkinkan
   <br>
   <li>Daftar Modul</li>
   <ul>
-    <li>Katalog Coach - aly</li>
-    <li>Detail Coach - rayyan</li>
-    <li>Book Coach - ben</li>
-    <li>Page appointment dengan coach - vino</li>
-    <li>Login, register, profile, setup program - eric</li>
+    <li>Register, Login, Profile (account)</li>
+    <li>Katalog & Booking Coach (coaches_book_catalogue)</li>
+    <li>Review & Rating (reviews_rating)</li>
+    <li>E-Money</li>
+    <li>Atur Jadwal (scheduler)</li>
   </ul>
   <br>
   <li>Dataset</li>
