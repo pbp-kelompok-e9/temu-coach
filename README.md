@@ -14,8 +14,8 @@
   <li>Deskripsi Website</li>
   <br>
   <p>
-    TemuCoach adalah sebuah platform inovatif yang dirancang untuk memudahkan pengguna dalam mencari dan mengakses pelatih olahraga profesional sesuai kebutuhan mereka. Baik untuk latihan individu maupun kelompok, TemuCoach menyediakan berbagai pilihan coach dari berbagai bidang olahraga, mulai dari fitness, renang, seni bela diri, hingga olahraga tim. Melalui platform ini, pengguna dapat menjelajahi katalog coach yang lengkap, melihat detail profil setiap coach termasuk keahlian, pengalaman, dan testimoni, sehingga mempermudah proses pemilihan pelatih yang tepat.
-    Selain itu, TemuCoach juga menyediakan fitur booking yang praktis, memungkinkan pengguna untuk langsung memesan sesi pelatihan dengan coach pilihan mereka. Pengguna dapat mengelola jadwal latihan melalui halaman khusus yang menampilkan appointment yang telah dibook, sehingga setiap sesi dapat diatur dengan rapi. Platform ini juga dilengkapi dengan fitur login, register, dan profile, sehingga pengalaman pengguna menjadi personal dan aman. Dengan TemuCoach, proses menemukan, memesan, dan mengikuti pelatihan olahraga menjadi lebih mudah, efisien, dan menyenangkan. 
+    Temu Coach adalah sebuah platform inovatif yang dirancang untuk memudahkan pengguna dalam mencari dan mengakses pelatih olahraga sepak bola sesuai kebutuhan mereka, baik untuk latihan individu maupun kelompok. Melalui platform ini, pengguna dapat menjelajahi katalog coach yang lengkap, melihat detail profil setiap coach termasuk keahlian, pengalaman, dan testimoni, sehingga mempermudah proses pemilihan pelatih yang tepat.
+Selain itu, Temu Coach juga menyediakan fitur booking yang praktis, memungkinkan pengguna untuk langsung memesan sesi pelatihan dengan coach pilihan mereka. Pengguna dapat mengelola jadwal latihan melalui halaman khusus yang menampilkan appointment yang telah diblok, sehingga setiap sesi dapat diatur dengan rapi. Platform ini juga dilengkapi dengan fitur login, register, dan profile, sehingga pengalaman pengguna menjadi personal dan aman. Dengan Temu Coach, proses menemukan, memesan, dan mengikuti pelatihan olahraga menjadi lebih mudah, efisien, dan menyenangkan. 
   </p>
   <br>
   <li>Daftar Modul</li>
@@ -30,10 +30,19 @@
   <li>Dataset</li>
   <br>
   <li>Role atau Peran User</li>
+  <ul>
+    <li>Customer</li>
+    <ol>
+      <li>Mampu memesan/booking coach</li>
+      <li>Edit profile</li>
+    </ol>
+    <li>Coach</li>
+    <ol>
+      <li>Mampu membuat dan mengedit jadwal yang belum dibooking</li>
+      <li>Edit Profile</li>
+    </ol>
+  </ul>
   <br>
   <li>Tautan deployment PWS</li>
   <br>
 </ul>
-
-
-
