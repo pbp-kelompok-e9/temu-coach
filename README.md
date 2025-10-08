@@ -58,4 +58,8 @@ Selain itu, Temu Coach juga menyediakan fitur booking yang praktis, memungkinkan
     Link Website
   </a>
   <br>
+  <li>Tautan Design Website (Figma)</li>
+  <a href="https://www.figma.com/design/Kl4YECItsI2E932xoYIP8O/TemuCoach-UI-UX-Design?node-id=0-1&p=f&t=wNcKrVE8xbU9RZCe-0">
+    Link
+  </a>
 </ul>
