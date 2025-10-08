@@ -23,7 +23,7 @@ Selain itu, Temu Coach juga menyediakan fitur booking yang praktis, memungkinkan
     <li>Register, Login, Profile (account)</li>
     <li>Katalog & Booking Coach (coaches_book_catalogue)</li>
     <li>Review & Rating (reviews_rating)</li>
-    <li>E-Money</li>
+    <li>E-Money (e_money)</li>
     <li>Atur Jadwal (scheduler)</li>
   </ul>
   <br>
