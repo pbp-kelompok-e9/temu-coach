@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}Detail {{ coach.name }}
+{% endblock %}
+
+
+{% block content %}
+<p><a href="{% url 'show_catalog' %}"><< Kembali ke Katalog</a></p>
+
+<div class="main-container">
+    <div class="left-column">
+        <h1>{{ coach.name }}</h1>
+        <p><strong>Kewarganegaraan:</strong> {{ coach.citizenship }} | <strong>Umur:</strong> {{ coach.age }} tahun</p>
+        <p><strong>Lisensi:</strong> {{ coach.license }}</p>
+        <p><strong>Formasi Favorit:</strong> {{ coach.preffered_formation }}</p>
+        <p><strong>Pengalaman Rata-rata:</strong> {{ coach.average_term_as_coach }} tahun</p>
+        <h3>Deskripsi</h3>
+        <p>{{ coach.description }}</p>
+        <hr>
+        <h3>Ulasan & Rating (Segera Hadir)</h3>
+    </div>
+
+    <div class="right-column">
+        <h2>Tarif: Rp {{ coach.rate_per_session }}</h2>
+        <p>per sesi</p>
+        <br>
+        <p>Fitur kalender jadwal akan tersedia di sini.</p>
+        <br>
+        <button class="book-button">Booking Sekarang (Segera Hadir)</button>
+    </div>
+</div>
+{% endblock %}
