@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navbar</title>
+    <style>
+        .navbar {
+            background-color: #ffffff;
+            padding: 15px 30px;
+            border-bottom: 1px solid #ddd;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .navbar .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .navbar a {
+            text-decoration: none;
+            color: #333;
+            margin-left: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="logo">Temu Coach</div>
+        <div>
+            <a href="{% url 'show_catalog' %}">Katalog</a>
+            <a href="#">Jadwal Saya</a>
+            <a href="#">Profil</a>
+        </div>
+    </nav>
+
+    </body>
+</html>
