@@ -35,7 +35,7 @@ Selain itu, Temu Coach juga menyediakan fitur booking yang praktis, memungkinkan
       Link
     </a>
     <li>Optimized dataset</li>
-    <a href="https://drive.google.com/file/d/1AQGrOzd9xEfWDMsEdDEHUTXeyud6OOjt/view?usp=sharing">
+    <a href="https://docs.google.com/spreadsheets/d/1VpbFWbfDfLLzqHnxs6drkVwHoHVLWPuYqq38j0243AM/edit?usp=drive_link">
       Link
     </a>
   </ul>
