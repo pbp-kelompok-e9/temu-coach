@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'coaches_book_catalog',
     'e_money',
     'reviews_ratings',
+    'scheduler',
 ]
 
 MIDDLEWARE = [
@@ -60,14 +61,16 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'temu_coach.urls'
+INSTALLED_APPS += ['temu_coach']
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'temu_coach' / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
