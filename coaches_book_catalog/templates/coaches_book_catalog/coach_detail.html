@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ coach.name }}</title>
+</head>
+<body>
+
+  <!-- HEADER PROFIL -->
+  <div>
+    <img src="{{ coach.photo_url }}" alt="{{ coach.name }}" width="120" style="border-radius:8px;">
+    <h1>{{ coach.name }}</h1>
+    {% if coach.verified %}<span>✔ Verified</span>{% endif %}
+    {% if coach.license_label %}<div>{{ coach.license_label }}</div>{% endif %}
+    <div>
+      {% for i in "★★★★★"|slice:":5" %}
+        {% if forloop.counter <= avg_rating|floatformat:0 %}★{% else %}☆{% endif %}
+      {% endfor %}
+      <small>{{ avg_rating }}/5 • {{ review_count }} Reviews</small>
+    </div>
+    <div>
+      <strong>{{ coach.city }}{% if coach.city and coach.country %}, {% endif %}{{ coach.country }}</strong>
+    </div>
+
+    <!-- CTA -->
+    <p>
+      <a href="#message">Message Coach</a> |
+      <a href="#book">Request To Book</a>
+    </p>
+  </div>
+
+  <hr>
+
+  <!-- NAV TAB SEDERHANA -->
+  <p>
+    <a href="#availability">Availability</a> |
+    <a href="#packages">Packages</a> |
+    <a href="#locations">Locations</a> |
+    <a href="#reviews">Reviews</a> |
+    <a href="#photos">Photos/Videos</a>
+  </p>
+
+  <!-- SESSION PLAN / BIO -->
+  {% if coach.bio %}
+    <h2>Session Plan</h2>
+    <p>{{ coach.bio }}</p>
+  {% endif %}
+
+  <!-- AVAILABILITY (collapsible) -->
+  <h2 id="availability">Availability</h2>
+  <details>
+    <summary>Click here to see {{ coach.name }}'s availability</summary>
+    <div>
+      {% for idx, label in "Mon,Tue,Wed,Thu,Fri,Sat,Sun".split(",")|dictsort %}
+      {% endfor %}
+      <ul>
+        {% for weekday in 0|make_list %}{% endfor %}
+      </ul>
+      <ul>
+        {% for d in 0|make_list %}{% endfor %}
+      </ul>
+    </div>
+    <div>
+      <ul>
+        {% for day,label in (0,"Mon"),(1,"Tue"),(2,"Wed"),(3,"Thu"),(4,"Fri"),(5,"Sat"),(6,"Sun") %}
+          <li>
+            <strong>{{ label }}</strong>:
+            {% if days.day %}{% endif %}
+            {% if days|dictsort %}
+            {% endif %}
+            {% if days|length == 0 %}{% endif %}
+            {% if days|default_if_none:'' %}{% endif %}
+            {% if days.day %}
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </details>
+
+  <!-- Simpler availability renderer without template acrobatics -->
+  <details open>
+    <summary>Weekly slots</summary>
+    <ul>
+      <li><strong>Mon:</strong>
+        {% with slots=days.0 %}{% if slots %}{% for s in slots %} {{ s.start_time }}–{{ s.end_time }}{% if not forloop.last %}, {% endif %}{% endfor %}{% else %} - {% endif %}{% endwith %}
+      </li>
+      <li><strong>Tue:</strong>
+        {% with slots=days.1 %}{% if slots %}{% for s in slots %} {{ s.start_time }}–{{ s.end_time }}{% if not forloop.last %}, {% endif %}{% endfor %}{% else %} - {% endif %}{% endwith %}
+      </li>
+      <li><strong>Wed:</strong>
+        {% with slots=days.2 %}{% if slots %}{% for s in slots %} {{ s.start_time }}–{{ s.end_time }}{% if not forloop.last %}, {% endif %}{% endfor %}{% else %} - {% endif %}{% endwith %}
+      </li>
+      <li><strong>Thu:</strong>
+        {% with slots=days.3 %}{% if slots %}{% for s in slots %} {{ s.start_time }}–{{ s.end_time }}{% if not forloop.last %}, {% endif %}{% endfor %}{% else %} - {% endif %}{% endwith %}
+      </li>
+      <li><strong>Fri:</strong>
+        {% with slots=days.4 %}{% if slots %}{% for s in slots %} {{ s.start_time }}–{{ s.end_time }}{% if not forloop.last %}, {% endif %}{% endfor %}{% else %} - {% endif %}{% endwith %}
+      </li>
+      <li><strong>Sat:</strong>
+        {% with slots=days.5 %}{% if slots %}{% for s in slots %} {{ s.start_time }}–{{ s.end_time }}{% if not forloop.last %}, {% endif %}{% endfor %}{% else %} - {% endif %}{% endwith %}
+      </li>
+      <li><strong>Sun:</strong>
+        {% with slots=days.6 %}{% if slots %}{% for s in slots %} {{ s.start_time }}–{{ s.end_time }}{% if not forloop.last %}, {% endif %}{% endfor %}{% else %} - {% endif %}{% endwith %}
+      </li>
+    </ul>
+  </details>
+
+  <!-- PACKAGES -->
+  <h2 id="packages">Packages</h2>
+  {% if coach.packages.all %}
+    <ul>
+      {% for p in coach.packages.all %}
+        <li>
+          <strong>{{ p.name }}</strong> — {{ p.duration_minutes }} mins — ${{ p.price }}<br>
+          <small>{{ p.description }}</small>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No packages yet.</p>
+  {% endif %}
+
+  <!-- LOCATIONS -->
+  <h2 id="locations">Locations</h2>
+  {% if coach.locations.all %}
+    <ul>
+      {% for loc in coach.locations.all %}
+        <li><strong>{{ loc.name }}</strong> — {{ loc.city }} {{ loc.address }} {{ loc.note }}</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No locations provided.</p>
+  {% endif %}
+
+  <!-- REVIEWS -->
+  <h2 id="reviews">Reviews</h2>
+  {% if coach.reviews.all %}
+    <ul>
+      {% for r in coach.reviews.all %}
+        <li>
+          <strong>{{ r.author_name|default:"Anonymous" }}</strong> —
+          {{ r.rating }}★ — <small>{{ r.created_at|date:"Y-m-d" }}</small><br>
+          {{ r.comment }}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No reviews yet.</p>
+  {% endif %}
+
+  <!-- PHOTOS/VIDEOS (placeholder) -->
+  <h2 id="photos">Photos/Videos</h2>
+  <p>(Coming soon)</p>
+
+  <hr>
+
+  <!-- MESSAGE COACH -->
+  <h2 id="message">Message Coach</h2>
+  {% if request.get_full_path|contains:"#message-success" %}<p>✅ Message sent.</p>{% endif %}
+  <form action="{% url 'catalog:message_coach' coach.slug %}" method="post">
+    {% csrf_token %}
+    <p><label>Your Name <br><input type="text" name="name" required></label></p>
+    <p><label>Email <br><input type="email" name="email" required></label></p>
+    <p><label>Message <br><textarea name="message" rows="4" required></textarea></label></p>
+    <p><button type="submit">Send Message</button></p>
+  </form>
+
+  <!-- REQUEST TO BOOK -->
+  <h2 id="book">Request To Book</h2>
+  {% if request.get_full_path|contains:"#booking-success" %}<p>✅ Booking request submitted.</p>{% endif %}
+  <form action="{% url 'catalog:request_booking' coach.slug %}" method="post">
+    {% csrf_token %}
+    <p><label>Your Name <br><input type="text" name="name" required></label></p>
+    <p><label>Email <br><input type="email" name="email" required></label></p>
+    <p><label>Package (optional) <br>
+      <select name="package_id">
+        <option value="">-- Choose package --</option>
+        {% for p in coach.packages.all %}
+          <option value="{{ p.id }}">{{ p.name }} - ${{ p.price }}</option>
+        {% endfor %}
+      </select>
+    </label></p>
+    <p><label>Requested Date <br><input type="date" name="requested_date" required></label></p>
+    <p><label>Requested Time <br><input type="time" name="requested_time" required></label></p>
+    <p><label>Notes <br><textarea name="notes" rows="3"></textarea></label></p>
+    <p><button type="submit">Request To Book</button></p>
+  </form>
+
+</body>
+</html>
