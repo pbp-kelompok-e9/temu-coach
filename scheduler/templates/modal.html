@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Modal Tambah Jadwal</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f3f4f6;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .open-btn {
+      background-color: #2563eb;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .open-btn:hover {
+      background-color: #1e40af;
+    }
+
+    /* Modal background */
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      justify-content: center;
+      align-items: center;
+      z-index: 50;
+    }
+
+    .modal-content {
+      background: white;
+      width: 90%;
+      max-width: 400px;
+      border-radius: 10px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+      overflow: hidden;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      padding: 15px;
+      border-bottom: 1px solid #ddd;
+      background-color: #f9fafb;
+    }
+
+    .modal-header h3 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .close-btn {
+      background: transparent;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      color: #555;
+    }
+
+    .modal-body {
+      padding: 15px;
+      overflow-y: auto;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 5px;
+      color: #333;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 8px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-sizing: border-box;
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      padding: 15px;
+      border-top: 1px solid #ddd;
+      gap: 10px;
+    }
+
+    .cancel-btn {
+      background-color: #f3f4f6;
+      color: #333;
+      padding: 8px 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .cancel-btn:hover {
+      background-color: #e5e7eb;
+    }
+
+    .submit-btn {
+      background-color: #2563eb;
+      color: white;
+      padding: 8px 15px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .submit-btn:hover {
+      background-color: #1e40af;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Tombol buka modal -->
+  
+
+  <!-- Modal -->
+  <div id="crudModal" class="modal">
+    <div class="modal-content">
+      <!-- Header -->
+      <div class="modal-header">
+        <h3>Tambahkan Jadwal</h3>
+        <button class="close-btn" onclick="hideModal()">×</button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body">
+        <form id="jadwalForm" method="POST">
+          <!-- Jika di Django -->
+          {% csrf_token %}
+          <div class="form-group">
+            <label for="tanggal">Tanggal</label>
+            <input type="date" id="tanggal" name="tanggal" required>
+          </div>
+          <div class="form-group">
+            <label for="jam_mulai">Jam Mulai</label>
+            <input type="time" id="jam_mulai" name="jam_mulai" required>
+          </div>
+          <div class="form-group">
+            <label for="jam_selesai">Jam Selesai</label>
+            <input type="time" id="jam_selesai" name="jam_selesai" required>
+          </div>
+        </form>
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer">
+        <button class="cancel-btn" onclick="hideModal()">Batal</button>
+        <button class="submit-btn" type="submit" form="jadwalForm">Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const modal = document.getElementById('crudModal');
+
+    function showModal() {
+      modal.style.display = 'flex';
+    }
+
+    function hideModal() {
+      modal.style.display = 'none';
+    }
+
+    // klik luar modal untuk close
+    window.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        hideModal();
+      }
+    });
+
+    // jika mau handle submit dengan JS (AJAX), contoh:
+    document.getElementById('jadwalForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const data = {
+        tanggal: this.tanggal.value,
+        jam_mulai: this.jam_mulai.value,
+        jam_selesai: this.jam_selesai.value
+      };
+
+      console.log('Data dikirim:', data);
+
+      // Di Django: biarkan form POST ke server
+      // atau pakai fetch() untuk AJAX
+
+      alert('Jadwal berhasil ditambahkan!');
+      this.reset();
+      hideModal();
+    });
+  </script>
+</body>
+</html>

@@ -3,13 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <title>Tambah Jadwal</title>
+    <style>
+    .open-btn {
+      background-color: #2563eb;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .open-btn:hover {
+      background-color: #1e40af;
+    }
+  </style>
 </head>
 <body>
-    <h1>Tambah Jadwal Coach</h1>
-    <form method="POST">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Simpan</button>
-    </form>
+     <button class="open-btn" onclick="showModal()">Tambahkan Jadwal</button>
+
+    {% include 'modal.html' %}
 </body>
 </html>
