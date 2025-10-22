@@ -1,5 +1,4 @@
 from django.db import models
-from scheduler.models import Jadwal
 from django.conf import settings
 # Create your models here.
 class Coach(models.Model):
@@ -24,7 +23,7 @@ class Coach(models.Model):
 
     
 class Booking(models.Model):
-    jadwal = models.OneToOneField(Jadwal, on_delete=models.CASCADE, null=True, blank=True)
+    jadwal = models.OneToOneField('scheduler.Jadwal', on_delete=models.CASCADE, null=True, blank=True)
     customer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
 
