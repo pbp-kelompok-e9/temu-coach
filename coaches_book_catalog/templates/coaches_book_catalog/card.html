@@ -1,10 +1,15 @@
 <a href="{% url 'coach_detail' coach.id %}" class="coach-card">
+    
     <div class="card-image">
-        <span>{{ coach.name.0 }}</span> </div>
+        <span>{{ coach.name.0 }}</span>
+    </div>
+    
     <div class="card-content">
         <h3>{{ coach.name }}</h3>
+        <p><strong>Rating:</strong> ⭐⭐⭐⭐⭐ (Segera Hadir)</p>
         <p><strong>Keahlian:</strong> {{ coach.preffered_formation }}</p>
     </div>
+
     <div class="card-footer">
         <span>Rp {{ coach.rate_per_session }} / sesi</span>
     </div>

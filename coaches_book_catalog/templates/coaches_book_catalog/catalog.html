@@ -27,16 +27,102 @@
     .card-content { padding: 1rem; flex-grow: 1; }
     .card-content h3 { margin-top: 0; font-size: 1.25rem; }
     .card-footer { padding: 1rem; border-top: 1px solid #eee; font-weight: bold; color: #3B82F6; }
+    .search-form { 
+        margin-bottom: 2rem; 
+        display: flex;
+        gap: 1rem; 
+        align-items: center;
+    }
+    .search-input {
+        flex-grow: 1; 
+        padding: 0.75rem; font-size: 1rem;
+        border: 1px solid #ccc; border-radius: 0.5rem;
+    }
+    .filter-select {
+        padding: 0.75rem; font-size: 1rem;
+        border: 1px solid #ccc; border-radius: 0.5rem;
+    }
+    .filter-button {
+        padding: 0.75rem 1.5rem; font-size: 1rem;
+        background-color: #007bff; color: white;
+        border: none; border-radius: 0.5rem; cursor: pointer;
+    }
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-top: 2rem;
+    }
+    .pagination a, .pagination span {
+        padding: 0.5rem 1rem;
+        margin: 0 0.25rem;
+        border: 1px solid #ddd;
+        text-decoration: none;
+        color: #007bff;
+        border-radius: 0.25rem;
+    }
+    .pagination .current {
+        background-color: #007bff;
+        color: white;
+        border-color: #007bff;
+    }
+    .pagination .disabled {
+        color: #aaa;
+        border-color: #ddd;
+    }
 </style>
 
 <div class="header">
     <h1>Temukan Coach Terbaik Anda</h1>
     <p>Jelajahi daftar pelatih profesional kami.</p>
 </div>
-
+<div class="search-form">
+    <form method="GET" action="{% url 'show_catalog' %}">
+        <input 
+            type="text" 
+            name="q" 
+            value="{{ search_query }}" 
+            placeholder="Cari nama coach..." 
+            class="search-input"
+        >
+        <select name="country" class="filter-select">
+            <option value="">Semua Negara</option>
+            {% for country in countries_list %}
+                <option value="{{ country }}" {% if country == country_filter %}selected{% endif %}>
+                    {{ country }}
+                </option>
+            {% endfor %}
+        </select>
+        
+        <select name="sort" class="filter-select">
+            <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Urutkan: Nama (A-Z)</option>
+            <option value="rate_asc" {% if sort_by == 'rate_asc' %}selected{% endif %}>Urutkan: Tarif (Termurah)</option>
+            <option value="rate_desc" {% if sort_by == 'rate_desc' %}selected{% endif %}>Urutkan: Tarif (Termahal)</option>
+        </select>
+        <button type="submit" class="filter-button">Cari</button>
+    </form>
+</div>
 <div class="catalog-grid">
-    {% for coach in coaches %}
+    {% for coach in page_obj %}
         {% include 'coaches_book_catalog/card.html' with coach=coach %}
     {% endfor %}
 </div>
+
+<div class="pagination">
+    {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}&q={{ search_query }}&country={{ country_filter }}&sort={{ sort_by }}">&laquo;</a>
+    {% else %}
+        <span class="disabled">&laquo;</span>
+    {% endif %}
+
+    <span class="current">
+        Halaman {{ page_obj.number }} dari {{ page_obj.paginator.num_pages }}.
+    </span>
+
+    {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&q={{ search_query }}&country={{ country_filter }}&sort={{ sort_by }}">&raquo;</a>
+    {% else %}
+        <span class="disabled">&raquo;</span>
+    {% endif %}
+</div>  
 {% endblock %}

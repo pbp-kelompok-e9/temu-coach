@@ -20,14 +20,20 @@ class Coach(models.Model):
     def __str__(self):
         return self.name
     
-class Booking(models.Model):
-    customer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-
-    coach = models.ForeignKey(Coach, on_delete=models.CASCADE)
-
-    booking_date = models.DateTimeField(auto_now_add=True)
-
-    status = models.CharField(max_length=20, default="Pending")
+class MockJadwal(models.Model):
+    coach = models.ForeignKey(Coach, on_delete=models.CASCADE, related_name="mock_jadwal")
+    tanggal = models.DateField()
+    jam_mulai = models.TimeField()
+    jam_selesai = models.TimeField()
+    is_booked = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"Booking for {self.coach.name} by Customer ID {self.customer.id}"
+        return f"[Mock] {self.coach.name} | {self.tanggal} | {self.jam_mulai}"
+    
+class Booking(models.Model):
+    jadwal = models.OneToOneField(MockJadwal, on_delete=models.CASCADE, null=True, blank=True)
+    customer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+
+
+
+    
