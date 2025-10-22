@@ -3,126 +3,410 @@
 {% block title %}Katalog Coach{% endblock %}
 
 {% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+
 <style>
-    .header { text-align: center; margin-bottom: 2rem; }
+    body {
+        font-family: 'Plus Jakarta Sans', Arial, sans-serif;
+        background-color: #FFFFFF;
+        color: #000000;
+        font-weight: 400; 
+    }
+
+    .page-container {
+        max-width: 1100px; 
+        margin: 0 auto;
+        padding: 1rem 2rem;
+    }
+
+    .header {
+        text-align: left; 
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+    }
+    .header h1 {
+        font-size: 4.375rem;
+        font-weight: 700; 
+        color: #003E85; 
+        margin: 0;
+    }
+    .header p {
+        font-size: 2.625rem; 
+        color: #003E85;
+        margin: 0.5rem 0 0 0;
+        font-weight: 600; 
+    }
+
+    .controls-form {
+        margin-bottom: 2rem;
+    }
+
+    .search-bar {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+    .search-input {
+        flex-grow: 1;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        border: 3px solid #B0B0B0; 
+        border-radius: 10px;
+        font-family: 'Plus Jakarta Sans', Arial, sans-serif; 
+        font-weight: 400; 
+    }
+    .search-input::placeholder {
+        color: #888;
+    }
+    .search-button {
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+        font-weight: 600;
+        background-color: #DE3400; 
+        color: white;
+        border: 3px solid #B0B0B0; 
+        border-radius: 10px;
+        cursor: pointer;
+        font-family: 'Plus Jakarta Sans', Arial, sans-serif;
+    }
+
+    .filter-bar {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+    .filter-bar label {
+        font-size: 1rem;
+        color: #003E85;
+        font-weight: 600; 
+    }
+    .filter-select {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-color: #DE3400; 
+        color: white;
+        padding: 0.5rem 2.5rem 0.5rem 1rem;
+        border: none;
+        border-radius: 4px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        font-family: 'Plus Jakarta Sans', Arial, sans-serif;
+        font-weight: 600; 
+    
+        background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22white%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M1.646%204.646a.5.5%200%200%201%20.708%200L8%2010.293l5.646-5.647a.5.5%200%200%201%20.708.708l-6%206a.5.5%200%200%201-.708%200l-6-6a.5.5%200%200%201%200-.708z%22%2F%3E%3C%2Fsvg%3E');
+        background-repeat: no-repeat;
+        background-position: right 0.75rem center;
+        background-size: 12px 12px;
+    }
+    .filter-select option {
+        background-color: white;
+        color: black;
+        font-weight: 400; 
+    }
+
     .catalog-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        grid-template-columns: repeat(4, 1fr);
         gap: 1.5rem;
     }
 
     .coach-card {
-        background-color: white; border: 1px solid #ddd; border-radius: 0.5rem;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        text-decoration: none; color: black;
-        display: flex; flex-direction: column;
-        transition: transform 0.2s ease-in-out;
-    }
-    .coach-card:hover { transform: translateY(-5px); }
-    .card-image {
-        width: 100%; height: 160px; background-color: #4A5568; color: white;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 1.5rem;
-    }
-    .card-content { padding: 1rem; flex-grow: 1; }
-    .card-content h3 { margin-top: 0; font-size: 1.25rem; }
-    .card-footer { padding: 1rem; border-top: 1px solid #eee; font-weight: bold; color: #3B82F6; }
-    .search-form { 
-        margin-bottom: 2rem; 
+        background-color: white;
+        border: 3px solid #E0E0E0; 
+        border-radius: 10px; 
+        padding: 1rem;
+        text-decoration: none;
+        color: black;
+        height: 300px; 
         display: flex;
-        gap: 1rem; 
-        align-items: center;
+        flex-direction: column;
+        justify-content: flex-start;
     }
-    .search-input {
-        flex-grow: 1; 
-        padding: 0.75rem; font-size: 1rem;
-        border: 1px solid #ccc; border-radius: 0.5rem;
+    .coach-card h3 {
+        margin: 0 0 0.25rem 0;
+        font-size: 1.125rem; 
+        font-weight: 700; 
     }
-    .filter-select {
-        padding: 0.75rem; font-size: 1rem;
-        border: 1px solid #ccc; border-radius: 0.5rem;
+    .coach-card .nationality {
+        margin: 0;
+        font-size: 0.9rem; 
+        color: #003E85;
+        font-weight: 400; 
     }
-    .filter-button {
-        padding: 0.75rem 1.5rem; font-size: 1rem;
-        background-color: #007bff; color: white;
-        border: none; border-radius: 0.5rem; cursor: pointer;
+    .coach-card .rating {
+        margin: 0.75rem 0;
+        color: #FBC02D; 
+        font-size: 1rem; 
     }
+    .coach-card .price {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 700; 
+        color: #003E85; 
+    }
+
     .pagination {
         display: flex;
         justify-content: center;
         align-items: center;
-        margin-top: 2rem;
+        margin-top: 3rem;
+        gap: 0.75rem;
     }
     .pagination a, .pagination span {
-        padding: 0.5rem 1rem;
-        margin: 0 0.25rem;
-        border: 1px solid #ddd;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        line-height: 36px;
+        text-align: center;
+        border-radius: 50%; 
         text-decoration: none;
-        color: #007bff;
-        border-radius: 0.25rem;
-    }
-    .pagination .current {
-        background-color: #007bff;
+        font-weight: 600; 
+        font-size: 1rem;
+        background-color: #003E85; 
         color: white;
-        border-color: #007bff;
+        border: none;
     }
     .pagination .disabled {
-        color: #aaa;
-        border-color: #ddd;
+        background-color: #BDBDBD; 
+        color: #FAFAFA;
+    }
+    .pagination .current {
+        background-color: #003E85; 
+        color: white;
+    }
+
+    .how-it-works {
+        text-align: left;
+        margin-top: 4rem;
+        padding-top: 2rem;
+    }
+    .how-it-works h2 {
+        font-size: 2rem;
+        font-weight: 700; 
+        color: #003E85;
+        margin-bottom: 2rem;
+    }
+    .how-it-works-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr); 
+        gap: 1.5rem;
+        text-align: left; 
+    }
+    .how-card {
+        background-color: white;
+        border: 1px solid #E0E0E0; 
+        border-radius: 8px;
+        padding: 1.5rem;
+    }
+    .how-card h3 {
+        color: #003E85;
+        font-size: 1.25rem;
+        font-weight: 700; 
+        margin: 0 0 0.5rem 0;
+    }
+    .how-card p {
+        font-size: 0.9rem;
+        color: #003E85;
+        margin: 0;
+        line-height: 1.5;
+        font-weight: 400;
+    }
+    .how-icon {
+        font-size: 2.5rem; 
+        color: #DE3400; 
+        margin-bottom: 1rem;
+        display: flex;
+        justify-content: center; 
+        align-items: center;
+        width: 60px;
+        height: 60px; 
+        background-color: #ffe5dd; 
+        border-radius: 50%; 
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+        margin-left: auto;
+        margin-right: auto; 
+    }
+
+    .how-card {
+        text-align: center; 
+    }
+
+    @media (max-width: 992px) {
+        .catalog-grid {
+            grid-template-columns: repeat(3, 1fr); 
+        }
+    }
+    @media (max-width: 768px) {
+        .catalog-grid {
+            grid-template-columns: repeat(2, 1fr); 
+        }
+        .how-it-works-grid {
+            grid-template-columns: 1fr; 
+        }
+    }
+    @media (max-width: 576px) {
+        .page-container {
+            padding: 1rem;
+        }
+        .header h1 {
+            font-size: 1.75rem;
+        }
+        .catalog-grid {
+            grid-template-columns: 1fr; 
+        }
+        .filter-bar {
+            gap: 0.5rem;
+        }
+        .filter-bar label {
+            width: 100%; 
+            margin-bottom: 0.25rem;
+        }
     }
 </style>
 
-<div class="header">
-    <h1>Temukan Coach Terbaik Anda</h1>
-    <p>Jelajahi daftar pelatih profesional kami.</p>
-</div>
-<div class="search-form">
-    <form method="GET" action="{% url 'show_catalog' %}">
-        <input 
-            type="text" 
-            name="q" 
-            value="{{ search_query }}" 
-            placeholder="Cari nama coach..." 
-            class="search-input"
-        >
-        <select name="country" class="filter-select">
-            <option value="">Semua Negara</option>
-            {% for country in countries_list %}
-                <option value="{{ country }}" {% if country == country_filter %}selected{% endif %}>
-                    {{ country }}
-                </option>
-            {% endfor %}
-        </select>
+<div class="page-container">
+    <div class="header">
+        <h1>Temukan Coach Terbaik Anda</h1>
+        <p>Jelajahi daftar pelatih profesional kami.</p>
+    </div>
+
+    <form method="GET" action="{% url 'show_catalog' %}" class="controls-form" id="controls-form">
         
-        <select name="sort" class="filter-select">
-            <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Urutkan: Nama (A-Z)</option>
-            <option value="rate_asc" {% if sort_by == 'rate_asc' %}selected{% endif %}>Urutkan: Tarif (Termurah)</option>
-            <option value="rate_desc" {% if sort_by == 'rate_desc' %}selected{% endif %}>Urutkan: Tarif (Termahal)</option>
-        </select>
-        <button type="submit" class="filter-button">Cari</button>
+        <div class="search-bar">
+            <input 
+                type="text" 
+                name="q" 
+                value="{{ search_query }}" 
+                placeholder="Cari nama coach..." 
+                class="search-input"
+            >
+            <button type="submit" class="search-button">Cari</button>
+        </div>
+        
+        <div class="filter-bar">
+            <label for="sort-select">Urutkan berdasarkan:</label>
+            
+            <select name="sort" id="sort-select" class="filter-select">
+                <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Name Coach (A-Z)</option>
+                <option value="rate_asc" {% if sort_by == 'rate_asc' %}selected{% endif %}>Harga (Termurah)</option>
+                <option value="rate_desc" {% if sort_by == 'rate_desc' %}selected{% endif %}>Harga (Termahal)</option>
+            </select>
+            
+            <label for="country-select">Filter:</label>
+
+            <select name="country" id="country-select" class="filter-select">
+                <option value="">Negara</option>
+                {% for country in countries_list %}
+                    <option value="{{ country }}" {% if country == country_filter %}selected{% endif %}>
+                        {{ country }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
     </form>
-</div>
-<div class="catalog-grid">
-    {% for coach in page_obj %}
-        {% include 'coaches_book_catalog/card.html' with coach=coach %}
-    {% endfor %}
-</div>
 
-<div class="pagination">
-    {% if page_obj.has_previous %}
-        <a href="?page={{ page_obj.previous_page_number }}&q={{ search_query }}&country={{ country_filter }}&sort={{ sort_by }}">&laquo;</a>
-    {% else %}
-        <span class="disabled">&laquo;</span>
-    {% endif %}
+    <div id="coach-list-container">
+        {% include 'coaches_book_catalog/coach_list_partial.html' %}
+    </div>
 
-    <span class="current">
-        Halaman {{ page_obj.number }} dari {{ page_obj.paginator.num_pages }}.
-    </span>
 
-    {% if page_obj.has_next %}
-        <a href="?page={{ page_obj.next_page_number }}&q={{ search_query }}&country={{ country_filter }}&sort={{ sort_by }}">&raquo;</a>
-    {% else %}
-        <span class="disabled">&raquo;</span>
-    {% endif %}
-</div>  
+<section class="how-it-works">
+        <h2>How TemuCoach Works</h2>
+        <div class="how-it-works-grid">
+            <div class="how-card">
+                <div class="how-icon">
+                    <i class="fas fa-search"></i> 
+                </div>
+                <h3>Browse</h3>
+                <p>Temukan dan bandingkan ratusan pelatih profesional dari berbagai negara dan keahlian.</p>
+            </div>
+            <div class="how-card">
+                <div class="how-icon">
+                    <i class="fas fa-calendar-check"></i>   
+                </div>
+                <h3>Book</h3>
+                <p>Lihat ketersediaan jadwal, pilih waktu yang paling sesuai, dan pesan sesi Anda secara instan.</p>
+            </div>
+            <div class="how-card">
+                <div class="how-icon">
+                    <i class="fas fa-dumbbell"></i>
+                </div>
+                <h3>Train</h3>
+                <p>Mulai sesi latihan Anda dan dapatkan bimbingan ahli untuk mencapai tujuan pribadi atau profesional Anda.</p>
+            </div>
+        </div>
+    </section>
+
+
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('controls-form');
+        const container = document.getElementById('coach-list-container');
+        const searchInput = form.querySelector('input[name="q"]');
+        const sortSelect = document.getElementById('sort-select');
+        const countrySelect = document.getElementById('country-select');
+
+        function fetchAndUpdate(url) {
+            fetch(url, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest' 
+                }
+            })
+            .then(response => response.text())
+            .then(html => {
+                container.innerHTML = html;
+                window.history.pushState({path: url}, '', url);
+            })
+            .catch(error => console.error('Error fetching content:', error));
+        }
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault(); 
+            const formData = new FormData(form);
+            const params = new URLSearchParams(formData);
+            const url = `${form.action}?${params.toString()}`;
+            fetchAndUpdate(url);
+        });
+
+        function handleFilterChange() {
+            const params = new URLSearchParams({
+                'q': searchInput.value,
+                'sort': sortSelect.value,
+                'country': countrySelect.value
+            });
+            const url = `${form.action}?${params.toString()}`;
+            fetchAndUpdate(url);
+        }
+        
+        sortSelect.addEventListener('change', handleFilterChange);
+        countrySelect.addEventListener('change', handleFilterChange);
+
+        container.addEventListener('click', function(e) {
+            if (e.target.tagName === 'A' && e.target.closest('.pagination')) {
+                e.preventDefault(); 
+                const url = e.target.href; 
+                fetchAndUpdate(url);
+            }
+        });
+        
+        window.addEventListener('popstate', function(e) {
+            if (e.state && e.state.path) {
+                fetchAndUpdate(e.state.path);
+            } else {
+                fetchAndUpdate(location.pathname + location.search);
+            }
+        });
+    });
+</script>
+
 {% endblock %}

@@ -1,16 +1,13 @@
-<a href="{% url 'coach_detail' coach.id %}" class="coach-card">
+<a href="{% url 'coach_detail' coach.id %}" class="coach-card">    
+    <h3>{{ coach.name|default:"Nama Coach" }}</h3>
     
-    <div class="card-image">
-        <span>{{ coach.name.0 }}</span>
-    </div>
-    
-    <div class="card-content">
-        <h3>{{ coach.name }}</h3>
-        <p><strong>Rating:</strong> ⭐⭐⭐⭐⭐ (Segera Hadir)</p>
-        <p><strong>Keahlian:</strong> {{ coach.preffered_formation }}</p>
+    <p class="nationality">{{ coach.citizenship|default:"Negara" }}</p>
+
+    <div class="rating">
+        &#9733; &#9733; &#9733; &#9733; &#9733;
     </div>
 
-    <div class="card-footer">
-        <span>Rp {{ coach.rate_per_session }} / sesi</span>
+    <div class="price">
+        Rp {{ coach.rate_per_session|floatformat:0|default:"150.000" }}
     </div>
 </a>
