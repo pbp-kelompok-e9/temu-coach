@@ -20,14 +20,12 @@ class Coach(models.Model):
     def __str__(self):
         return self.name
     
+
+    
 class Booking(models.Model):
+    jadwal = models.OneToOneField('scheduler.Jadwal', on_delete=models.CASCADE, null=True, blank=True)
     customer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
-    coach = models.ForeignKey(Coach, on_delete=models.CASCADE)
 
-    booking_date = models.DateTimeField(auto_now_add=True)
 
-    status = models.CharField(max_length=20, default="Pending")
-
-    def __str__(self):
-        return f"Booking for {self.coach.name} by Customer ID {self.customer.id}"
+    

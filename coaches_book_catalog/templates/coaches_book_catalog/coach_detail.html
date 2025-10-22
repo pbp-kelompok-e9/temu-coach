@@ -1,32 +1,502 @@
 {% extends 'base.html' %}
 
-{% block title %}Detail {{ coach.name }}
-{% endblock %}
-
+{% block title %}Detail {{ coach.name }}{% endblock %}
 
 {% block content %}
-<p><a href="{% url 'show_catalog' %}"><< Kembali ke Katalog</a></p>
+<style>
+    .page-container {
+        display: flex;
+        gap: 2rem;
+        margin: auto;
+        max-width: 1200px;
+        padding: 2rem 1rem;
+    }
 
-<div class="main-container">
-    <div class="left-column">
+    .detail-column {
+        flex: 1;
+        background-color: white;
+        padding: 2rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        height: fit-content;
+        position: sticky;
+        top: 2rem;
+    }
+    
+    .detail-column h1 {
+        font-size: 1.875rem;
+        font-weight: bold;
+        margin: 0 0 1rem 0;
+        color: #1a1a1a;
+    }
+
+    .info-item {
+        display: flex;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .info-item:last-child {
+        border-bottom: none;
+    }
+    
+    .info-label {
+        font-weight: 600;
+        color: #666;
+        min-width: 140px;
+    }
+    
+    .info-value {
+        color: #1a1a1a;
+    }
+
+    .description-section {
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 2px solid #f0f0f0;
+    }
+    
+    .description-section h3 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin: 0 0 0.75rem 0;
+        color: #1a1a1a;
+    }
+    
+    .description-section p {
+        color: #666;
+        line-height: 1.6;
+    }
+
+    .booking-column {
+        flex: 1.5;
+        background-color: white;
+        padding: 2rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    
+    .booking-header {
+        margin-bottom: 1.5rem;
+    }
+    
+    .booking-header h2 {
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin: 0 0 0.5rem 0;
+        color: #1a1a1a;
+    }
+    
+    .booking-subtitle {
+        color: #666;
+        font-size: 0.95rem;
+    }
+
+    /* Calendar Styles */
+    .calendar-container {
+        margin-bottom: 2rem;
+    }
+    
+    .calendar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+    
+    .calendar-month {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #1a1a1a;
+    }
+    
+    .calendar-nav {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .nav-btn {
+        width: 36px;
+        height: 36px;
+        border: 1px solid #e0e0e0;
+        background: white;
+        border-radius: 6px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+    
+    .nav-btn:hover {
+        background: #f5f5f5;
+        border-color: #d0d0d0;
+    }
+    
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 0.5rem;
+    }
+    
+    .calendar-day-header {
+        text-align: center;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #999;
+        padding: 0.5rem;
+        text-transform: uppercase;
+    }
+    
+    .calendar-day {
+        aspect-ratio: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: 2px solid transparent;
+        background: white;
+    }
+    
+    .calendar-day.empty {
+        cursor: default;
+        visibility: hidden;
+    }
+    
+    .calendar-day.disabled {
+        color: #d0d0d0ff;
+        cursor: not-allowed;
+        background: #fafafa;
+    }
+    
+    .calendar-day.past-disabled {
+        color: #999;
+        cursor: not-allowed;
+        background: #ffffffff;
+        text-decoration: line-through;
+        opacity: 0.6;
+    }
+    
+    .calendar-day.available:hover {
+        background: #f0f7ff;
+        border-color: #007bff;
+    }
+    
+    .calendar-day.selected {
+        background: #007bff;
+        border-color: #007bff;
+        color: #ffffff;
+        font-weight: 600;
+    }
+    
+    .calendar-day.available {
+        color: #007bff;
+        background: #f8f9fa;
+        font-weight: 500;
+    }
+
+    /* Time Slots */
+    .time-slots-container {
+        padding-top: 1.5rem;
+        border-top: 2px solid #f0f0f0;
+    }
+    
+    .time-slots-header {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: #1a1a1a;
+    }
+    
+    .no-date-selected {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: #999;
+    }
+    
+    .no-date-selected-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.3;
+    }
+    
+    .time-slots-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 0.75rem;
+    }
+    
+    .time-slot-btn {
+        padding: 0.875rem 1rem;
+        background: #f8f9fa;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: #1a1a1a;
+        text-align: center;
+    }
+    
+    .time-slot-btn:hover {
+        background: #e7f3ff;
+        border-color: #007bff;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0,123,255,0.1);
+    }
+    
+    .time-slot-btn:active {
+        transform: translateY(0);
+    }
+
+    @media (max-width: 968px) {
+        .page-container {
+            flex-direction: column;
+        }
+        
+        .detail-column {
+            position: relative;
+            top: 0;
+        }
+    }
+</style>
+
+<div class="page-container">
+    
+    <aside class="detail-column">
         <h1>{{ coach.name }}</h1>
-        <p><strong>Kewarganegaraan:</strong> {{ coach.citizenship }} | <strong>Umur:</strong> {{ coach.age }} tahun</p>
-        <p><strong>Lisensi:</strong> {{ coach.license }}</p>
-        <p><strong>Formasi Favorit:</strong> {{ coach.preffered_formation }}</p>
-        <p><strong>Pengalaman Rata-rata:</strong> {{ coach.average_term_as_coach }} tahun</p>
-        <h3>Deskripsi</h3>
-        <p>{{ coach.description }}</p>
-        <hr>
-        <h3>Ulasan & Rating (Segera Hadir)</h3>
-    </div>
+        
+        <div class="info-item">
+            <span class="info-label">Klub:</span>
+            <span class="info-value">{{ coach.club }}</span>
+        </div>
+        
+        <div class="info-item">
+            <span class="info-label">Kewarganegaraan:</span>
+            <span class="info-value">{{ coach.citizenship }}</span>
+        </div>
+        
+        <div class="info-item">
+            <span class="info-label">Umur:</span>
+            <span class="info-value">{{ coach.age }} tahun</span>
+        </div>
+        
+        <div class="info-item">
+            <span class="info-label">Lisensi:</span>
+            <span class="info-value">{{ coach.license }}</span>
+        </div>
+        
+        <div class="info-item">
+            <span class="info-label">Formasi Favorit:</span>
+            <span class="info-value">{{ coach.preffered_formation }}</span>
+        </div>
+        
+        <div class="info-item">
+            <span class="info-label">Tarif:</span>
+            <span class="info-value">Rp {{ coach.rate_per_session }} / sesi</span>
+        </div>
+        
+        <div class="description-section">
+            <h3>Deskripsi</h3>
+            <p>{{ coach.description }}</p>
+        </div>
+    </aside>
 
-    <div class="right-column">
-        <h2>Tarif: Rp {{ coach.rate_per_session }}</h2>
-        <p>per sesi</p>
-        <br>
-        <p>Fitur kalender jadwal akan tersedia di sini.</p>
-        <br>
-        <button class="book-button">Booking Sekarang (Segera Hadir)</button>
-    </div>
+    <main class="booking-column">
+        <div class="booking-header">
+            <h2>Pilih Jadwal Booking</h2>
+            <p class="booking-subtitle">Pilih tanggal dan waktu yang tersedia</p>
+        </div>
+
+        <div class="calendar-container">
+            <div class="calendar-header">
+                <div class="calendar-month" id="currentMonth"></div>
+                <div class="calendar-nav">
+                    <button class="nav-btn" id="prevMonth">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                    <button class="nav-btn" id="nextMonth">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="calendar-grid" id="calendarGrid">
+                <div class="calendar-day-header">Min</div>
+                <div class="calendar-day-header">Sen</div>
+                <div class="calendar-day-header">Sel</div>
+                <div class="calendar-day-header">Rab</div>
+                <div class="calendar-day-header">Kam</div>
+                <div class="calendar-day-header">Jum</div>
+                <div class="calendar-day-header">Sab</div>
+            </div>
+        </div>
+
+        <div class="time-slots-container">
+            <div class="time-slots-header" id="selectedDateDisplay" style="display: none;"></div>
+            
+            <div id="noDateSelected" class="no-date-selected">
+                <div class="no-date-selected-icon">📅</div>
+                <p>Pilih tanggal di kalender untuk melihat slot waktu yang tersedia</p>
+            </div>
+            
+            <div id="timeSlotsGrid" class="time-slots-grid" style="display: none;"></div>
+        </div>
+    </main>
 </div>
+
+<script>
+    const scheduleData = {
+        {% for tanggal, jadwal_list in grouped_schedules.items %}
+        "{{ tanggal|date:'Y-m-d' }}": [
+            {% for jadwal in jadwal_list %}
+            {
+                id: {{ jadwal.id }},
+                start: "{{ jadwal.jam_mulai|time:'H:i' }}",
+                end: "{{ jadwal.jam_selesai|time:'H:i' }}"
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ]{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    };
+
+    let currentDate = new Date();
+    let selectedDate = null;
+
+    const monthNames = [
+        "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+        "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+    ];
+
+    function initializeCalendar() {
+        const availableDates = Object.keys(scheduleData);
+        if (availableDates.length > 0) {
+            const firstDate = new Date(availableDates[0]);
+            currentDate = new Date(firstDate.getFullYear(), firstDate.getMonth(), 1);
+        }
+        renderCalendar();
+    }
+
+    function renderCalendar() {
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+        
+        document.getElementById('currentMonth').textContent = 
+            `${monthNames[month]} ${year}`;
+        
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        
+        const calendarGrid = document.getElementById('calendarGrid');
+        
+        const oldDays = calendarGrid.querySelectorAll('.calendar-day');
+        oldDays.forEach(day => day.remove());
+        
+        for (let i = 0; i < firstDay; i++) {
+            const emptyDay = document.createElement('div');
+            emptyDay.className = 'calendar-day empty';
+            calendarGrid.appendChild(emptyDay);
+        }
+        
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        for (let day = 1; day <= daysInMonth; day++) {
+            const dayDate = new Date(year, month, day);
+            dayDate.setHours(0, 0, 0, 0);
+            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const dayCell = document.createElement('div');
+            dayCell.className = 'calendar-day';
+            dayCell.textContent = day;
+            
+            const hasSlots = scheduleData[dateStr] && scheduleData[dateStr].length > 0;
+            const isPast = dayDate < today;
+            
+            if (isPast) {
+                dayCell.classList.add('past-disabled');
+            } else if (hasSlots) {
+                dayCell.classList.add('available');
+                dayCell.addEventListener('click', () => selectDate(dateStr, dayDate));
+            } else {
+                dayCell.classList.add('disabled');
+            }
+            
+            if (selectedDate === dateStr) {
+                dayCell.classList.add('selected');
+            }
+            
+            calendarGrid.appendChild(dayCell);
+        }
+    }
+
+    function selectDate(dateStr, dateObj) {
+        selectedDate = dateStr;
+        renderCalendar();
+        displayTimeSlots(dateStr, dateObj);
+    }
+
+    function displayTimeSlots(dateStr, dateObj) {
+        const slots = scheduleData[dateStr] || [];
+        const timeSlotsGrid = document.getElementById('timeSlotsGrid');
+        const noDateSelected = document.getElementById('noDateSelected');
+        const selectedDateDisplay = document.getElementById('selectedDateDisplay');
+        
+        if (slots.length === 0) {
+            noDateSelected.style.display = 'block';
+            timeSlotsGrid.style.display = 'none';
+            selectedDateDisplay.style.display = 'none';
+            return;
+        }
+        
+        // Format date display
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        const formattedDate = dateObj.toLocaleDateString('id-ID', options);
+        selectedDateDisplay.textContent = formattedDate;
+        selectedDateDisplay.style.display = 'block';
+        
+        noDateSelected.style.display = 'none';
+        timeSlotsGrid.style.display = 'grid';
+        timeSlotsGrid.innerHTML = '';
+        
+        slots.forEach(slot => {
+            const form = document.createElement('form');
+            form.action = "{% url 'book_coach' 0 %}".replace('0', slot.id);
+            form.method = 'POST';
+            
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrfmiddlewaretoken';
+            csrfInput.value = '{{ csrf_token }}';
+            
+            const button = document.createElement('button');
+            button.type = 'submit';
+            button.className = 'time-slot-btn';
+            button.textContent = `${slot.start} - ${slot.end}`;
+            
+            form.appendChild(csrfInput);
+            form.appendChild(button);
+            timeSlotsGrid.appendChild(form);
+        });
+    }
+
+    document.getElementById('prevMonth').addEventListener('click', () => {
+        currentDate.setMonth(currentDate.getMonth() - 1);
+        renderCalendar();
+    });
+
+    document.getElementById('nextMonth').addEventListener('click', () => {
+        currentDate.setMonth(currentDate.getMonth() + 1);
+        renderCalendar();
+    });
+
+    initializeCalendar();
+</script>
 {% endblock %}

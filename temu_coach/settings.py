@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'coaches_book_catalog',
     'e_money',
     'reviews_ratings',
+    'scheduler',
 ]
 
 MIDDLEWARE = [
