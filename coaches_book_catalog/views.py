@@ -1,5 +1,6 @@
 from django.shortcuts import get_object_or_404, redirect, render
-from .models import Coach, Booking, MockJadwal
+from .models import Coach, Booking
+from scheduler.models import Jadwal
 # from scheduler.models import Jadwal
 from django.contrib.auth.decorators import login_required
 from django.db.models.functions import Lower
@@ -44,7 +45,7 @@ def show_catalog(request):
 
 def coach_detail(request, coach_id):
     coach = get_object_or_404(Coach, pk=coach_id)
-    available_schedules = MockJadwal.objects.filter(coach=coach, is_booked=False).order_by('tanggal', 'jam_mulai')
+    available_schedules = Jadwal.objects.filter(coach=coach, is_booked=False).order_by('tanggal', 'jam_mulai')
     grouped_schedules = defaultdict(list)
     for jadwal in available_schedules:
         grouped_schedules[jadwal.tanggal].append(jadwal)
@@ -59,7 +60,7 @@ def coach_detail(request, coach_id):
 @login_required
 def book_coach(request, jadwal_id):
     if request.method == 'POST':
-        jadwal_to_book = get_object_or_404(MockJadwal, pk=jadwal_id, is_booked=False)
+        jadwal_to_book = get_object_or_404(Jadwal, pk=jadwal_id, is_booked=False)
 
         jadwal_to_book.is_booked = True
         jadwal_to_book.save()

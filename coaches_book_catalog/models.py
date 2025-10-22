@@ -1,4 +1,5 @@
 from django.db import models
+from scheduler.models import Jadwal
 from django.conf import settings
 # Create your models here.
 class Coach(models.Model):
@@ -20,18 +21,10 @@ class Coach(models.Model):
     def __str__(self):
         return self.name
     
-class MockJadwal(models.Model):
-    coach = models.ForeignKey(Coach, on_delete=models.CASCADE, related_name="mock_jadwal")
-    tanggal = models.DateField()
-    jam_mulai = models.TimeField()
-    jam_selesai = models.TimeField()
-    is_booked = models.BooleanField(default=False)
 
-    def __str__(self):
-        return f"[Mock] {self.coach.name} | {self.tanggal} | {self.jam_mulai}"
     
 class Booking(models.Model):
-    jadwal = models.OneToOneField(MockJadwal, on_delete=models.CASCADE, null=True, blank=True)
+    jadwal = models.OneToOneField(Jadwal, on_delete=models.CASCADE, null=True, blank=True)
     customer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
 
