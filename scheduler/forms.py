@@ -1,9 +1,9 @@
 from django import forms
-from .models import TambahkanJadwal
+from .models import Jadwal
 
 class TambahkanJadwalForm(forms.ModelForm):
     class Meta:
-        model = TambahkanJadwal
+        model = Jadwal
         fields = ['tanggal', 'jam_mulai', 'jam_selesai']
         widgets = {
             'tanggal': forms.DateInput(
