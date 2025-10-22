@@ -1,23 +1,12 @@
 <div class="catalog-grid">
     {% for coach in page_obj %}
-        <a href="{% url 'coach_detail' coach.id %}" class="coach-card"> 
-            
-            <h3>{{ coach.name|default:"Nama Coach" }}</h3>
-            <p class="nationality">{{ coach.citizenship|default:"Negara" }}</p>
+        
+        {% include 'coaches_book_catalog/card.html' with coach=coach %}
 
-            <div class="rating">
-                &#9733; &#9733; &#9733; &#9733; &#9733;
-            </div>
-
-            <div class="price">
-                Rp {{ coach.rate_per_session|floatformat:0|default:"150.000" }}
-            </div>
-        </a>
     {% empty %}
         <p>Tidak ada coach yang ditemukan.</p>
     {% endfor %}
 </div>
-
 <div class="pagination">
     {% if page_obj.has_previous %}
         <a href="?page={{ page_obj.previous_page_number }}&q={{ search_query }}&country={{ country_filter }}&sort={{ sort_by }}">&lt;</a>
