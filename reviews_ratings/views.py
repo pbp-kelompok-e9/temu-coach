@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_GET
 from django.shortcuts import get_object_or_404
 from .models import Reviews
 from coaches_book_catalog.models import Coach
@@ -13,6 +13,8 @@ from .forms import ReportForm
 
 
 # Create your views here.
+
+# function buat handle create review (cuma bisa sekali kalo user belum pernah review coach tsb)
 @csrf_exempt
 @require_POST
 def create_review(request, coach_id):
@@ -35,6 +37,7 @@ def create_review(request, coach_id):
         "review_id": review_obj[0].id,
         })
 
+# function buat handle update review (cuma bisa update kalo user udah pernah review coach tsb)
 @csrf_exempt
 @require_POST
 def update_review(request, id) :
@@ -48,6 +51,7 @@ def update_review(request, id) :
         "review_id": review.id,
         })
 
+# function buat handle delete review (cuma bisa delete kalo user udah pernah review coach tsb)
 @csrf_exempt
 @require_POST
 def delete_review(request, id) :
@@ -56,7 +60,7 @@ def delete_review(request, id) :
     review.delete()
     return JsonResponse({"success": True})
 
-
+# function buat ngecek apakah user udah pernah review coach tsb
 def check_review(request, coach_id) :
     try :
         review = Reviews.objects.get(coach_id=coach_id, user=request.user)
@@ -73,6 +77,30 @@ def check_review(request, coach_id) :
         )
     except Reviews.DoesNotExist :
         return JsonResponse({'has_review': False})
+
+# function buat ngambil semua review dari coach tertentu
+@require_GET
+def get_reviews_by_coach(request, coach_id) :
+
+    coach = get_object_or_404(Coach, id=coach_id)
+    reviews = Reviews.objects.filter(coach=coach)
+
+    data = []
+
+    for review in reviews : 
+        data.append({
+            "id": review.id,
+            "user": review.user.username,
+            "rate": review.rate,
+            "review": review.review,
+        })
+
+    return JsonResponse({
+        "coach": coach.name,
+        "coach_id": coach.id,
+        "total_reviews": len(data),
+        "reviews": data,
+    })
     
 @login_required
 def create_report(request, coach_id):

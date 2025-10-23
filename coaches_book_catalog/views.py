@@ -8,6 +8,8 @@ from django.core.paginator import Paginator
 from collections import defaultdict
 from django.conf import settings        
 from django.conf.urls.static import static 
+from reviews_ratings.models import Reviews
+from django.db.models import Avg
 # Create your views here.
 
 def show_catalog(request):
@@ -30,6 +32,12 @@ def show_catalog(request):
         coaches = coaches.order_by('-rate_per_session') 
     else: 
         coaches = coaches.order_by(Lower('name'))
+
+    for coach in coaches :
+        stats = Reviews.objects.filter(coach=coach).aggregate(avg_rate=Avg('rate'))
+        coach.avg_rate = round(stats['avg_rate'] or 0)
+        coach.total_reviews = Reviews.objects.filter(coach=coach).count()
+        coach.recent_review = Reviews.objects.filter(coach=coach).order_by('-created_at').first()
 
     paginator = Paginator(coaches, 12) 
     page_number = request.GET.get('page')
@@ -54,10 +62,19 @@ def coach_detail(request, coach_id):
     grouped_schedules = defaultdict(list)
     for jadwal in available_schedules:
         grouped_schedules[jadwal.tanggal].append(jadwal)
+    
+    # Get ratings data
+    reviews = Reviews.objects.filter(coach=coach).order_by('-created_at')
+    stats = reviews.aggregate(avg_rate=Avg('rate'))
+    avg_rating = round(stats['avg_rate'] or 0, 1)  # round to 1 decimal place, default to 0 if no ratings
+    total_reviews = reviews.count()
         
     context = {
         'coach': coach,
         'grouped_schedules': dict(grouped_schedules),
+        'reviews': reviews,
+        'avg_rating': avg_rating,
+        'total_reviews': total_reviews,
     }
 
     return render(request, 'coaches_book_catalog/coach_detail.html', context)
@@ -69,10 +86,11 @@ def book_coach(request, jadwal_id):
 
         jadwal_to_book.is_booked = True
         jadwal_to_book.save()
-
+        booking_notes = request.POST.get('notes', '')
         Booking.objects.create(
             jadwal=jadwal_to_book,
-            customer=request.user
+            customer=request.user,
+            notes=booking_notes,
         )
 
         return redirect('show_catalog')
