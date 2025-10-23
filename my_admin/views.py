@@ -5,7 +5,6 @@ from django.views.decorators.http import require_POST
 from .models import Report, AdminAction
 from coaches_book_catalog.models import Coach, CoachRequest
 
-
 def dashboard_simple(request):
     reports = Report.objects.select_related('reporter', 'coach__user').order_by('-created_at')
     pending_requests = CoachRequest.objects.filter(approved=False).select_related('user').order_by('-created_at')
@@ -15,7 +14,6 @@ def dashboard_simple(request):
         'pending_requests': pending_requests,
     }
     return render(request, 'dashboard_simple.html', context)
-
 
 @require_POST
 def approve_coach(request, coach_id):
@@ -50,8 +48,6 @@ def approve_coach(request, coach_id):
 
     return redirect('my_admin:dashboard_simple')
 
-
-
 @require_POST
 def reject_coach(request, coach_id):
     req = get_object_or_404(CoachRequest, pk=coach_id)
@@ -60,8 +56,6 @@ def reject_coach(request, coach_id):
 
     messages.info(request, f"Coach request from {username} rejected.")
     return redirect('my_admin:dashboard_simple')
-
-
 
 @require_POST
 def ban_coach(request, coach_id):
@@ -77,8 +71,6 @@ def ban_coach(request, coach_id):
 
     messages.warning(request, f"Coach {username} has been banned and deleted.")
     return redirect('my_admin:dashboard_simple')
-
-
 
 @require_POST
 def delete_report(request, report_id):

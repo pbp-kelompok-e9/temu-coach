@@ -4,64 +4,63 @@
   <meta charset="UTF-8" />
   <title>Admin Dashboard - TemuCoach</title>
 
-  <!-- Tailwind (optional, tetap boleh) -->
+  <!-- Tailwind CSS -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 
   <!-- Plus Jakarta Sans -->
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
+
 <body class="bg-gray-50" style="font-family:'Plus Jakarta Sans',sans-serif;">
   {% include 'navbar.html' %}
-  <div class="max-w-5xl mx-auto py-10 px-6">
 
-{% if messages %}
-  <div class="mb-15">
-    {% for message in messages %}
-      {% if message.tags == 'success' %}
-        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-2">
-          {{ message }}
-        </div>
-      {% elif message.tags == 'warning' %}
-        <div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-2">
-          {{ message }}
-        </div>
-      {% elif message.tags == 'error' %}
-        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-2">
-          {{ message }}
-        </div>
-      {% else %}
-        <div class="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded mb-2">
-          {{ message }}
-        </div>
-      {% endif %}
-    {% endfor %}
-  </div>
-{% endif %}
+  <div class="max-w-5xl mx-auto py-10 px-4 sm:px-6">
 
-    <!-- Report List -->
-     <br>
-    <h1 class="text-3xl font-extrabold mb-6" style="color:#003E85;">Report List</h1>
+    <!-- MESSAGES -->
+    {% if messages %}
+      <div class="mb-6">
+        {% for message in messages %}
+          <div class="
+            px-4 py-3 mb-2 rounded border 
+            {% if message.tags == 'success' %}
+              bg-green-100 border-green-400 text-green-700
+            {% elif message.tags == 'warning' %}
+              bg-yellow-100 border-yellow-400 text-yellow-700
+            {% elif message.tags == 'error' %}
+              bg-red-100 border-red-400 text-red-700
+            {% else %}
+              bg-blue-100 border-blue-400 text-blue-700
+            {% endif %}
+          ">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <!-- REPORT LIST -->
+    <h1 class="text-2xl sm:text-3xl font-extrabold mb-4 sm:mb-6 text-[#003E85]">Report List</h1>
 
     {% if reports %}
       <div class="space-y-4">
         {% for r in reports %}
-          <div class="bg-white flex justify-between items-center shadow-sm"
+          <div class="bg-white shadow-sm flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 sm:gap-0"
                style="border:4px solid #DE3400; border-radius:12px; padding:20px;">
-            <div>
-              <h2 class="text-2xl font-bold" style="color:#DE3400;">{{ r.coach.user.username }}</h2>
+            <div class="flex-1">
+              <h2 class="text-xl sm:text-2xl font-bold text-[#DE3400]">{{ r.coach.user.username }}</h2>
               <p class="text-gray-700 text-sm mt-1">{{ r.reason|truncatechars:120 }}</p>
             </div>
-            <div class="flex flex-col space-y-2">
+            <div class="flex sm:flex-col gap-2 sm:gap-3 justify-end">
               <form method="post" action="{% url 'my_admin:ban_coach' r.coach.id %}">
                 {% csrf_token %}
-                <button class="text-white font-semibold shadow"
+                <button class="text-white font-semibold shadow w-full sm:w-auto"
                         style="background-color:#DE3400; padding:.375rem 1rem; border-radius:.5rem;">
                   Ban Coach
                 </button>
               </form>
               <form method="post" action="{% url 'my_admin:delete_report' r.id %}">
                 {% csrf_token %}
-                <button class="text-white font-semibold shadow"
+                <button class="text-white font-semibold shadow w-full sm:w-auto"
                         style="background-color:#DE3400; padding:.375rem 1rem; border-radius:.5rem;">
                   Delete Report
                 </button>
@@ -71,38 +70,36 @@
         {% endfor %}
       </div>
     {% else %}
-      <p class="text-gray-500 text-center bg-white"
-         style="border:1px solid #e5e7eb; border-radius:10px; padding:16px;">
+      <p class="text-gray-500 text-center bg-white border border-gray-200 rounded-lg py-4">
         No reports found.
       </p>
     {% endif %}
 
-    <!-- Divider -->
-    <hr class="my-8" style="border-top:2px solid #e5e7eb;" />
+    <hr class="my-8 border-t-2 border-gray-200">
 
-    <!-- Coach Approval -->
-    <h1 class="text-3xl font-extrabold mb-6" style="color:#003E85;">Coach Approval</h1>
+    <!-- COACH APPROVAL -->
+    <h1 class="text-2xl sm:text-3xl font-extrabold mb-4 sm:mb-6 text-[#003E85]">Coach Approval</h1>
 
     {% if pending_requests %}
       <div class="space-y-4">
         {% for c in pending_requests %}
-          <div class="bg-white flex justify-between items-center shadow-sm"
+          <div class="bg-white shadow-sm flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 sm:gap-0"
                style="border:4px solid #003E85; border-radius:12px; padding:20px;">
-            <div>
-              <h2 class="text-2xl font-bold" style="color:#003E85;">{{ c.name }}</h2>
+            <div class="flex-1">
+              <h2 class="text-xl sm:text-2xl font-bold text-[#003E85]">{{ c.name }}</h2>
               <p class="text-gray-700 text-sm mt-1">{{ c.description|truncatechars:120 }}</p>
             </div>
-            <div class="flex flex-col space-y-2">
+            <div class="flex sm:flex-col gap-2 sm:gap-3 justify-end">
               <form method="post" action="{% url 'my_admin:approve_coach' c.id %}">
                 {% csrf_token %}
-                <button class="text-white font-semibold shadow"
+                <button class="text-white font-semibold shadow w-full sm:w-auto"
                         style="background-color:#003E85; padding:.375rem 1rem; border-radius:.5rem;">
                   Approve
                 </button>
               </form>
               <form method="post" action="{% url 'my_admin:reject_coach' c.id %}">
                 {% csrf_token %}
-                <button class="text-white font-semibold shadow"
+                <button class="text-white font-semibold shadow w-full sm:w-auto"
                         style="background-color:#003E85; padding:.375rem 1rem; border-radius:.5rem;">
                   Delete Request
                 </button>
@@ -112,12 +109,11 @@
         {% endfor %}
       </div>
     {% else %}
-      <p class="text-gray-500 text-center bg-white"
-         style="border:1px solid #e5e7eb; border-radius:10px; padding:16px;">
+      <p class="text-gray-500 text-center bg-white border border-gray-200 rounded-lg py-4">
         No pending coach requests.
       </p>
     {% endif %}
-
   </div>
 </body>
 </html>
+

@@ -37,3 +37,4 @@ class AdminAction(models.Model):
         admin_name = self.admin.username if self.admin else "system"
         return f"{admin_name} {self.action_type} #{self.id}"
     
+
