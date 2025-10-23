@@ -1,24 +1,25 @@
-<div class="catalog-grid">
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
     {% for coach in page_obj %}
-        
         {% include 'coaches_book_catalog/card.html' with coach=coach %}
-
     {% empty %}
-        <p>Tidak ada coach yang ditemukan.</p>
+        <p class="col-span-full text-center text-gray-500">Tidak ada coach yang ditemukan.</p>
     {% endfor %}
 </div>
-<div class="pagination">
+
+<div class="flex items-center justify-center gap-4 mt-8">
     {% if page_obj.has_previous %}
-        <a href="?page={{ page_obj.previous_page_number }}&q={{ search_query }}&country={{ country_filter }}&sort={{ sort_by }}">&lt;</a>
+        <a href="?page={{ page_obj.previous_page_number }}&q={{ search_query }}&country={{ country_filter }}&sort={{ sort_by }}" class="px-3 py-1 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100">&lt;</a>
     {% else %}
-        <span class="disabled">&lt;</span>
+        <span class="px-3 py-1 border border-gray-200 rounded-md text-gray-400 cursor-not-allowed">&lt;</span>
     {% endif %}
 
-    <span class="current">{{ page_obj.number }}</span>
+    <span class="px-3 py-1 font-semibold text-[#003E85] border border-[#003E85] rounded-md bg-[#E6F0FF]">
+        {{ page_obj.number }}
+    </span>
 
     {% if page_obj.has_next %}
-        <a href="?page={{ page_obj.next_page_number }}&q={{ search_query }}&country={{ country_filter }}&sort={{ sort_by }}">&gt;</a>
+        <a href="?page={{ page_obj.next_page_number }}&q={{ search_query }}&country={{ country_filter }}&sort={{ sort_by }}" class="px-3 py-1 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100">&gt;</a>
     {% else %}
-        <span class="disabled">&gt;</span>
+        <span class="px-3 py-1 border border-gray-200 rounded-md text-gray-400 cursor-not-allowed">&gt;</span>
     {% endif %}
 </div>

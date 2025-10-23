@@ -1,124 +1,44 @@
-{% load static %} <!DOCTYPE html>
+{% load static %}<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
-    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <script src="https://cdn.tailwindcss.com"></script>
     <title>{% block title %}TemuCoach{% endblock %}</title>
-    
     <style>
-        body {
-            font-family: 'Plus Jakarta Sans', Arial, sans-serif;
-            margin: 0;
-            background-color: #FFFFFF;
-            padding-top: 75px; 
+        @layer utilities {
+            .font-plus-jakarta { font-family: "Plus Jakarta Sans", Arial, sans-serif; }
         }
-
-        .navbar {
-            background-color: #ffffff;
-            padding: 15px 30px;
-            border-bottom: 1px solid #ddd;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-        }
-
-        .navbar-brand {
-            display: flex;
-            align-items: center;
-            text-decoration: none;
-        }
-
-        .logo-image {
-            width: 40px;  
-            height: 40px; 
-            object-fit: contain; 
-        }
-        
-        .logo-text {
-            color: #003E85;
-            font-size: 20px;
-            font-weight: 700;
-            margin-left: 12px;
-        }
-
-        .navbar-links {
-            display: flex;
-            align-items: center;
-            gap: 25px; 
-        }
-
-        .navbar-links a {
-            text-decoration: none;
-            color: #374151; 
-            font-weight: 600;
-            font-size: 1rem;
-            transition: color 0.2s;
-        }
-
-        .navbar-links a:hover {
-            color: #003E85; 
-        }
-
-        .navbar-links a.nav-link-logout {
-            color: #DE3400; 
-            font-weight: 800;
-            font-size: 20px; 
-        }
-
-
-
     </style>
-
-    {% block content_style %}
-    {% endblock %}
+    {% block content_style %}{% endblock %}
 </head>
-<body>
-
-    <nav class="navbar">
-        <a href="/" class="navbar-brand">
-            <img src="{% static 'images/logo.png' %}" alt="TemuCoach Logo" class="logo-image">
-            <span class="logo-text">TemuCoach</span>
+<body class="font-plus-jakarta bg-white m-0 pt-[75px]">
+    <nav class="bg-white px-[30px] py-[15px] border-b border-[#ddd] shadow-[0_2px_4px_rgba(0,0,0,0.05)] flex justify-between items-center fixed top-0 left-0 right-0 z-[1000]">
+        <a href="/" class="flex items-center no-underline">
+            <img src="{% static 'images/logo.png' %}" alt="TemuCoach Logo" class="w-[40px] h-[40px] object-contain">
+            <span class="text-[#003E85] text-[20px] font-bold ml-[12px]">TemuCoach</span>
         </a>
-
-        <div class="navbar-links">
-            <!-- TODO: Update links based on authentication status -->
+        <div class="flex items-center gap-[25px]">
             {% if user.is_authenticated %}
                 {% if user.is_customer %}
-                    <a href="#">Dashboard</a>
-                    <a href="{% url 'show_catalog' %}">Coaches</a>
-                
+                    <a href="#" class="no-underline text-[#374151] font-semibold text-base hover:text-[#003E85] transition-colors">Dashboard</a>
+                    <a href="{% url 'show_catalog' %}" class="no-underline text-[#374151] font-semibold text-base hover:text-[#003E85] transition-colors">Coaches</a>
                 {% elif user.is_coach %}
-                    {% endif %}
-
-                <a href="#" class="nav-link-logout">Logout</a>
-
+                {% endif %}
+                <a href="#" class="no-underline text-[#DE3400] font-extrabold text-[20px]">Logout</a>
             {% else %}
-                <a href="#">Login</a>
-                <a href="#">Sign Up</a>
+                <a href="#" class="no-underline text-[#374151] font-semibold text-base hover:text-[#003E85] transition-colors">Login</a>
+                <a href="#" class="no-underline text-[#374151] font-semibold text-base hover:text-[#003E85] transition-colors">Sign Up</a>
             {% endif %}
-
         </div>
     </nav>
     <main>
-        {% block content %}
-        {% endblock %}
+        {% block content %}{% endblock %}
     </main>
-    
-    {% block content_script %}
-    {% endblock %}
+    {% block content_script %}{% endblock %}
 </body>
 </html>

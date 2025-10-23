@@ -3,276 +3,37 @@
 {% block title %}Katalog Coach{% endblock %}
 
 {% block content %}
+<script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 
-<style>
-    body {
-        font-family: 'Plus Jakarta Sans', Arial, sans-serif;
-        background-color: #FFFFFF;
-        color: #000000;
-        font-weight: 400; 
-    }
-
-    .page-container {
-        max-width: 1100px; 
-        margin: 0 auto;
-        padding: 1rem 2rem;
-    }
-
-    .header {
-        text-align: left; 
-        margin-top: 2rem;
-        margin-bottom: 1rem;
-    }
-    .header h1 {
-        font-size: 4.375rem;
-        font-weight: 700; 
-        color: #003E85; 
-        margin: 0;
-    }
-    .header p {
-        font-size: 2.625rem; 
-        color: #003E85;
-        margin: 0.5rem 0 0 0;
-        font-weight: 600; 
-    }
-
-    .controls-form {
-        margin-bottom: 2rem;
-    }
-
-    .search-bar {
-        display: flex;
-        gap: 0.5rem;
-        margin-bottom: 1.5rem;
-    }
-    .search-input {
-        flex-grow: 1;
-        padding: 0.75rem 1rem;
-        font-size: 1rem;
-        border: 3px solid #B0B0B0; 
-        border-radius: 10px;
-        font-family: 'Plus Jakarta Sans', Arial, sans-serif; 
-        font-weight: 400; 
-    }
-    .search-input::placeholder {
-        color: #888;
-    }
-    .search-button {
-        padding: 0.75rem 1.5rem;
-        font-size: 1rem;
-        font-weight: 600;
-        background-color: #DE3400; 
-        color: white;
-        border: 3px solid #B0B0B0; 
-        border-radius: 10px;
-        cursor: pointer;
-        font-family: 'Plus Jakarta Sans', Arial, sans-serif;
-    }
-
-    .filter-bar {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        flex-wrap: wrap;
-    }
-    .filter-bar label {
-        font-size: 1rem;
-        color: #003E85;
-        font-weight: 600; 
-    }
-    .filter-select {
-        appearance: none;
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        background-color: #DE3400; 
-        color: white;
-        padding: 0.5rem 2.5rem 0.5rem 1rem;
-        border: none;
-        border-radius: 4px;
-        font-size: 0.9rem;
-        cursor: pointer;
-        font-family: 'Plus Jakarta Sans', Arial, sans-serif;
-        font-weight: 600; 
-    
-        background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22white%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M1.646%204.646a.5.5%200%200%201%20.708%200L8%2010.293l5.646-5.647a.5.5%200%200%201%20.708.708l-6%206a.5.5%200%200%201-.708%200l-6-6a.5.5%200%200%201%200-.708z%22%2F%3E%3C%2Fsvg%3E');
-        background-repeat: no-repeat;
-        background-position: right 0.75rem center;
-        background-size: 12px 12px;
-    }
-    .filter-select option {
-        background-color: white;
-        color: black;
-        font-weight: 400; 
-    }
-
-    .catalog-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 1.5rem;
-    }
-
-    .pagination {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin-top: 3rem;
-        gap: 0.75rem;
-    }
-    .pagination a, .pagination span {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 36px;
-        height: 36px;
-        line-height: 36px;
-        text-align: center;
-        border-radius: 50%; 
-        text-decoration: none;
-        font-weight: 600; 
-        font-size: 1rem;
-        background-color: #003E85; 
-        color: white;
-        border: none;
-    }
-    .pagination .disabled {
-        background-color: #BDBDBD; 
-        color: #FAFAFA;
-    }
-    .pagination .current {
-        background-color: #003E85; 
-        color: white;
-    }
-
-    .how-it-works {
-        text-align: left;
-        margin-top: 4rem;
-        padding-top: 2rem;
-    }
-    .how-it-works h2 {
-        font-size: 2rem;
-        font-weight: 700; 
-        color: #003E85;
-        margin-bottom: 2rem;
-    }
-    .how-it-works-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr); 
-        gap: 1.5rem;
-        text-align: left; 
-    }
-    .how-card {
-        background-color: white;
-        border: 1px solid #E0E0E0; 
-        border-radius: 8px;
-        padding: 1.5rem;
-    }
-    .how-card h3 {
-        color: #003E85;
-        font-size: 1.25rem;
-        font-weight: 700; 
-        margin: 0 0 0.5rem 0;
-    }
-    .how-card p {
-        font-size: 0.9rem;
-        color: #003E85;
-        margin: 0;
-        line-height: 1.5;
-        font-weight: 400;
-    }
-    .how-icon {
-        font-size: 2.5rem; 
-        color: #DE3400; 
-        margin-bottom: 1rem;
-        display: flex;
-        justify-content: center; 
-        align-items: center;
-        width: 60px;
-        height: 60px; 
-        background-color: #ffe5dd; 
-        border-radius: 50%; 
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
-        margin-left: auto;
-        margin-right: auto; 
-    }
-
-    .how-card {
-        text-align: center; 
-    }
-
-    @media (max-width: 992px) {
-        .catalog-grid {
-            grid-template-columns: repeat(3, 1fr); 
-        }
-    }
-    @media (max-width: 768px) {
-        .catalog-grid {
-            grid-template-columns: repeat(2, 1fr); 
-        }
-        .how-it-works-grid {
-            grid-template-columns: 1fr; 
-        }
-    }
-    @media (max-width: 576px) {
-        .page-container {
-            padding: 1rem;
-        }
-        .header h1 {
-            font-size: 1.75rem;
-        }
-        .catalog-grid {
-            grid-template-columns: 1fr; 
-        }
-        .filter-bar {
-            gap: 0.5rem;
-        }
-        .filter-bar label {
-            width: 100%; 
-            margin-bottom: 0.25rem;
-        }
-    }
-</style>
-
-<div class="page-container">
-    <div class="header">
-        <h1>Temukan Coach Terbaik Anda</h1>
-        <p>Jelajahi daftar pelatih profesional kami.</p>
+<div class="max-w-[1100px] mx-auto px-8 py-4 font-[Plus Jakarta Sans] bg-white text-black font-normal">
+    <div class="text-left mt-8 mb-4">
+        <h1 class="text-[4.375rem] font-bold text-[#003E85] m-0">Temukan Coach Terbaik Anda</h1>
+        <p class="text-[2.625rem] text-[#003E85] mt-2 font-semibold">Jelajahi daftar pelatih profesional kami.</p>
     </div>
 
-    <form method="GET" action="{% url 'show_catalog' %}" class="controls-form" id="controls-form">
-        
-        <div class="search-bar">
-            <input 
-                type="text" 
-                name="q" 
-                value="{{ search_query }}" 
-                placeholder="Cari nama coach..." 
-                class="search-input"
-            >
-            <button type="submit" class="search-button">Cari</button>
+    <form method="GET" action="{% url 'show_catalog' %}" class="mb-8" id="controls-form">
+        <div class="flex gap-2 mb-6">
+            <input type="text" name="q" value="{{ search_query }}" placeholder="Cari nama coach..." class="flex-grow px-4 py-3 text-base border-[3px] border-[#B0B0B0] rounded-[10px] font-normal placeholder:text-gray-500">
+            <button type="submit" class="px-6 py-3 text-base font-semibold bg-[#DE3400] text-white border-[3px] border-[#B0B0B0] rounded-[10px] cursor-pointer">Cari</button>
         </div>
-        
-        <div class="filter-bar">
-            <label for="sort-select">Urutkan berdasarkan:</label>
-            
-            <select name="sort" id="sort-select" class="filter-select">
+
+        <div class="flex flex-wrap items-center gap-3">
+            <label for="sort-select" class="text-base text-[#003E85] font-semibold">Urutkan berdasarkan:</label>
+            <select name="sort" id="sort-select" class="appearance-none bg-[#DE3400] text-white px-4 pr-10 py-2 rounded font-semibold text-sm cursor-pointer bg-no-repeat bg-right-[0.75rem] bg-[length:12px_12px]" style="background-image:url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22white%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M1.646%204.646a.5.5%200%200%201%20.708%200L8%2010.293l5.646-5.647a.5.5%200%200%201%20.708.708l-6%206a.5.5%200%200%201-.708%200l-6-6a.5.5%200%200%201%200-.708z%22%2F%3E%3C%2Fsvg%3E');">
                 <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Name Coach (A-Z)</option>
                 <option value="rate_asc" {% if sort_by == 'rate_asc' %}selected{% endif %}>Harga (Termurah)</option>
                 <option value="rate_desc" {% if sort_by == 'rate_desc' %}selected{% endif %}>Harga (Termahal)</option>
             </select>
-            
-            <label for="country-select">Filter:</label>
 
-            <select name="country" id="country-select" class="filter-select">
+            <label for="country-select" class="text-base text-[#003E85] font-semibold">Filter:</label>
+            <select name="country" id="country-select" class="appearance-none bg-[#DE3400] text-white px-4 pr-10 py-2 rounded font-semibold text-sm cursor-pointer bg-no-repeat bg-right-[0.75rem] bg-[length:12px_12px]" style="background-image:url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22white%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M1.646%204.646a.5.5%200%200%201%20.708%200L8%2010.293l5.646-5.647a.5.5%200%200%201%20.708.708l-6%206a.5.5%200%200%201-.708%200l-6-6a.5.5%200%200%201%200-.708z%22%2F%3E%3C%2Fsvg%3E');">
                 <option value="">Negara</option>
                 {% for country in countries_list %}
-                    <option value="{{ country }}" {% if country == country_filter %}selected{% endif %}>
-                        {{ country }}
-                    </option>
+                    <option value="{{ country }}" {% if country == country_filter %}selected{% endif %}>{{ country }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -282,36 +43,33 @@
         {% include 'coaches_book_catalog/coach_list_partial.html' %}
     </div>
 
-
-<section class="how-it-works">
-        <h2>How TemuCoach Works</h2>
-        <div class="how-it-works-grid">
-            <div class="how-card">
-                <div class="how-icon">
-                    <i class="fas fa-search"></i> 
+    <section class="text-left mt-16 pt-8">
+        <h2 class="text-[2rem] font-bold text-[#003E85] mb-8">How TemuCoach Works</h2>
+        <div class="grid grid-cols-3 gap-6 text-left max-md:grid-cols-1">
+            <div class="bg-white border border-[#E0E0E0] rounded-lg p-6 text-center">
+                <div class="flex justify-center items-center w-[60px] h-[60px] bg-[#ffe5dd] rounded-full shadow mx-auto mb-4">
+                    <i class="fas fa-search text-[2.5rem] text-[#DE3400]"></i>
                 </div>
-                <h3>Browse</h3>
-                <p>Temukan dan bandingkan ratusan pelatih profesional dari berbagai negara dan keahlian.</p>
+                <h3 class="text-[#003E85] text-xl font-bold mb-2">Browse</h3>
+                <p class="text-sm text-[#003E85] leading-[1.5]">Temukan dan bandingkan ratusan pelatih profesional dari berbagai negara dan keahlian.</p>
             </div>
-            <div class="how-card">
-                <div class="how-icon">
-                    <i class="fas fa-calendar-check"></i>   
+            <div class="bg-white border border-[#E0E0E0] rounded-lg p-6 text-center">
+                <div class="flex justify-center items-center w-[60px] h-[60px] bg-[#ffe5dd] rounded-full shadow mx-auto mb-4">
+                    <i class="fas fa-calendar-check text-[2.5rem] text-[#DE3400]"></i>
                 </div>
-                <h3>Book</h3>
-                <p>Lihat ketersediaan jadwal, pilih waktu yang paling sesuai, dan pesan sesi Anda secara instan.</p>
+                <h3 class="text-[#003E85] text-xl font-bold mb-2">Book</h3>
+                <p class="text-sm text-[#003E85] leading-[1.5]">Lihat ketersediaan jadwal, pilih waktu yang paling sesuai, dan pesan sesi Anda secara instan.</p>
             </div>
-            <div class="how-card">
-                <div class="how-icon">
-                    <i class="fas fa-dumbbell"></i>
+            <div class="bg-white border border-[#E0E0E0] rounded-lg p-6 text-center">
+                <div class="flex justify-center items-center w-[60px] h-[60px] bg-[#ffe5dd] rounded-full shadow mx-auto mb-4">
+                    <i class="fas fa-dumbbell text-[2.5rem] text-[#DE3400]"></i>
                 </div>
-                <h3>Train</h3>
-                <p>Mulai sesi latihan Anda dan dapatkan bimbingan ahli untuk mencapai tujuan pribadi atau profesional Anda.</p>
+                <h3 class="text-[#003E85] text-xl font-bold mb-2">Train</h3>
+                <p class="text-sm text-[#003E85] leading-[1.5]">Mulai sesi latihan Anda dan dapatkan bimbingan ahli untuk mencapai tujuan pribadi atau profesional Anda.</p>
             </div>
         </div>
     </section>
-
-
-
+</div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -322,11 +80,7 @@
         const countrySelect = document.getElementById('country-select');
 
         function fetchAndUpdate(url) {
-            fetch(url, {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest' 
-                }
-            })
+            fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
             .then(response => response.text())
             .then(html => {
                 container.innerHTML = html;
@@ -336,7 +90,7 @@
         }
 
         form.addEventListener('submit', function(e) {
-            e.preventDefault(); 
+            e.preventDefault();
             const formData = new FormData(form);
             const params = new URLSearchParams(formData);
             const url = `${form.action}?${params.toString()}`;
@@ -358,8 +112,8 @@
 
         container.addEventListener('click', function(e) {
             if (e.target.tagName === 'A' && e.target.closest('.pagination')) {
-                e.preventDefault(); 
-                const url = e.target.href; 
+                e.preventDefault();
+                const url = e.target.href;
                 fetchAndUpdate(url);
             }
         });
@@ -373,5 +127,4 @@
         });
     });
 </script>
-
 {% endblock %}
