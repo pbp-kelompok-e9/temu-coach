@@ -1,6 +1,5 @@
 from django.urls import path
 from . import views
-from . import test_views
 
 app_name = 'reviews_ratings'
 
@@ -9,5 +8,4 @@ urlpatterns = [
     path('update/<int:id>/', views.update_review, name='update_review'),
     path('delete/<int:id>/', views.delete_review, name='delete_review'),
     path('check/<int:coach_id>/', views.check_review, name='check_review'),
-    path("test/review/", test_views.test_review_page, name="test_review"),
 ]
