@@ -10,6 +10,8 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from coaches_book_catalog.models import Coach
 from .forms import ReportForm
+import datetime
+from django.utils import timezone
 
 
 # Create your views here.
@@ -37,6 +39,48 @@ def create_review(request, coach_id):
         "review_id": review_obj[0].id,
         })
 
+
+# New: create review tied to a booking/session. Validates ownership and schedule end time.
+@csrf_exempt
+@require_POST
+@login_required
+def create_review_for_booking(request, booking_id):
+    from coaches_book_catalog.models import Booking
+
+    # fetch booking and validate
+    booking = get_object_or_404(Booking, id=booking_id)
+    if booking.customer != request.user:
+        return JsonResponse({'success': False, 'error': 'Not allowed'}, status=403)
+
+    # require that the booking has finished (schedule end <= now)
+    jadwal = booking.jadwal
+    # combine jadwal.tanggal and jadwal.jam_selesai into a datetime
+    dt = datetime.datetime.combine(jadwal.tanggal, jadwal.jam_selesai)
+    if timezone.is_naive(dt):
+        schedule_end = timezone.make_aware(dt)
+    else:
+        schedule_end = dt
+    now = timezone.now()
+    if schedule_end > now:
+        return JsonResponse({'success': False, 'error': 'Booking not finished yet'}, status=400)
+
+    # ensure no review exists for this booking
+    if Reviews.objects.filter(booking=booking).exists():
+        return JsonResponse({'success': False, 'error': 'Review already exists for this booking'}, status=400)
+
+    rate = request.POST.get('rate')
+    review_text = request.POST.get('review', '')
+
+    review_obj = Reviews.objects.create(
+        coach = booking.jadwal.coach,
+        user = request.user,
+        booking = booking,
+        rate = rate,
+        review = review_text,
+    )
+
+    return JsonResponse({'success': True, 'review_id': review_obj.id})
+
 # function buat handle update review (cuma bisa update kalo user udah pernah review coach tsb)
 @csrf_exempt
 @require_POST
@@ -60,7 +104,27 @@ def delete_review(request, id) :
     review.delete()
     return JsonResponse({"success": True})
 
-# function buat ngecek apakah user udah pernah review coach tsb
+# function buat ngecek apakah user udah pernah review booking ini
+def check_review_for_booking(request, booking_id):
+    from coaches_book_catalog.models import Booking
+    booking = get_object_or_404(Booking, id=booking_id)
+    if booking.customer != request.user:
+        return JsonResponse({'success': False, 'error': 'Not allowed'}, status=403)
+
+    try:
+        review = Reviews.objects.get(booking=booking)
+        return JsonResponse({
+            'has_review': True,
+            'review': {
+                'id': review.id,
+                'rate': review.rate,
+                'review': review.review,
+            }
+        })
+    except Reviews.DoesNotExist:
+        return JsonResponse({'has_review': False})
+
+# keeping old coach-based review check for backward compatibility
 def check_review(request, coach_id) :
     try :
         review = Reviews.objects.get(coach_id=coach_id, user=request.user)

@@ -1,0 +1,153 @@
+<div id="review-modal-{{ booking.id }}" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 hidden" style="z-index:50;">
+  <div class="bg-white rounded-2xl shadow-lg w-96 p-6" role="dialog" aria-modal="true">
+    <h2 class="text-2xl font-semibold mb-4">Review</h2>
+
+    <div class="mb-4">
+      <label class="block font-medium text-gray-700 mb-1">Rating</label>
+      <div class="flex space-x-1" id="stars-{{ booking.id }}">
+        {% for _ in "12345" %}
+        <button type="button" class="star-btn text-2xl text-gray-300" data-rating="{{ forloop.counter }}" onclick="setRatingForCoach({{ booking.id }}, {{ forloop.counter }})">★</button>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="mb-4">
+      <label class="block font-medium text-gray-700 mb-1">Review</label>
+      <textarea id="review-text-{{ booking.id }}"
+        class="w-full border rounded-lg p-2 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+        rows="3"
+        placeholder="Write your review...">{% if user_review %}{{ user_review.review|default_if_none:"" }}{% endif %}</textarea>
+    </div>
+
+    <div class="flex justify-end space-x-3">
+      <button onclick="closeModal({{ booking.id }})" class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100">
+        Cancel
+      </button>
+      {% if user_review %}
+      <button onclick="updateReview({{ booking.id }}, {{ user_review.id }})" class="px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600">
+        Update review
+      </button>
+      <button onclick="deleteReview({{ user_review.id }})" class="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600">
+        Delete review
+      </button>
+      {% else %}
+      <button onclick="submitReview({{ booking.id }})" class="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700">
+        Submit review
+      </button>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+// small helpers to open/close modal by id (attached globally)
+window.openModal = window.openModal || function(id){
+  var el = document.getElementById('review-modal-' + id);
+  if(el) el.classList.remove('hidden');
+}
+window.closeModal = window.closeModal || function(id){
+  var el = document.getElementById('review-modal-' + id);
+  if(el) el.classList.add('hidden');
+}
+
+// CSRF cookie helper (reads csrftoken)
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+// Simple per-coach state for rating
+window.reviewState = window.reviewState || {};
+
+function setRatingForCoach(bookingId, rating){
+  window.reviewState[bookingId] = window.reviewState[bookingId] || {};
+  window.reviewState[bookingId].rating = rating;
+  const container = document.getElementById('stars-' + bookingId);
+  if(!container) return;
+  Array.from(container.children).forEach((btn, idx)=>{
+    if(idx < rating) {
+      btn.classList.remove('text-gray-300'); btn.classList.add('text-yellow-400');
+    } else {
+      btn.classList.remove('text-yellow-400'); btn.classList.add('text-gray-300');
+    }
+  });
+}
+
+// Initialize star UI when modal is present; prefill from server-rendered user_review
+document.addEventListener('DOMContentLoaded', function(){
+  // find all star containers and set initial rating based on data attribute if present
+  document.querySelectorAll('[id^="stars-"]').forEach(container=>{
+    const id = container.id.replace('stars-','');
+    // default 0
+    let initial = 0;
+    {% comment %} If server provided user_review, template above will call setRatingForCoach with proper value when rendered per-modal. {% endcomment %}
+    // ensure UI reflects current state
+    setRatingForCoach(id, (window.reviewState[id] && window.reviewState[id].rating) || 0);
+  });
+});
+
+function submitReview(bookingId){
+  const rating = (window.reviewState[bookingId] && window.reviewState[bookingId].rating) || 0;
+  const reviewText = document.getElementById('review-text-' + bookingId).value || '';
+  if(rating === 0){ alert('Please select a rating'); return; }
+  const fd = new FormData();
+  fd.append('rate', rating);
+  fd.append('review', reviewText);
+
+  fetch(`/reviews/create/booking/${bookingId}/`, {
+    method: 'POST',
+    credentials: 'same-origin',
+    body: fd,
+    headers: { 'X-CSRFToken': getCookie('csrftoken') }
+  }).then(r=>r.json()).then(data=>{
+    if(data.success){ closeModal(bookingId); location.reload(); }
+    else if(data.error) alert(data.error);
+    else alert('Failed to submit review');
+  }).catch(e=>{ console.error(e); alert('Error'); });
+}
+
+function updateReview(coachId, reviewId){
+  const rating = (window.reviewState[coachId] && window.reviewState[coachId].rating) || 0;
+  const reviewText = document.getElementById('review-text-' + coachId).value || '';
+  if(rating === 0){ alert('Please select a rating'); return; }
+  const fd = new FormData();
+  fd.append('rate', rating);
+  fd.append('review', reviewText);
+
+  fetch(`/reviews/update/${reviewId}/`, {
+    method: 'POST',
+    credentials: 'same-origin',
+    body: fd,
+    headers: { 'X-CSRFToken': getCookie('csrftoken') }
+  }).then(r=>r.json()).then(data=>{
+    if(data.success){ closeModal(coachId); location.reload(); }
+    else alert('Failed to update review');
+  }).catch(e=>{ console.error(e); alert('Error'); });
+}
+
+function deleteReview(reviewId){
+  fetch(`/reviews/delete/${reviewId}/`, {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: { 'X-CSRFToken': getCookie('csrftoken') }
+  }).then(r=>r.json()).then(data=>{
+    if(data.success){ location.reload(); } else alert('Failed to delete');
+  }).catch(e=>{ console.error(e); alert('Error'); });
+}
+</script>
+
+{% if user_review %}
+<script>document.addEventListener('DOMContentLoaded', function(){ setRatingForCoach({{ booking.id }}, {{ user_review.rate }}); });</script>
+{% else %}
+<script>document.addEventListener('DOMContentLoaded', function(){ setRatingForCoach({{ booking.id }}, 0); });</script>
+{% endif %}

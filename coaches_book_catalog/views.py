@@ -107,6 +107,8 @@ def book_coach(request, jadwal_id):
 @login_required
 def customer_dashboard(request):
     now = timezone.now()
+    print(f"Current time (with TZ): {now}")
+    
     all_bookings = Booking.objects.filter(customer=request.user).select_related( 
         'jadwal__coach' 
     ).order_by('jadwal__tanggal', 'jadwal__jam_mulai')
@@ -116,14 +118,25 @@ def customer_dashboard(request):
 
     for booking in all_bookings:
         if booking.jadwal:
-            schedule_start_datetime = timezone.make_aware(
-                timezone.datetime.combine(booking.jadwal.tanggal, booking.jadwal.jam_mulai),
-                timezone.get_current_timezone()
-            )
-            if schedule_start_datetime >= now:
-                upcoming_bookings.append(booking)
-            else:
-                completed_bookings.append(booking)
+            # Make sure we're working with timezone-aware datetime objects
+                # Build a timezone-aware datetime for the schedule end time
+                tz = timezone.get_current_timezone()
+                schedule_end_datetime = timezone.make_aware(
+                    timezone.datetime.combine(booking.jadwal.tanggal, booking.jadwal.jam_selesai),
+                    tz
+                )
+
+                # If the schedule's end time is still in the future, it's upcoming
+                if schedule_end_datetime > now:
+                    upcoming_bookings.append(booking)
+                else:
+                    completed_bookings.append(booking)
+
+    # Get existing reviews for each completed booking
+    for booking in completed_bookings:
+        booking.user_review = Reviews.objects.filter(
+            booking=booking
+        ).first()
 
     context = {
         'upcoming_bookings': upcoming_bookings,
