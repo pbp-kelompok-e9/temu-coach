@@ -73,7 +73,7 @@ def coach_detail(request, coach_id):
     # Get ratings data
     reviews = Reviews.objects.filter(coach=coach).order_by('-created_at')
     stats = reviews.aggregate(avg_rate=Avg('rate'))
-    avg_rating = round(stats['avg_rate'] or 0, 1)  # round to 1 decimal place, default to 0 if no ratings
+    avg_rating = round(stats['avg_rate'] or 0, 1)  
     total_reviews = reviews.count()
         
     context = {
@@ -107,7 +107,6 @@ def book_coach(request, jadwal_id):
 @login_required
 def customer_dashboard(request):
     now = timezone.now()
-    # select_related lebih baik daripada prefetch_related untuk OneToOne/ForeignKey
     all_bookings = Booking.objects.filter(customer=request.user).select_related( 
         'jadwal__coach' 
     ).order_by('jadwal__tanggal', 'jadwal__jam_mulai')
@@ -117,10 +116,9 @@ def customer_dashboard(request):
 
     for booking in all_bookings:
         if booking.jadwal:
-            # Membuat datetime aware untuk perbandingan
             schedule_start_datetime = timezone.make_aware(
                 timezone.datetime.combine(booking.jadwal.tanggal, booking.jadwal.jam_mulai),
-                timezone.get_current_timezone() # Gunakan timezone dari settings.py
+                timezone.get_current_timezone()
             )
             if schedule_start_datetime >= now:
                 upcoming_bookings.append(booking)
@@ -140,7 +138,6 @@ def update_booking_notes(request, booking_id):
     if booking.customer != request.user:
         return JsonResponse({'success': False, 'error': 'Unauthorized'}, status=403)
     
-    # Validasi hanya bisa edit booking mendatang
     now = timezone.now()
     if booking.jadwal:
         schedule_start_datetime = timezone.make_aware(
@@ -150,7 +147,7 @@ def update_booking_notes(request, booking_id):
         if schedule_start_datetime < now:
              return JsonResponse({'success': False, 'error': 'Tidak bisa mengedit catatan booking yang sudah lewat.'}, status=400)
 
-    new_notes = request.POST.get('notes', '') # Default string kosong
+    new_notes = request.POST.get('notes', '')
     booking.notes = new_notes
     booking.save()
     return JsonResponse({'success': True, 'message': 'Catatan berhasil diperbarui.'})
@@ -159,7 +156,7 @@ def update_booking_notes(request, booking_id):
 @login_required
 @require_POST
 def cancel_booking(request, booking_id):
-    booking = get_object_or_404(Booking, pk=booking_id, customer=request.user) # Filter by user di awal
+    booking = get_object_or_404(Booking, pk=booking_id, customer=request.user) 
 
     now = timezone.now()
     if booking.jadwal:
@@ -169,7 +166,7 @@ def cancel_booking(request, booking_id):
         )
         if schedule_start_datetime < now:
             messages.error(request, "Booking yang sudah lewat tidak bisa dibatalkan.")
-            return redirect('dashboard_customer')
+            return redirect('customer_dashboard')
 
     try:
         with transaction.atomic():
@@ -182,4 +179,4 @@ def cancel_booking(request, booking_id):
     except Exception as e:
         messages.error(request, f"Gagal membatalkan booking: {e}")
 
-    return redirect('dashboard_customer')
+    return redirect('customer_dashboard')
