@@ -29,10 +29,10 @@
                     <a href="{% url 'show_catalog' %}" class="no-underline text-[#374151] font-semibold text-base hover:text-[#003E85] transition-colors">Coaches</a>
                 {% elif user.is_coach %}
                 {% endif %}
-                <a href="#" class="no-underline text-[#DE3400] font-extrabold text-[20px]">Logout</a>
+                <a href="{% url 'auth_core:auth_logout' %}" class="no-underline text-[#DE3400] font-extrabold text-[20px]">Logout</a>
             {% else %}
-                <a href="#" class="no-underline text-[#374151] font-semibold text-base hover:text-[#003E85] transition-colors">Login</a>
-                <a href="#" class="no-underline text-[#374151] font-semibold text-base hover:text-[#003E85] transition-colors">Sign Up</a>
+                <a href="{% url 'auth_core:auth_login' %}" class="no-underline text-[#374151] font-semibold text-base hover:text-[#003E85] transition-colors">Login</a>
+                <a href="{% url 'auth_core:auth_register' %}" class="no-underline text-[#374151] font-semibold text-base hover:text-[#003E85] transition-colors">Sign Up</a>
             {% endif %}
         </div>
     </nav>
