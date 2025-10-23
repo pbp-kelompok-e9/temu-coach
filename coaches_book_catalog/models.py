@@ -3,7 +3,7 @@ from django.conf import settings
 import uuid
 # Create your models here.
 class Coach(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete = models.CASCADE)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete = models.CASCADE, related_name='coach_profile')
 
     name = models.CharField(max_length=50)
     age = models.PositiveIntegerField()
@@ -29,7 +29,7 @@ class Booking(models.Model):
 
 
 class CoachRequest(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='coach_request')
 
     name = models.CharField(max_length=50)
     age = models.PositiveIntegerField()

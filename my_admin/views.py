@@ -19,7 +19,6 @@ def dashboard_simple(request):
 def approve_coach(request, coach_id):
     req = get_object_or_404(CoachRequest, pk=coach_id)
 
-    # Hindari duplikasi jika sudah disetujui
     if not req.approved:
         Coach.objects.create(
             user=req.user,

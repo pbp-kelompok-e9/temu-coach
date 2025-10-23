@@ -48,7 +48,6 @@ INSTALLED_APPS = [
     'e_money',
     'reviews_ratings',
     'scheduler',
-    'auth_core',
     'my_admin',
 ]
 
@@ -151,7 +150,10 @@ STATIC_ROOT = os.path.join(BASE_DIR,  'staticfiles')
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
-
+AUTH_USER_MODEL = 'accounts.CustomUser'
+LOGIN_URL = 'login' 
+LOGIN_REDIRECT_URL = 'show_catalog' 
+LOGOUT_REDIRECT_URL = 'login' 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
@@ -160,9 +162,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-LOGIN_URL = 'auth_core:auth_login'
-LOGIN_REDIRECT_URL = 'show_catalog'
-LOGOUT_REDIRECT_URL = 'auth_core:auth_login'
+
 
 EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
