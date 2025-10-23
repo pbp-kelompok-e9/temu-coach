@@ -69,10 +69,11 @@ def book_coach(request, jadwal_id):
 
         jadwal_to_book.is_booked = True
         jadwal_to_book.save()
-
+        booking_notes = request.POST.get('notes', '')
         Booking.objects.create(
             jadwal=jadwal_to_book,
-            customer=request.user
+            customer=request.user,
+            notes=booking_notes,
         )
 
         return redirect('show_catalog')

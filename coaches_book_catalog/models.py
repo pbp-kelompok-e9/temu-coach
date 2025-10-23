@@ -25,7 +25,7 @@ class Coach(models.Model):
 class Booking(models.Model):
     jadwal = models.OneToOneField('scheduler.Jadwal', on_delete=models.CASCADE, null=True, blank=True)
     customer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-
+    notes = models.TextField(blank=True, null=True, help_text="Catatan untuk sesi ini (opsional)")
 
 
     

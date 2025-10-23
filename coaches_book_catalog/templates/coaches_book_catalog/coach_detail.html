@@ -332,7 +332,37 @@
         transform: none; 
         box-shadow: none;
     }
+    .notes-section {
+        margin-top: 1.5rem; 
+        margin-bottom: 1.5rem; 
+    }
 
+    .notes-label {
+        display: block; 
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #4B5563; 
+        margin-bottom: 0.5rem;
+    }
+
+    .notes-textarea {
+        width: 100%;    
+        padding: 0.75rem 1rem;
+        border: 1px solid #D1D5DB; 
+        border-radius: 8px; 
+        font-family: 'Plus Jakarta Sans', Arial, sans-serif; 
+        font-size: 0.95rem;
+        line-height: 1.5;
+        resize: vertical; 
+        box-sizing: border-box;  
+        min-height: 80px;   
+    }
+
+    .notes-textarea:focus {
+        outline: none;
+        border-color: #003E85;  
+        box-shadow: 0 0 0 3px rgba(0, 62, 133, 0.1);    
+    }
     .reviews-section {
         flex-basis: 100%; 
         order: 3; 
@@ -468,7 +498,10 @@
              <form id="booking-form" method="POST" action="" style="display: none;"> 
                 {% csrf_token %}
                 <input type="hidden" name="jadwal_id" id="selected-jadwal-id" value=""> 
-                
+                <div class="notes-section">
+                    <label for="booking-notes" class="notes-label">Catatan untuk sesi ini (opsional):</label>
+                    <textarea id="booking-notes" name="notes" rows="3" class="notes-textarea" placeholder="Contoh: Fokus pada latihan passing..."></textarea>
+                </div>
                 <div class="booking-summary">
                     <div class="price-display">Rp {{ coach.rate_per_session|floatformat:0 }}</div>
                     <button type="submit" class="book-session-btn" id="bookSessionBtn" disabled>
@@ -484,7 +517,7 @@
         <div class="reviews-container">
             <div class="review-card card">
                 <div class="rating">
-                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i>
+                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fa  s fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i>
                 </div>
                 <div class="review-author">Bu** Mo****</div>
                 <p class="review-text">Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
