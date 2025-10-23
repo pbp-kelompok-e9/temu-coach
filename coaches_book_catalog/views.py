@@ -10,9 +10,15 @@ from django.conf import settings
 from django.conf.urls.static import static 
 from reviews_ratings.models import Reviews
 from django.db.models import Avg
+from django.utils import timezone
+from django.views.decorators.http import require_POST
+from django.http import JsonResponse, HttpResponseForbidden
+from django.utils import timezone
+from django.db import transaction
+from django.contrib import messages
 # Create your views here.
 
-@login_required(login_url='/login/')
+@login_required
 def show_catalog(request):
     search_query = request.GET.get('q', '')
     country_filter = request.GET.get('country', '')
@@ -67,7 +73,7 @@ def coach_detail(request, coach_id):
     # Get ratings data
     reviews = Reviews.objects.filter(coach=coach).order_by('-created_at')
     stats = reviews.aggregate(avg_rate=Avg('rate'))
-    avg_rating = round(stats['avg_rate'] or 0, 1)  # round to 1 decimal place, default to 0 if no ratings
+    avg_rating = round(stats['avg_rate'] or 0, 1)  
     total_reviews = reviews.count()
         
     context = {
@@ -97,3 +103,80 @@ def book_coach(request, jadwal_id):
         return redirect('show_catalog')
 
     return redirect('show_catalog')
+
+@login_required
+def customer_dashboard(request):
+    now = timezone.now()
+    all_bookings = Booking.objects.filter(customer=request.user).select_related( 
+        'jadwal__coach' 
+    ).order_by('jadwal__tanggal', 'jadwal__jam_mulai')
+
+    upcoming_bookings = []
+    completed_bookings = []
+
+    for booking in all_bookings:
+        if booking.jadwal:
+            schedule_start_datetime = timezone.make_aware(
+                timezone.datetime.combine(booking.jadwal.tanggal, booking.jadwal.jam_mulai),
+                timezone.get_current_timezone()
+            )
+            if schedule_start_datetime >= now:
+                upcoming_bookings.append(booking)
+            else:
+                completed_bookings.append(booking)
+
+    context = {
+        'upcoming_bookings': upcoming_bookings,
+        'completed_bookings': completed_bookings,
+    }
+    return render(request, 'coaches_book_catalog/dashboard_customer.html', context)
+
+@login_required
+@require_POST
+def update_booking_notes(request, booking_id):
+    booking = get_object_or_404(Booking, pk=booking_id)
+    if booking.customer != request.user:
+        return JsonResponse({'success': False, 'error': 'Unauthorized'}, status=403)
+    
+    now = timezone.now()
+    if booking.jadwal:
+        schedule_start_datetime = timezone.make_aware(
+            timezone.datetime.combine(booking.jadwal.tanggal, booking.jadwal.jam_mulai),
+            timezone.get_current_timezone()
+        )
+        if schedule_start_datetime < now:
+             return JsonResponse({'success': False, 'error': 'Tidak bisa mengedit catatan booking yang sudah lewat.'}, status=400)
+
+    new_notes = request.POST.get('notes', '')
+    booking.notes = new_notes
+    booking.save()
+    return JsonResponse({'success': True, 'message': 'Catatan berhasil diperbarui.'})
+
+
+@login_required
+@require_POST
+def cancel_booking(request, booking_id):
+    booking = get_object_or_404(Booking, pk=booking_id, customer=request.user) 
+
+    now = timezone.now()
+    if booking.jadwal:
+        schedule_start_datetime = timezone.make_aware(
+            timezone.datetime.combine(booking.jadwal.tanggal, booking.jadwal.jam_mulai),
+            timezone.get_current_timezone()
+        )
+        if schedule_start_datetime < now:
+            messages.error(request, "Booking yang sudah lewat tidak bisa dibatalkan.")
+            return redirect('customer_dashboard')
+
+    try:
+        with transaction.atomic():
+            jadwal_related = booking.jadwal
+            if jadwal_related:
+                jadwal_related.is_booked = False
+                jadwal_related.save()
+            booking.delete()
+            messages.success(request, "Booking berhasil dibatalkan.")
+    except Exception as e:
+        messages.error(request, f"Gagal membatalkan booking: {e}")
+
+    return redirect('customer_dashboard')
