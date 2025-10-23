@@ -349,7 +349,8 @@
         gap: 1.5rem; 
         overflow-x: auto; 
         padding-bottom: 1.5rem; 
-        scroll-snap-type: x mandatory; }
+        scroll-snap-type: x mandatory; 
+    }
     .reviews-container::-webkit-scrollbar { 
         display: none; 
     }
@@ -359,8 +360,50 @@
     }
     .review-card { 
         flex: 0 0 300px; 
-        scroll-snap-align: start; 
-        }
+        scroll-snap-align: start;
+        padding: 1.5rem;
+    }
+    .rating {
+        color: #f1c40f;
+        margin-bottom: 0.5rem;
+    }
+    .rating i {
+        margin-right: 2px;
+    }
+    .review-author {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+    .review-text {
+        color: #34495e;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        margin-bottom: 0.5rem;
+    }
+    .review-date {
+        color: #7f8c8d;
+        font-size: 0.8rem;
+    }
+    .rating-summary {
+        margin-top: 2rem;
+        text-align: center;
+    }
+    .avg-rating {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+    }
+    .rating-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #2c3e50;
+    }
+    .total-reviews {
+        color: #7f8c8d;
+        font-size: 0.9rem;
+    }
 
     @media (max-width: 968px) {
         .page-container { flex-direction: column; }
@@ -480,30 +523,47 @@
     </main>
     {# TODO #: Integrate dynamic reviews from database #}
     <section class="reviews-section">
-        <h2>Reviews</h2>
+        <h2>Reviews ({{ total_reviews }})</h2>
         <div class="reviews-container">
-            <div class="review-card card">
+            {% if reviews %}
+                {% for review in reviews %}
+                    <div class="review-card card">
+                        <div class="rating">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= review.rate %}
+                                    <i class="fas fa-star"></i>
+                                {% else %}
+                                    <i class="far fa-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <div class="review-author">{{ review.user.username }}</div>
+                        <p class="review-text">{{ review.review }}</p>
+                        <div class="review-date">{{ review.created_at|date:"d M Y" }}</div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="review-card card">
+                    <p class="review-text">Belum ada review.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="rating-summary">
+            <div class="avg-rating">
+                <span class="rating-number">{{ avg_rating }}</span>
                 <div class="rating">
-                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i>
+                    {% for i in "12345" %}
+                        {% if forloop.counter <= avg_rating %}
+                            <i class="fas fa-star"></i>
+                        {% else %}
+                            <i class="far fa-star"></i>
+                        {% endif %}
+                    {% endfor %}
                 </div>
-                <div class="review-author">Bu** Mo****</div>
-                <p class="review-text">Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
+                <span class="total-reviews">({{ total_reviews }} reviews)</span>
             </div>
-             <div class="review-card card">
-                <div class="rating">
-                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-                </div>
-                <div class="review-author">An** Lo*</div>
-                <p class="review-text">Pellentesque habitant morbi tristique senectus...</p>
-            </div>
-             <div class="review-card card">
-                 <div class="rating">
-                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i><i class="far fa-star"></i>
-                </div>
-                <div class="review-author">Mi** Ja****</div>
-                <p class="review-text">Nulla vitae elit libero, a pharetra augue...</p>
-            </div>
-            </div>
+        </div>
     </section>
 
 </div> {% endblock %}
