@@ -85,5 +85,3 @@ def delete_report(request, report_id):
 
     messages.success(request, "Report deleted successfully.")
     return redirect('my_admin:dashboard_simple')
-
-

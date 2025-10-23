@@ -10,4 +10,3 @@ urlpatterns = [
     path('coach/<int:coach_id>/ban/', views.ban_coach, name='ban_coach'),
     path('report/<int:report_id>/delete/', views.delete_report, name='delete_report'),
 ]
-
