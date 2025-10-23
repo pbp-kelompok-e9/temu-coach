@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404
 from .models import Reviews
 from coaches_book_catalog.models import Coach
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.models import User
 
 # Create your views here.
 @csrf_exempt
