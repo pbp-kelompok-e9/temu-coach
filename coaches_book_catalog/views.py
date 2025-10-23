@@ -1,11 +1,13 @@
 from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import render_to_string
 from .models import Coach, Booking
 from scheduler.models import Jadwal
-# from scheduler.models import Jadwal
 from django.contrib.auth.decorators import login_required
 from django.db.models.functions import Lower
 from django.core.paginator import Paginator
 from collections import defaultdict
+from django.conf import settings        
+from django.conf.urls.static import static 
 # Create your views here.
 
 def show_catalog(request):
@@ -41,6 +43,9 @@ def show_catalog(request):
         'sort_by': sort_by,
         'app_name': 'Katalog coach'
     }
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return render(request, "coaches_book_catalog/coach_list_partial.html", context)
+    
     return render(request, "coaches_book_catalog/catalog.html", context)
 
 def coach_detail(request, coach_id):
