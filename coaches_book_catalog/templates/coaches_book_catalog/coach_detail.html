@@ -1,334 +1,449 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Detail {{ coach.name }}{% endblock %}
 
-{% block content %}
+{% block content_style %}
 <style>
+    body {
+        font-family: 'Plus Jakarta Sans', Arial, sans-serif;
+        background-color: #F9FAFB; 
+        color: #003E85; 
+        font-weight: 400;
+    }
+
     .page-container {
         display: flex;
+        flex-wrap: wrap; 
         gap: 2rem;
-        margin: auto;
+        margin: 2rem auto;
         max-width: 1200px;
-        padding: 2rem 1rem;
+        padding: 0 1rem;
+        align-items: flex-start;
+    }
+
+    .card {
+        background-color: white;
+        border: 1px solid #E0E0E0;
+        border-radius: 12px; 
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        padding: 2rem;
     }
 
     .detail-column {
-        flex: 1;
-        background-color: white;
-        padding: 2rem;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        height: fit-content;
-        position: sticky;
-        top: 2rem;
+        flex: 1; 
+        min-width: 320px; 
+        order: 1; 
+    }
+    
+    .coach-avatar-container { 
+        width: 180px;
+        height: 180px;
+        margin: 0 auto 1.5rem auto; 
+        border-radius: 50%; 
+        overflow: hidden;
+        background-color: #f0f0f0; 
+        border: 4px solid white;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .coach-avatar-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover; 
     }
     
     .detail-column h1 {
-        font-size: 1.875rem;
-        font-weight: bold;
-        margin: 0 0 1rem 0;
-        color: #1a1a1a;
+        font-size: 1.875rem; 
+        font-weight: 700;
+        margin: 0 0 0.25rem 0;
+        color: #111827; 
+        text-align: center;
     }
 
-    .info-item {
-        display: flex;
-        padding: 0.75rem 0;
-        border-bottom: 1px solid #f0f0f0;
+    .coach-subtitle { 
+        font-size: 1rem;
+        color: #6B7280;
+        text-align: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .info-divider {
+        height: 1px;
+        background-color: #E0E0E0;
+        margin: 1.5rem 0;
+    }
+
+    .info-list { 
+        list-style: none;
+        padding: 0;
+        margin: 0;
     }
     
-    .info-item:last-child {
+    .info-item { 
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.6rem 0;
+        color: #4B5563; 
+        font-size: 0.95rem;
+        line-height: 1.5;
+        border-bottom: 1px solid #F3F4F6; 
+    }
+     .info-item:last-child {
         border-bottom: none;
+    }
+
+    .info-item i { 
+        width: 18px; 
+        text-align: center;
+        color: #DE3400;
+        font-size: 1.1em; 
     }
     
     .info-label {
-        font-weight: 600;
-        color: #666;
-        min-width: 140px;
+        font-weight: 400; 
     }
-    
-    .info-value {
-        color: #1a1a1a;
+    .info-label strong { 
+       font-weight: 600;
+       color: #111827; 
     }
 
     .description-section {
         margin-top: 1.5rem;
-        padding-top: 1.5rem;
-        border-top: 2px solid #f0f0f0;
     }
-    
-    .description-section h3 {
-        font-size: 1.125rem;
+    .description-section h3 { 
+        font-size: 1.1rem;
         font-weight: 600;
-        margin: 0 0 0.75rem 0;
-        color: #1a1a1a;
+        color: #111827;
+        margin: 0 0 0.5rem 0;
     }
-    
-    .description-section p {
-        color: #666;
+    .description-section p { 
+        color: #4B5563;
         line-height: 1.6;
+        font-size: 0.95rem;
+        margin: 0;
+    }
+
+    .back-button { 
+        display: inline-block;
+        margin-top: 1.5rem;
+        padding: 0.75rem 1.5rem;
+        background-color: #DE3400;
+        color: white;
+        text-decoration: none;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        text-align: center;
+        transition: background-color 0.2s;
+    }
+    .back-button:hover { 
+        background-color: #c42e00; 
     }
 
     .booking-column {
-        flex: 1.5;
-        background-color: white;
-        padding: 2rem;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    }
-    
-    .booking-header {
-        margin-bottom: 1.5rem;
+        flex: 1.2; 
+        min-width: 320px;
+        order: 2;
     }
     
     .booking-header h2 {
         font-size: 1.5rem;
-        font-weight: bold;
-        margin: 0 0 0.5rem 0;
-        color: #1a1a1a;
-    }
-    
-    .booking-subtitle {
-        color: #666;
-        font-size: 0.95rem;
+        font-weight: 700;
+        margin: 0 0 1.5rem 0;
+        color: #003E85; 
     }
 
-    /* Calendar Styles */
-    .calendar-container {
+    .calendar-container { 
+        margin-bottom: 1.5rem; 
+        border-bottom: 1px solid #F0F0F0; 
+        padding-bottom: 1.5rem;
+    }
+    .calendar-header { 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    .calendar-month { 
+        font-size: 1.1rem; 
+        font-weight: 600; 
+        color: #111827;
+    } 
+    .calendar-nav button { 
+        background: none; 
+        border: none; 
+        cursor: pointer; 
+        color: #003E85; 
+        padding: 0.5rem;
+    }
+    .calendar-grid { 
+        display: grid; 
+        grid-template-columns: repeat(7, 1fr); 
+        gap: 0.25rem; 
+    }
+    .calendar-day-header { 
+        text-align: center; 
+        font-size: 0.75rem; 
+        font-weight: 600; 
+        color: #9CA3AF; 
+        padding-bottom: 0.5rem; 
+    }
+    .calendar-day {
+        aspect-ratio: 1; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center;
+        border-radius: 50%; 
+        font-size: 0.9rem; 
+        cursor: pointer; 
+        transition: all 0.2s;
+        border: 2px solid transparent; 
+        background: white; 
+        color: #4B5563; 
+    }
+    .calendar-day.empty { 
+        visibility: hidden; 
+    }
+    .calendar-day.disabled { 
+        color: #D1D5DB; 
+        cursor: not-allowed; 
+    }
+    .calendar-day.past-disabled { 
+        color: #9CA3AF; 
+        cursor: not-allowed; 
+        text-decoration: line-through; 
+        opacity: 0.6; 
+    }
+    .calendar-day.available {
+        font-weight: 600; 
+        color: #003E85; 
+        position: relative;
+    }
+    .calendar-day.available::after { 
+        content: ''; 
+        position: absolute; 
+        bottom: 5px; 
+        left: 50%; 
+        transform: translateX(-50%);
+        width: 5px; 
+        height: 5px; 
+        background-color: #003E85; 
+        border-radius: 50%;
+    }
+    .calendar-day.available:not(.selected):hover { 
+        background: #EBF4FF; 
+    } 
+    .calendar-day.selected { 
+        background: #003E85; 
+        border-color: #003E85; 
+        color: white; 
+        font-weight: 700; 
+    }
+    .calendar-day.selected::after { 
+        background-color: white; 
+    }
+
+    .time-slots-container { 
+        padding-top: 1.5rem; 
+        }
+    .time-slots-header {
+        font-size: 1.125rem; 
+        font-weight: 700; 
+        margin-bottom: 1rem; 
+        color: #003E85; 
+    }
+    .no-date-selected { 
+        text-align: center; 
+        padding: 2rem; 
+        color: #9CA3AF; 
+        }
+    .time-slots-grid {
+        display: grid; 
+        grid-template-columns: repeat(3, 1fr); 
+        gap: 0.75rem; 
         margin-bottom: 2rem;
     }
-    
-    .calendar-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1.5rem;
-    }
-    
-    .calendar-month {
-        font-size: 1.125rem;
-        font-weight: 600;
-        color: #1a1a1a;
-    }
-    
-    .calendar-nav {
-        display: flex;
-        gap: 0.5rem;
-    }
-    
-    .nav-btn {
-        width: 36px;
-        height: 36px;
-        border: 1px solid #e0e0e0;
-        background: white;
-        border-radius: 6px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.2s;
-    }
-    
-    .nav-btn:hover {
-        background: #f5f5f5;
-        border-color: #d0d0d0;
-    }
-    
-    .calendar-grid {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        gap: 0.5rem;
-    }
-    
-    .calendar-day-header {
-        text-align: center;
-        font-size: 0.75rem;
-        font-weight: 600;
-        color: #999;
-        padding: 0.5rem;
-        text-transform: uppercase;
-    }
-    
-    .calendar-day {
-        aspect-ratio: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+    .time-slot-btn {
+        padding: 0.875rem 1rem; 
+        background: #DE3400; 
+        border: none; 
         border-radius: 8px;
-        font-size: 0.95rem;
-        cursor: pointer;
-        transition: all 0.2s;
-        border: 2px solid transparent;
-        background: white;
-    }
-    
-    .calendar-day.empty {
-        cursor: default;
-        visibility: hidden;
-    }
-    
-    .calendar-day.disabled {
-        color: #d0d0d0ff;
-        cursor: not-allowed;
-        background: #fafafa;
-    }
-    
-    .calendar-day.past-disabled {
-        color: #999;
-        cursor: not-allowed;
-        background: #ffffffff;
-        text-decoration: line-through;
-        opacity: 0.6;
-    }
-    
-    .calendar-day.available:hover {
-        background: #f0f7ff;
-        border-color: #007bff;
-    }
-    
-    .calendar-day.selected {
-        background: #007bff;
-        border-color: #007bff;
-        color: #ffffff;
+        cursor: pointer; 
+        transition: all 0.2s; 
+        font-size: 0.9rem; 
         font-weight: 600;
+        color: white; 
+        text-align: center; 
+        font-family: 'Plus Jakarta Sans', Arial, sans-serif;
     }
-    
-    .calendar-day.available {
-        color: #007bff;
-        background: #f8f9fa;
-        font-weight: 500;
+    .time-slot-btn:not(.selected):hover { 
+        background: #c42e00; 
+        transform: translateY(-2px); 
+        box-shadow: 0 4px 8px rgba(222, 52, 0, 0.3); 
+    }
+    .time-slot-btn:active { 
+        transform: translateY(0); 
+        box-shadow: none; 
+    }
+    .time-slot-btn.selected {
+        background: #003E85;
+        box-shadow: 0 0 0 3px rgba(0, 62, 133, 0.3);
+        transform: scale(1.03);
+    }
+    .time-slot-btn.selected:hover { 
+        background: #002a5c; 
+    } 
+
+    .booking-summary { 
+        padding-top: 1.5rem; 
+        border-top: 1px solid #F0F0F0; 
+    }
+    .price-display {
+        font-size: 2rem; 
+        font-weight: 700; 
+        color: #111827;
+        margin-bottom: 1rem; 
+        text-align: center;
+    }
+    .book-session-btn {
+        width: 100%; 
+        padding: 1rem; 
+        background: #DE3400; 
+        color: white; 
+        border: none;
+        border-radius: 8px; 
+        font-size: 1.125rem; 
+        font-weight: 700; 
+        cursor: pointer;
+        transition: all 0.2s; 
+        font-family: 'Plus Jakarta Sans', Arial, sans-serif;
+    }
+    .book-session-btn:hover { 
+        background: #c42e00; 
+        transform: translateY(-2px); 
+        box-shadow: 0 4px 12px rgba(222, 52, 0, 0.4); 
+    }
+    .book-session-btn:disabled { 
+        background: #FECACA; 
+        color: #F87171; 
+        cursor: not-allowed; 
+        transform: none; 
+        box-shadow: none;
     }
 
-    /* Time Slots */
-    .time-slots-container {
-        padding-top: 1.5rem;
-        border-top: 2px solid #f0f0f0;
+    .reviews-section {
+        flex-basis: 100%; 
+        order: 3; 
+        margin-top: 2rem;
     }
-    
-    .time-slots-header {
-        font-size: 1rem;
-        font-weight: 600;
-        margin-bottom: 1rem;
-        color: #1a1a1a;
+    .reviews-section h2 { 
+        font-size: 1.5rem; 
+        font-weight: 700; 
+        color: #003E85; 
+        margin: 0 0 1.5rem 0; 
     }
-    
-    .no-date-selected {
-        text-align: center;
-        padding: 3rem 2rem;
-        color: #999;
+    .reviews-container { 
+        display: flex; 
+        gap: 1.5rem; 
+        overflow-x: auto; 
+        padding-bottom: 1.5rem; 
+        scroll-snap-type: x mandatory; }
+    .reviews-container::-webkit-scrollbar { 
+        display: none; 
     }
-    
-    .no-date-selected-icon {
-        font-size: 3rem;
-        margin-bottom: 1rem;
-        opacity: 0.3;
+    .reviews-container { 
+        -ms-overflow-style: none; 
+        scrollbar-width: none; 
     }
-    
-    .time-slots-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-        gap: 0.75rem;
-    }
-    
-    .time-slot-btn {
-        padding: 0.875rem 1rem;
-        background: #f8f9fa;
-        border: 2px solid #e9ecef;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.2s;
-        font-size: 0.95rem;
-        font-weight: 500;
-        color: #1a1a1a;
-        text-align: center;
-    }
-    
-    .time-slot-btn:hover {
-        background: #e7f3ff;
-        border-color: #007bff;
-        transform: translateY(-1px);
-        box-shadow: 0 2px 4px rgba(0,123,255,0.1);
-    }
-    
-    .time-slot-btn:active {
-        transform: translateY(0);
-    }
+    .review-card { 
+        flex: 0 0 300px; 
+        scroll-snap-align: start; 
+        }
 
     @media (max-width: 968px) {
-        .page-container {
-            flex-direction: column;
-        }
-        
-        .detail-column {
-            position: relative;
-            top: 0;
-        }
+        .page-container { flex-direction: column; }
+        .detail-column { position: static; order: 1; } 
+        .booking-column { order: 2; }
+        .reviews-section { order: 3; }
+        .time-slots-grid { grid-template-columns: repeat(2, 1fr); }
     }
-</style>
+    @media (max-width: 576px) {
+        .time-slots-grid { grid-template-columns: 1fr; }
+        .calendar-grid { gap: 0.25rem; }
+        .calendar-day { font-size: 0.8rem; }
+        .detail-column, .booking-column, .review-card { padding: 1.5rem; } 
+    }
 
+</style>
+{% endblock %}
+
+{% block content %}
 <div class="page-container">
     
-    <aside class="detail-column">
+    <aside class="detail-column card">
+        <div class="coach-avatar-container">
+             {% if coach.foto %}
+                <img src="{{ coach.foto.url }}" alt="{{ coach.name }}">
+            {% else %}
+                <img src="{% static 'images/default_avatar.png' %}" alt="Default Avatar">
+            {% endif %}
+        </div>
+        
         <h1>{{ coach.name }}</h1>
+        <p class="coach-subtitle">
+            {{ coach.citizenship }} | {{ coach.age }} years old
+        </p>
         
-        <div class="info-item">
-            <span class="info-label">Klub:</span>
-            <span class="info-value">{{ coach.club }}</span>
-        </div>
+        <div class="info-divider"></div>
         
-        <div class="info-item">
-            <span class="info-label">Kewarganegaraan:</span>
-            <span class="info-value">{{ coach.citizenship }}</span>
-        </div>
+        <ul class="info-list">
+            <li class="info-item">
+                <i class="fas fa-shield-alt"></i> 
+                <span class="info-label">Klub: <strong>{{ coach.club|default:"-" }}</strong></span>
+            </li>
+            <li class="info-item">
+                <i class="fas fa-futbol"></i> 
+                <span class="info-label">Formasi: <strong>{{ coach.preffered_formation|default:"-" }}</strong></span>
+            </li>
+            <li class="info-item">
+                <i class="fas fa-id-badge"></i> 
+                <span class="info-label">Lisensi: <strong>{{ coach.license|default:"-" }}</strong></span>
+            </li>
+             <li class="info-item">
+                <i class="fas fa-clock"></i> 
+                <span class="info-label">Avg Term: <strong>{{ coach.average_term_as_coach|default:"-" }} Tahun</strong></span>
+            </li>
+            </ul>
         
-        <div class="info-item">
-            <span class="info-label">Umur:</span>
-            <span class="info-value">{{ coach.age }} tahun</span>
-        </div>
-        
-        <div class="info-item">
-            <span class="info-label">Lisensi:</span>
-            <span class="info-value">{{ coach.license }}</span>
-        </div>
-        
-        <div class="info-item">
-            <span class="info-label">Formasi Favorit:</span>
-            <span class="info-value">{{ coach.preffered_formation }}</span>
-        </div>
-        
-        <div class="info-item">
-            <span class="info-label">Tarif:</span>
-            <span class="info-value">Rp {{ coach.rate_per_session }} / sesi</span>
-        </div>
+        <div class="info-divider"></div>
         
         <div class="description-section">
-            <h3>Deskripsi</h3>
-            <p>{{ coach.description }}</p>
+             <h3>Deskripsi</h3>
+             <p>{{ coach.description|default:"Tidak ada deskripsi." }}</p>
         </div>
+
+        <a href="{% url 'show_catalog' %}" class="back-button">Kembali</a>
     </aside>
 
-    <main class="booking-column">
+    <main class="booking-column card">
         <div class="booking-header">
             <h2>Pilih Jadwal Booking</h2>
-            <p class="booking-subtitle">Pilih tanggal dan waktu yang tersedia</p>
         </div>
 
         <div class="calendar-container">
             <div class="calendar-header">
                 <div class="calendar-month" id="currentMonth"></div>
                 <div class="calendar-nav">
-                    <button class="nav-btn" id="prevMonth">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                            <path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
+                    <button class="nav-btn" id="prevMonth" aria-label="Previous Month">
+                        <i class="fas fa-chevron-left"></i>
                     </button>
-                    <button class="nav-btn" id="nextMonth">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                            <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
+                    <button class="nav-btn" id="nextMonth" aria-label="Next Month">
+                        <i class="fas fa-chevron-right"></i>
                     </button>
                 </div>
             </div>
-            
             <div class="calendar-grid" id="calendarGrid">
                 <div class="calendar-day-header">Min</div>
                 <div class="calendar-day-header">Sen</div>
@@ -337,22 +452,64 @@
                 <div class="calendar-day-header">Kam</div>
                 <div class="calendar-day-header">Jum</div>
                 <div class="calendar-day-header">Sab</div>
-            </div>
+                </div>
         </div>
 
         <div class="time-slots-container">
-            <div class="time-slots-header" id="selectedDateDisplay" style="display: none;"></div>
+            <div class="time-slots-header" id="selectedDateDisplay" style="display: none;">Pilih sesi</div>
             
             <div id="noDateSelected" class="no-date-selected">
-                <div class="no-date-selected-icon">📅</div>
-                <p>Pilih tanggal di kalender untuk melihat slot waktu yang tersedia</p>
+                <p>Pilih tanggal di kalender untuk melihat slot waktu yang tersedia.</p>
             </div>
             
-            <div id="timeSlotsGrid" class="time-slots-grid" style="display: none;"></div>
+            <div id="timeSlotsGrid" class="time-slots-grid" style="display: none;">
+                 </div>
+
+             <form id="booking-form" method="POST" action="" style="display: none;"> 
+                {% csrf_token %}
+                <input type="hidden" name="jadwal_id" id="selected-jadwal-id" value=""> 
+                
+                <div class="booking-summary">
+                    <div class="price-display">Rp {{ coach.rate_per_session|floatformat:0 }}</div>
+                    <button type="submit" class="book-session-btn" id="bookSessionBtn" disabled>
+                        Book Session
+                    </button>
+                </div>
+            </form>
         </div>
     </main>
-</div>
+    {# TODO #: Integrate dynamic reviews from database #}
+    <section class="reviews-section">
+        <h2>Reviews</h2>
+        <div class="reviews-container">
+            <div class="review-card card">
+                <div class="rating">
+                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i>
+                </div>
+                <div class="review-author">Bu** Mo****</div>
+                <p class="review-text">Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
+            </div>
+             <div class="review-card card">
+                <div class="rating">
+                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                </div>
+                <div class="review-author">An** Lo*</div>
+                <p class="review-text">Pellentesque habitant morbi tristique senectus...</p>
+            </div>
+             <div class="review-card card">
+                 <div class="rating">
+                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i><i class="far fa-star"></i>
+                </div>
+                <div class="review-author">Mi** Ja****</div>
+                <p class="review-text">Nulla vitae elit libero, a pharetra augue...</p>
+            </div>
+            </div>
+    </section>
 
+</div> {% endblock %}
+
+
+{% block content_script %}
 <script>
     const scheduleData = {
         {% for tanggal, jadwal_list in grouped_schedules.items %}
@@ -369,53 +526,63 @@
     };
 
     let currentDate = new Date();
-    let selectedDate = null;
+    let selectedDate = null; 
+    let selectedSlotId = null;
 
-    const monthNames = [
-        "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-        "Juli", "Agustus", "September", "Oktober", "November", "Desember"
-    ];
+    const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+    const calendarGrid = document.getElementById('calendarGrid');
+    const currentMonthDisplay = document.getElementById('currentMonth');
+    const prevMonthBtn = document.getElementById('prevMonth');
+    const nextMonthBtn = document.getElementById('nextMonth');
+    const selectedDateDisplay = document.getElementById('selectedDateDisplay');
+    const timeSlotsGrid = document.getElementById('timeSlotsGrid');
+    const noDateSelectedMsg = document.getElementById('noDateSelected');
+    const bookingForm = document.getElementById('booking-form'); 
+    const hiddenJadwalInput = document.getElementById('selected-jadwal-id');
+    const bookSessionButton = document.getElementById('bookSessionBtn'); 
 
     function initializeCalendar() {
         const availableDates = Object.keys(scheduleData);
         if (availableDates.length > 0) {
-            const firstDate = new Date(availableDates[0]);
-            currentDate = new Date(firstDate.getFullYear(), firstDate.getMonth(), 1);
+            availableDates.sort();
+            const firstAvailableDate = new Date(availableDates[0] + 'T00:00:00');
+            currentDate = new Date(firstAvailableDate.getFullYear(), firstAvailableDate.getMonth(), 1);
+        } else {
+             const today = new Date();
+             currentDate = new Date(today.getFullYear(), today.getMonth(), 1);
         }
         renderCalendar();
+        updateBookButtonState(); 
     }
 
     function renderCalendar() {
         const year = currentDate.getFullYear();
         const month = currentDate.getMonth();
         
-        document.getElementById('currentMonth').textContent = 
-            `${monthNames[month]} ${year}`;
+        currentMonthDisplay.textContent = `${monthNames[month]} ${year}`;
         
-        const firstDay = new Date(year, month, 1).getDay();
+        const firstDayOfMonth = new Date(year, month, 1).getDay(); 
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         
-        const calendarGrid = document.getElementById('calendarGrid');
+        calendarGrid.querySelectorAll('.calendar-day').forEach(day => day.remove()); 
         
-        const oldDays = calendarGrid.querySelectorAll('.calendar-day');
-        oldDays.forEach(day => day.remove());
         
-        for (let i = 0; i < firstDay; i++) {
+        for (let i = 0; i < firstDayOfMonth; i++) {
             const emptyDay = document.createElement('div');
             emptyDay.className = 'calendar-day empty';
             calendarGrid.appendChild(emptyDay);
         }
         
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        const today = new Date(); today.setHours(0, 0, 0, 0);
         
         for (let day = 1; day <= daysInMonth; day++) {
-            const dayDate = new Date(year, month, day);
-            dayDate.setHours(0, 0, 0, 0);
+            const dayDate = new Date(year, month, day); dayDate.setHours(0, 0, 0, 0);
             const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            
             const dayCell = document.createElement('div');
             dayCell.className = 'calendar-day';
             dayCell.textContent = day;
+            dayCell.dataset.date = dateStr;
             
             const hasSlots = scheduleData[dateStr] && scheduleData[dateStr].length > 0;
             const isPast = dayDate < today;
@@ -424,77 +591,101 @@
                 dayCell.classList.add('past-disabled');
             } else if (hasSlots) {
                 dayCell.classList.add('available');
-                dayCell.addEventListener('click', () => selectDate(dateStr, dayDate));
+                dayCell.addEventListener('click', () => handleDateClick(dateStr, dayDate));
             } else {
                 dayCell.classList.add('disabled');
             }
             
-            if (selectedDate === dateStr) {
-                dayCell.classList.add('selected');
-            }
+            if (selectedDate === dateStr) { dayCell.classList.add('selected'); }
             
             calendarGrid.appendChild(dayCell);
         }
     }
 
-    function selectDate(dateStr, dateObj) {
+    function handleDateClick(dateStr, dateObj) {
         selectedDate = dateStr;
-        renderCalendar();
+        selectedSlotId = null; 
+        renderCalendar(); 
         displayTimeSlots(dateStr, dateObj);
+        updateBookButtonState();
     }
 
     function displayTimeSlots(dateStr, dateObj) {
         const slots = scheduleData[dateStr] || [];
-        const timeSlotsGrid = document.getElementById('timeSlotsGrid');
-        const noDateSelected = document.getElementById('noDateSelected');
-        const selectedDateDisplay = document.getElementById('selectedDateDisplay');
         
-        if (slots.length === 0) {
-            noDateSelected.style.display = 'block';
-            timeSlotsGrid.style.display = 'none';
+        if (selectedDate) {
+            selectedDateDisplay.textContent = `Pilih sesi untuk ${dateObj.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' })}`;
+            selectedDateDisplay.style.display = 'block';
+            noDateSelectedMsg.style.display = 'none';
+
+            if (slots.length > 0) {
+                timeSlotsGrid.innerHTML = ''; 
+                slots.forEach(slot => {
+                    const button = document.createElement('button');
+                    button.type = 'button'; 
+                    button.className = 'time-slot-btn';
+                    button.textContent = `${slot.start} - ${slot.end}`;
+                    button.dataset.jadwalId = slot.id; 
+
+                    button.addEventListener('click', () => handleSlotClick(button, slot.id)); 
+                    
+                    timeSlotsGrid.appendChild(button);
+                });
+                timeSlotsGrid.style.display = 'grid';
+                bookingForm.style.display = 'block'; 
+            } else {
+                 timeSlotsGrid.innerHTML = '<p class="no-slots-message">Tidak ada slot tersedia.</p>';
+                 timeSlotsGrid.style.display = 'block'; 
+                 bookingForm.style.display = 'none'; 
+                 selectedSlotId = null; 
+            }
+
+        } else {
             selectedDateDisplay.style.display = 'none';
-            return;
+            noDateSelectedMsg.style.display = 'block';
+            timeSlotsGrid.style.display = 'none';
+            bookingForm.style.display = 'none';
+            selectedSlotId = null;
         }
-        
-        // Format date display
-        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        const formattedDate = dateObj.toLocaleDateString('id-ID', options);
-        selectedDateDisplay.textContent = formattedDate;
-        selectedDateDisplay.style.display = 'block';
-        
-        noDateSelected.style.display = 'none';
-        timeSlotsGrid.style.display = 'grid';
-        timeSlotsGrid.innerHTML = '';
-        
-        slots.forEach(slot => {
-            const form = document.createElement('form');
-            form.action = "{% url 'book_coach' 0 %}".replace('0', slot.id);
-            form.method = 'POST';
-            
-            const csrfInput = document.createElement('input');
-            csrfInput.type = 'hidden';
-            csrfInput.name = 'csrfmiddlewaretoken';
-            csrfInput.value = '{{ csrf_token }}';
-            
-            const button = document.createElement('button');
-            button.type = 'submit';
-            button.className = 'time-slot-btn';
-            button.textContent = `${slot.start} - ${slot.end}`;
-            
-            form.appendChild(csrfInput);
-            form.appendChild(button);
-            timeSlotsGrid.appendChild(form);
-        });
+        updateBookButtonState(); 
     }
 
-    document.getElementById('prevMonth').addEventListener('click', () => {
+    function handleSlotClick(clickedButton, jadwalId) {
+        timeSlotsGrid.querySelectorAll('.time-slot-btn').forEach(btn => {
+            btn.classList.remove('selected');
+        });
+
+        clickedButton.classList.add('selected');
+        
+        selectedSlotId = jadwalId;
+        
+        hiddenJadwalInput.value = selectedSlotId;
+        
+        bookingForm.action = "{% url 'book_coach' 0 %}".replace('0', selectedSlotId);
+
+        updateBookButtonState();
+    }
+
+    function updateBookButtonState() {
+        if (selectedDate && selectedSlotId) {
+            bookSessionButton.disabled = false;
+        } else {
+            bookSessionButton.disabled = true;
+        }
+    }
+
+    prevMonthBtn.addEventListener('click', () => {
         currentDate.setMonth(currentDate.getMonth() - 1);
+        selectedDate = null; selectedSlotId = null; 
         renderCalendar();
+        displayTimeSlots(null, null);
     });
 
-    document.getElementById('nextMonth').addEventListener('click', () => {
+    nextMonthBtn.addEventListener('click', () => {
         currentDate.setMonth(currentDate.getMonth() + 1);
+        selectedDate = null; selectedSlotId = null; 
         renderCalendar();
+        displayTimeSlots(null, null); 
     });
 
     initializeCalendar();

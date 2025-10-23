@@ -7,7 +7,7 @@ class Coach(models.Model):
     name = models.CharField(max_length=50)
     age = models.PositiveIntegerField()
     citizenship = models.CharField(max_length=50)
-
+    foto = models.ImageField(upload_to='coach_photos/', null=True, blank=True)
     club = models.CharField(max_length=20)
     license = models.CharField(max_length=50)
     preffered_formation = models.CharField(max_length=100, help_text="Contoh: 4-3-3 Attacking")

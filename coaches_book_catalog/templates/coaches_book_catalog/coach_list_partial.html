@@ -1,0 +1,24 @@
+<div class="catalog-grid">
+    {% for coach in page_obj %}
+        
+        {% include 'coaches_book_catalog/card.html' with coach=coach %}
+
+    {% empty %}
+        <p>Tidak ada coach yang ditemukan.</p>
+    {% endfor %}
+</div>
+<div class="pagination">
+    {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}&q={{ search_query }}&country={{ country_filter }}&sort={{ sort_by }}">&lt;</a>
+    {% else %}
+        <span class="disabled">&lt;</span>
+    {% endif %}
+
+    <span class="current">{{ page_obj.number }}</span>
+
+    {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&q={{ search_query }}&country={{ country_filter }}&sort={{ sort_by }}">&gt;</a>
+    {% else %}
+        <span class="disabled">&gt;</span>
+    {% endif %}
+</div>
