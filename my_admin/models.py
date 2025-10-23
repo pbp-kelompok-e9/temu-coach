@@ -1,9 +1,11 @@
 from django.db import models
 from django.contrib.auth.models import User
 from coaches_book_catalog.models import Coach
-
+import uuid
+from django.conf import settings
 class Report(models.Model):
-    reporter = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reports_made')
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    reporter = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='reports_made')
     coach = models.ForeignKey(Coach, on_delete=models.CASCADE, related_name='reports_received')
     reason = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
@@ -14,7 +16,7 @@ class Report(models.Model):
         return f"Report from {self.reporter.username} on {self.coach.user.username}"
 
 class AdminAction(models.Model):
-    admin = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, limit_choices_to={"is_active": True})
+    admin = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, limit_choices_to={"is_active": True})
     report = models.ForeignKey(Report, on_delete=models.SET_NULL, null=True, blank=True)
     action_type = models.CharField(
         max_length=20,

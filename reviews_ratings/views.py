@@ -1,4 +1,5 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST, require_GET
 from django.shortcuts import get_object_or_404
@@ -6,6 +7,10 @@ from .models import Reviews
 from coaches_book_catalog.models import Coach
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
+from django.contrib import messages
+from coaches_book_catalog.models import Coach
+from .forms import ReportForm
+
 
 # Create your views here.
 
@@ -95,4 +100,24 @@ def get_reviews_by_coach(request, coach_id) :
         "coach_id": coach.id,
         "total_reviews": len(data),
         "reviews": data,
+    })
+    
+@login_required
+def create_report(request, coach_id):
+    coach = get_object_or_404(Coach, id=coach_id)
+
+    if request.method == "POST":
+        form = ReportForm(request.POST)
+        if form.is_valid():
+            report = form.save(commit=False)
+            report.reporter = request.user   
+            report.coach = coach          
+            report.save()
+            messages.success(request, f"Report for coach {coach.name} has been submitted.")
+    else:
+        form = ReportForm()
+
+    return render(request, 'reviews_ratings/create_report.html', {
+        'form': form,
+        'coach': coach,
     })

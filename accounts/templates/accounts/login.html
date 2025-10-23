@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Login{% endblock %}
+
+{% block content_style %}
+<style>
+    body { padding-top: 0 !important; }
+    .bg-gradient-custom::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+    }
+</style>
+{% endblock %}
+
+{% block navbar_content %}
+{% endblock navbar_content %}
+
+{% block chat_widget_content %}
+{% endblock chat_widget_content %}
+
+{% block content %}
+<div class="min-h-screen flex items-stretch text-white"> 
+
+    <div class="relative hidden lg:flex lg:w-4/5 items-center justify-start bg-cover bg-center bg-gradient-custom"
+         style="background-image: url('{% static 'images/football-background.png' %}');">
+        <div class="z-10 p-12 xl:p-16 max-w-lg relative ml-10 xl:ml-16"> 
+            <h1 class="text-4xl xl:text-5xl font-bold mb-6 leading-tight">Some People Want It To Happen,<br> Others Make It Happen</h1>
+            <p class="text-lg text-gray-200">
+                If you don't have an account <br> you can <a href="{% url 'register' %}" class="text-white font-semibold underline hover:text-gray-300">Register here!</a>
+            </p>
+        </div>
+    </div>
+
+    <div class="lg:w-2/5 w-full flex items-center justify-center text-center md:px-12 px-6 z-10 bg-white text-gray-800"> 
+        <div class="w-full py-6 z-20 max-w-md"> 
+
+            <div class="flex items-center justify-center mb-8">
+                <img src="{% static 'images/logo.png' %}" alt="TemuCoach Logo" class="w-12 h-12 mr-3"> 
+                <span class="text-3xl font-bold text-[#003E85]">TemuCoach</span> 
+            </div>
+            <h1 class="text-3xl font-semibold mb-8 text-gray-700">Login</h1> 
+
+            {% if form.errors and not messages %} 
+                <div class="mb-4 p-3 rounded bg-red-100 text-red-700 text-sm" role="alert">
+                    Invalid username or password.
+                </div>
+            {% endif %}
+
+
+            <form method="post" class="space-y-6"> 
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.GET.next }}">
+
+                <div class="relative">
+                    <input
+                        type="text" name="username" placeholder="Username" autofocus required id="id_username"
+                        class="block w-full px-5 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6366F1] focus:border-transparent placeholder-gray-500 text-gray-900 pr-12 text-lg" {# Larger padding/text #}
+                    >
+                     <span class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 pointer-events-none"> 
+                        <i class="fas fa-user text-lg"></i> 
+                    </span>
+                </div>
+
+                <div class="relative">
+                    <input
+                        type="password" name="password" placeholder="Password" required id="id_password"
+                        class="block w-full px-5 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6366F1] focus:border-transparent placeholder-gray-500 text-gray-900 pr-12 text-lg" {# Larger padding/text #}
+                    >
+                     <span class="absolute inset-y-0 right-0 pr-4 flex items-center cursor-pointer text-gray-400 hover:text-gray-600" id="togglePassword"> {# Adjusted padding #}
+                        <i class="fas fa-eye-slash text-lg"></i> 
+                    </span>
+                </div>
+
+                <button
+                    type="submit"
+                    class="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-200 text-lg"> {# Larger text #}
+                    Login
+                </button>
+            </form>
+
+       
+
+            <div class="mt-10 text-sm text-center lg:hidden"> 
+                 <p class="text-gray-600">
+                    If you don't have an account
+                    <a href="{% url 'register' %}" class="font-semibold text-[#003E85] hover:text-blue-700">Register here!</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content_script %}
+<script>
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('id_password');
+</script>
+{% endblock %}
