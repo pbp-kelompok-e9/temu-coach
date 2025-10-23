@@ -26,6 +26,7 @@ urlpatterns = [
     path('', include('scheduler.urls')),
     path('', include('reviews_ratings.urls')),
     path('register/', include('accounts.urls')),
+    path('', include('auth_core.urls')),
     
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
