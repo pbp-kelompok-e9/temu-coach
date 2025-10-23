@@ -1,0 +1,96 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    {# font & icon sama seperti base.html #}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <title>{% block title %}TemuCoach{% endblock %}</title>
+
+    <style>
+      body {
+        font-family: 'Plus Jakarta Sans', Arial, sans-serif;
+        margin: 0;
+        background-color: #FFFFFF;
+        padding-top: 0;  /* ← tidak ada navbar, jadi 0 */
+      }
+      .chat-widget {
+        position: fixed;
+        bottom: 1.5rem;
+        right: 1.5rem;
+        width: 50px; height: 50px;
+        background-color: #DE3400;
+        border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-size: 1.75rem;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        cursor: pointer; z-index: 999; text-decoration: none;
+      }
+    </style>
+
+    {% block content_style %}{% endblock %}
+</head>
+<body class="no-nav">  {# penanda kalau tidak ada navbar #}
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <a href="#" class="chat-widget">
+        <i class="fas fa-comment-dots"></i>
+    </a>
+
+    {% block content_script %}
+    <script>
+    (function(){
+        // Elemen
+        const usr = document.getElementById('login-username');
+        const clrBtn = document.querySelector('.js-clear-input');
+        const pwd = document.getElementById('login-password');
+        const togBtn = document.querySelector('.js-toggle-pass');
+
+        // Tampilkan tombol clear hanya saat ada isi
+        function updateClear(){
+        if (usr.value && usr.value.length > 0) {
+            clrBtn.hidden = false;
+        } else {
+            clrBtn.hidden = true;
+        }
+        }
+        usr.addEventListener('input', updateClear);
+        usr.addEventListener('focus', updateClear);
+        usr.addEventListener('blur', updateClear);
+        updateClear();
+
+        // Clear username
+        clrBtn.addEventListener('click', function(){
+        usr.value = '';
+        usr.focus();
+        updateClear();
+        });
+
+        // Toggle password
+        togBtn.addEventListener('click', function(){
+        const isHidden = pwd.type === 'password';
+        pwd.type = isHidden ? 'text' : 'password';
+        this.setAttribute('aria-pressed', String(isHidden));
+        // Ganti ikon eye <-> eye-slash
+        const icon = this.querySelector('i');
+        if (icon) {
+            icon.classList.toggle('fa-eye', !isHidden);
+            icon.classList.toggle('fa-eye-slash', isHidden);
+        }
+        // Pilih supaya user langsung lihat perubahan
+        pwd.focus();
+        });
+    })();
+    </script>
+    {% endblock %}
+
+</body>
+</html>

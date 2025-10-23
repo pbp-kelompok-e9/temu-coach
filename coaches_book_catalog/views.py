@@ -12,6 +12,7 @@ from reviews_ratings.models import Reviews
 from django.db.models import Avg
 # Create your views here.
 
+@login_required(login_url='/login/')
 def show_catalog(request):
     search_query = request.GET.get('q', '')
     country_filter = request.GET.get('country', '')
