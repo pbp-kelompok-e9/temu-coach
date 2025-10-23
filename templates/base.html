@@ -17,13 +17,18 @@
     {% block content_style %}{% endblock %}
 </head>
 <body class="font-plus-jakarta bg-white m-0 pt-[75px]">
-    {% include 'navbar.html' %}
+    {% block navbar_content %}
+        {% include 'navbar.html' %}
+    {% endblock navbar_content %}
     <main>
         {% block content %}{% endblock %}
     </main>
-    <a href="#" class="fixed bottom-6 right-6 w-[50px] h-[50px] bg-[#DE3400] rounded-[8px] flex items-center justify-center text-white text-[1.75rem] shadow-[0_4px_8px_rgba(0,0,0,0.2)] cursor-pointer z-[999] no-underline">
-        <i class="fas fa-comment-dots"></i>
-    </a>
+    {#TODO Chat link#}
+    {% block chat_widget_content %}
+        <a href="#" class="fixed bottom-6 right-6 w-[50px] h-[50px] bg-[#DE3400] rounded-[8px] flex items-center justify-center text-white text-[1.75rem] shadow-[0_4px_8px_rgba(0,0,0,0.2)] cursor-pointer z-[999] no-underline">
+            <i class="fas fa-comment-dots"></i>
+        </a>
+    {% endblock chat_widget_content %}
     {% block content_script %}{% endblock %}
 </body>
 </html>
