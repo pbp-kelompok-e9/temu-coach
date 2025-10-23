@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'e_money',
     'reviews_ratings',
     'scheduler',
+    'my_admin',
 ]
 
 MIDDLEWARE = [
