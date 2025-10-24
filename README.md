@@ -84,36 +84,44 @@
   <br>
   <p>
     Berikut langkah-langkah untuk menjalankan proyek ini secara lokal:
-  </p>
 
-  <ol>
-    <li><strong>Clone repository</strong></li>
-    <pre><code>git clone https://github.com/[username]/temu-coach.git
-cd temu-coach
-    </code></pre>
+1.  **Clone repository**
+    *(Ganti `[username]` dengan URL Git clone yang benar, misal: `pbp-kelompok-e9`)*
+    ```bash
+    git clone [https://github.com/pbp-kelompok-e9/temu-coach.git](https://github.com/pbp-kelompok-e9/temu-coach.git)
+    cd temu-coach
+    ```
 
-    <li><strong>Buat dan aktifkan virtual environment</strong></li>
-    <pre><code>python -m venv venv
-venv\Scripts\activate      # untuk Windows
-source venv/bin/activate   # untuk Mac/Linux  
-    </code></pre>
+2.  **Buat dan aktifkan virtual environment**
+    ```bash
+    # Untuk Windows
+    python -m venv venv
+    .\venv\Scripts\activate
+    
+    # Untuk macOS/Linux
+    python3 -m venv venv
+    source venv/bin/activate
+    ```
 
-    <li><strong>Install dependencies</strong></li>
-    <pre><code>pip install -r requirements.txt
-    </code></pre>
+3.  **Install dependencies**
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-    <li><strong>Jalankan migrasi database</strong></li>
-    <pre><code>python manage.py makemigrations
-python manage.py migrate
-    </code></pre>
+4.  **Jalankan migrasi database**
+    *(Jalankan `makemigrations` hanya jika Anda mengubah `models.py`)*
+    ```bash
+    python manage.py makemigrations
+    python manage.py migrate
+    ```
 
-    <li><strong>Jalankan aplikasi secara lokal</strong></li>
-    <pre><code>python manage.py runserver
-    </code></pre>
-    <p>Kemudian buka <a href="http://localhost:8000">http://localhost:8000</a> di browser.</p>
+5.  **Jalankan aplikasi secara lokal**
+    ```bash
+    python manage.py runserver
+    ```
+    Kemudian buka [http://localhost:8000](http://localhost:8000) di browser.
 
-    <li><strong>Menjalankan test suite</strong></li>
-    <pre><code>python manage.py test
-    </code></pre>
-  </ol>
-</ul>
+6.  **Menjalankan test suite**
+    ```bash
+    python manage.py test
+    ```
