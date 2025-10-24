@@ -24,7 +24,7 @@
         </a>
         <div class="flex items-center gap-[25px]">
             {% if user.is_authenticated %}
-                {% if user.is_customer %}
+                {% if user.is_customer and not user.is_superuser %}
                     <a href="{% url 'customer_dashboard' %}" class="no-underline text-[#374151] font-semibold text-base hover:text-[#003E85] transition-colors">Dashboard</a>
                     <a href="{% url 'show_catalog' %}" class="no-underline text-[#374151] font-semibold text-base hover:text-[#003E85] transition-colors">Coaches</a>
                 {% elif user.is_coach %}

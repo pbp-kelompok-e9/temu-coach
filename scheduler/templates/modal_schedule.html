@@ -1,3 +1,4 @@
+{% load static %}
 <!-- modal_schedule.html -->
 <div>
   
@@ -104,7 +105,7 @@
       const result = await response.json(); // pastikan view return JsonResponse
       console.log('Response:', result);
 
-      alert('Jadwal berhasil ditambahkan!');
+      showToast("Berhasil!", "Jadwal berhasil ditambahkan!", "success");
       this.reset();
       hideModal();
 
@@ -127,7 +128,7 @@
 
     } catch (error) {
       console.error(error);
-      alert('Terjadi kesalahan saat menyimpan jadwal.');
+      showToast("Error", "Terjadi kesalahan saat menyimpan jadwal.", "error");
     }
   });
 
@@ -149,10 +150,11 @@
         document.getElementById(`jadwal-${id}`).remove();
       } catch (err) {
         console.error(err);
-        alert('Gagal menghapus jadwal.');
+        showToast("Error", "Gagal menghapus jadwal", "error");
       }
     }
   });
 
 </script>
+{% include 'toast.html' %}
 
