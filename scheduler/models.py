@@ -13,3 +13,9 @@ class Jadwal(models.Model):
 
     def __str__(self):
         return f"{self.coach.name} | {self.tanggal} | {self.jam_mulai} - {self.jam_selesai}"
+
+    @property
+    def booked_by(self):
+        if hasattr(self, 'booking'):
+            return self.booking.customer
+        return None
