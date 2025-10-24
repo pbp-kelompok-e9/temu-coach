@@ -45,7 +45,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'accounts',
     'coaches_book_catalog',
-    'e_money',
     'reviews_ratings',
     'scheduler',
     'my_admin',
