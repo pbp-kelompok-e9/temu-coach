@@ -1,136 +1,46 @@
-<style>
-   .coach-card {
-        background-color: white;
-        border: 3px solid #E0E0E0; 
-        border-radius: 10px; 
-        text-decoration: none;
-        color: #003E85;
-        height: 400px;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        overflow: hidden;
-        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-    }
-    .coach-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-
-    .card-image-container {
-        width: 100%;
-        height: 150px; 
-        background-color: #f0f0f0; 
-    }
-
-    .card-image-container img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover; 
-    }
-
-    .card-text-content {
-        padding: 1rem;
-        display: flex;
-        flex-direction: column;
-        flex-grow: 1; 
-    }
-
-    .coach-card h3 {
-        margin: 0 0 0.5rem 0; 
-        font-size: 1.125rem; 
-        font-weight: 700; 
-    }
-
-    .card-info-row {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-size: 0.9rem; 
-        color: #003E85;
-        font-weight: 400; 
-        margin-bottom: 0.25rem; 
-    }
-
-    .card-info-row i {
-        width: 14px; 
-        text-align: center;
-        color: #DE3400; 
-    }
-
-    .coach-card .nationality {
-        margin: 0;
-    }
-
-    .card-description {
-        font-size: 0.85rem;
-        font-weight: 400;
-        color: #333; 
-        line-height: 1.4;
-        margin-top: 0.5rem;
-        margin-bottom: 0.5rem;
-
-        flex-grow: 1; 
-
-
-        display: -webkit-box;
-        -webkit-line-clamp: 4; 
-        -webkit-box-orient: vertical;  
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .coach-card .price {
-        margin-top: 0;
-        font-size: 1rem;
-        font-weight: 700; 
-        color: #003E85; 
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .coach-card .rating {
-        margin: 0.5rem 0;
-        color: #FBC02D; 
-        font-size: 1rem; 
-        display: flex; 
-        gap: 2px; 
-    }
-</style>
-{% load static %} <a href="{% url 'coach_detail' coach.id %}" class="coach-card">
-    
-    <div class="card-image-container">
+{% load static %}
+<a href="{% url 'coach_detail' coach.id %}" class="flex flex-col justify-start h-[400px] bg-white border-[3px] border-[#E0E0E0] rounded-[10px] text-[#003E85] no-underline overflow-hidden transition-transform duration-200 ease-in-out hover:-translate-y-1 hover:shadow-[0_4px_12px_rgba(0,0,0,0.1)]">
+    <div class="w-full h-[150px] bg-[#f0f0f0]">
         {% if coach.foto %}
-            <img src="{{ coach.foto.url }}" alt="{{ coach.name }}">
+            <img src="{{ coach.foto.url }}" alt="{{ coach.name }}" class="w-full h-full object-cover">
         {% else %}
-            <img src="{% static 'images/default_avatar.png' %}" alt="Default Avatar">
+            <img src="{% static 'images/default_avatar.png' %}" alt="Default Avatar" class="w-full h-full object-cover">
         {% endif %}
     </div>
-
-    <div class="card-text-content">
-        <h3>{{ coach.name|default:"Nama Coach" }}</h3>
-        
-        <div class="card-info-row">
-            <i class="fas fa-flag"></i> <span>{{ coach.citizenship|default:"Negara" }}</span>
+    <div class="flex flex-col flex-grow p-4">
+        <h3 class="m-0 mb-2 text-[1.125rem] font-bold">{{ coach.name|default:"Nama Coach" }}</h3>
+        <div class="flex items-center gap-2 text-[0.9rem] text-[#003E85] font-normal mb-1">
+            <i class="fas fa-flag w-[14px] text-center text-[#DE3400]"></i>
+            <span>{{ coach.citizenship|default:"Negara" }}</span>
         </div>
-        
-        <div class="card-info-row">
-            <i class="fas fa-futbol"></i> <span>{{ coach.preffered_formation|default:"-" }}</span>
+        <div class="flex items-center gap-2 text-[0.9rem] text-[#003E85] font-normal mb-1">
+            <i class="fas fa-futbol w-[14px] text-center text-[#DE3400]"></i>
+            <span>{{ coach.preffered_formation|default:"-" }}</span>
         </div>
-        <p class="card-description">
+        <p class="text-[0.85rem] font-normal text-[#333] leading-[1.4] mt-2 mb-2 flex-grow line-clamp-4">
             {{ coach.description|default:"Tidak ada deskripsi." }}
         </p>
-        <div class="rating">
-            {% for _ in "12345" %} {# TODO: Replace with actual rating logic #}
-                
-                <i class="fas fa-star"></i>
-            {% endfor %}
+        <div class="my-2 text-yellow-500 text-base flex gap-px items-center">
+             {% with avg_rating=coach.avg_rate|default:0 %} 
+                {% for i in "12345" %}
+                    {% with star_num=forloop.counter %}
+                        {% if avg_rating >= star_num %} 
+                            <i class="fas fa-star"></i> 
+                        {% elif avg_rating >= star_num|add:"-0.5" %} 
+                            <i class="fas fa-star-half-alt"></i> 
+                        {% else %} 
+                            <i class="far fa-star"></i> 
+                        {% endif %}
+                    {% endwith %}
+                {% endfor %}
+                 {% if coach.total_reviews > 0 %}
+                    <span class="ml-1 text-xs text-gray-500 font-normal">({{ coach.total_reviews }})</span> 
+                {% endif %}
+            {% endwith %}
         </div>
-
-        <div class="price">
-            <i class="fas fa-tag"></i> <span>Rp {{ coach.rate_per_session|floatformat:0|default:"150.000" }}</span>
+        <div class="flex items-center gap-2 text-[1rem] font-bold text-[#003E85] mt-0">
+            <i class="fas fa-tag"></i>
+            <span>Rp {{ coach.rate_per_session|floatformat:0|default:"150.000" }}</span>
         </div>
     </div>
 </a>

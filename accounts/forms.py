@@ -1,26 +1,32 @@
 from django import forms
+from django.contrib.auth.forms import UserCreationForm
+from .models import CustomUser
+from coaches_book_catalog.models import CoachRequest 
+from django.core.exceptions import ValidationError
 
-class CoachRegisterForm(forms.Form):
-    # data login (optional password)
-    password1 = forms.CharField(widget=forms.PasswordInput, label="Password")
-    password2 = forms.CharField(widget=forms.PasswordInput, label="Confirm Password")
+class UserRegisterForm(UserCreationForm):
+    email = forms.EmailField(required=True)
+    user_type = forms.ChoiceField(
+        choices=CustomUser.USER_TYPE_CHOICES,
+        widget=forms.RadioSelect,
+        label="Daftar sebagai:",
+        required=True
+    )
 
-    # data coach
-    name = forms.CharField(max_length=50, label="Full Name")
-    age = forms.IntegerField()
-    citizenship = forms.CharField(max_length=50)
-    foto = forms.ImageField(required=False)
-    club = forms.CharField(max_length=20)
-    license = forms.CharField(max_length=50)
-    preffered_formation = forms.CharField(max_length=100, help_text="Contoh: 4-3-3 Attacking")
-    average_term_as_coach = forms.FloatField(help_text="Dalam tahun, contoh: 3.5")
-    description = forms.CharField(widget=forms.Textarea)
-    rate_per_session = forms.DecimalField(max_digits=10, decimal_places=2)
+    class Meta(UserCreationForm.Meta):
+        model = CustomUser
+        fields = ('username', 'email', 'first_name', 'last_name', 'user_type') 
 
-    def clean(self):
-        cleaned_data = super().clean()
-        p1 = cleaned_data.get("password1")
-        p2 = cleaned_data.get("password2")
-        if p1 and p2 and p1 != p2:
-            raise forms.ValidationError("Passwords do not match")
-        return cleaned_data
+class CoachRequestForm(forms.ModelForm):
+    class Meta:
+        model = CoachRequest
+        exclude = ['user', 'approved', 'created_at']
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 4}),
+        }
+
+    def clean_age(self):
+        age = self.cleaned_data.get('age')
+        if age < 18:
+            raise ValidationError("Coach harus berusia minimal 18 tahun.")
+        return age

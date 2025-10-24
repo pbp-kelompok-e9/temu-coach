@@ -8,18 +8,18 @@ from django.contrib import messages
 from my_admin.models import Report
 from .forms import ReportForm
 from coaches_book_catalog.models import Coach
-
+from django.conf import settings
 # Create your models here.
 class Reviews(models.Model):
     coach = models.ForeignKey(Coach, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    booking = models.OneToOneField('coaches_book_catalog.Booking', on_delete=models.CASCADE, null=True, blank=True)
     rate = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
     review = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
+    
     class Meta:
-        unique_together = ('coach', 'user')
         ordering = ['-created_at']
     
     def __str__(self):

@@ -3,606 +3,154 @@
 
 {% block title %}Detail {{ coach.name }}{% endblock %}
 
-{% block content_style %}
-<style>
-    body {
-        font-family: 'Plus Jakarta Sans', Arial, sans-serif;
-        background-color: #F9FAFB; 
-        color: #003E85; 
-        font-weight: 400;
-    }
-
-    .page-container {
-        display: flex;
-        flex-wrap: wrap; 
-        gap: 2rem;
-        margin: 2rem auto;
-        max-width: 1200px;
-        padding: 0 1rem;
-        align-items: flex-start;
-    }
-
-    .card {
-        background-color: white;
-        border: 1px solid #E0E0E0;
-        border-radius: 12px; 
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-        padding: 2rem;
-    }
-
-    .detail-column {
-        flex: 1; 
-        min-width: 320px; 
-        order: 1; 
-    }
-    
-    .coach-avatar-container { 
-        width: 180px;
-        height: 180px;
-        margin: 0 auto 1.5rem auto; 
-        border-radius: 50%; 
-        overflow: hidden;
-        background-color: #f0f0f0; 
-        border: 4px solid white;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    .coach-avatar-container img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover; 
-    }
-    
-    .detail-column h1 {
-        font-size: 1.875rem; 
-        font-weight: 700;
-        margin: 0 0 0.25rem 0;
-        color: #111827; 
-        text-align: center;
-    }
-
-    .coach-subtitle { 
-        font-size: 1rem;
-        color: #6B7280;
-        text-align: center;
-        margin-bottom: 1.5rem;
-    }
-
-    .info-divider {
-        height: 1px;
-        background-color: #E0E0E0;
-        margin: 1.5rem 0;
-    }
-
-    .info-list { 
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }
-    
-    .info-item { 
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        padding: 0.6rem 0;
-        color: #4B5563; 
-        font-size: 0.95rem;
-        line-height: 1.5;
-        border-bottom: 1px solid #F3F4F6; 
-    }
-     .info-item:last-child {
-        border-bottom: none;
-    }
-
-    .info-item i { 
-        width: 18px; 
-        text-align: center;
-        color: #DE3400;
-        font-size: 1.1em; 
-    }
-    
-    .info-label {
-        font-weight: 400; 
-    }
-    .info-label strong { 
-       font-weight: 600;
-       color: #111827; 
-    }
-
-    .description-section {
-        margin-top: 1.5rem;
-    }
-    .description-section h3 { 
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: #111827;
-        margin: 0 0 0.5rem 0;
-    }
-    .description-section p { 
-        color: #4B5563;
-        line-height: 1.6;
-        font-size: 0.95rem;
-        margin: 0;
-    }
-
-    .back-button { 
-        display: inline-block;
-        margin-top: 1.5rem;
-        padding: 0.75rem 1.5rem;
-        background-color: #DE3400;
-        color: white;
-        text-decoration: none;
-        border: none;
-        border-radius: 8px;
-        font-weight: 600;
-        font-size: 0.95rem;
-        text-align: center;
-        transition: background-color 0.2s;
-    }
-    .back-button:hover { 
-        background-color: #c42e00; 
-    }
-
-    .booking-column {
-        flex: 1.2; 
-        min-width: 320px;
-        order: 2;
-    }
-    
-    .booking-header h2 {
-        font-size: 1.5rem;
-        font-weight: 700;
-        margin: 0 0 1.5rem 0;
-        color: #003E85; 
-    }
-
-    .calendar-container { 
-        margin-bottom: 1.5rem; 
-        border-bottom: 1px solid #F0F0F0; 
-        padding-bottom: 1.5rem;
-    }
-    .calendar-header { 
-        display: flex; 
-        justify-content: space-between; 
-        align-items: center;
-        margin-bottom: 1rem;
-    }
-    .calendar-month { 
-        font-size: 1.1rem; 
-        font-weight: 600; 
-        color: #111827;
-    } 
-    .calendar-nav button { 
-        background: none; 
-        border: none; 
-        cursor: pointer; 
-        color: #003E85; 
-        padding: 0.5rem;
-    }
-    .calendar-grid { 
-        display: grid; 
-        grid-template-columns: repeat(7, 1fr); 
-        gap: 0.25rem; 
-    }
-    .calendar-day-header { 
-        text-align: center; 
-        font-size: 0.75rem; 
-        font-weight: 600; 
-        color: #9CA3AF; 
-        padding-bottom: 0.5rem; 
-    }
-    .calendar-day {
-        aspect-ratio: 1; 
-        display: flex; 
-        align-items: center; 
-        justify-content: center;
-        border-radius: 50%; 
-        font-size: 0.9rem; 
-        cursor: pointer; 
-        transition: all 0.2s;
-        border: 2px solid transparent; 
-        background: white; 
-        color: #4B5563; 
-    }
-    .calendar-day.empty { 
-        visibility: hidden; 
-    }
-    .calendar-day.disabled { 
-        color: #D1D5DB; 
-        cursor: not-allowed; 
-    }
-    .calendar-day.past-disabled { 
-        color: #9CA3AF; 
-        cursor: not-allowed; 
-        text-decoration: line-through; 
-        opacity: 0.6; 
-    }
-    .calendar-day.available {
-        font-weight: 600; 
-        color: #003E85; 
-        position: relative;
-    }
-    .calendar-day.available::after { 
-        content: ''; 
-        position: absolute; 
-        bottom: 5px; 
-        left: 50%; 
-        transform: translateX(-50%);
-        width: 5px; 
-        height: 5px; 
-        background-color: #003E85; 
-        border-radius: 50%;
-    }
-    .calendar-day.available:not(.selected):hover { 
-        background: #EBF4FF; 
-    } 
-    .calendar-day.selected { 
-        background: #003E85; 
-        border-color: #003E85; 
-        color: white; 
-        font-weight: 700; 
-    }
-    .calendar-day.selected::after { 
-        background-color: white; 
-    }
-
-    .time-slots-container { 
-        padding-top: 1.5rem; 
-        }
-    .time-slots-header {
-        font-size: 1.125rem; 
-        font-weight: 700; 
-        margin-bottom: 1rem; 
-        color: #003E85; 
-    }
-    .no-date-selected { 
-        text-align: center; 
-        padding: 2rem; 
-        color: #9CA3AF; 
-        }
-    .time-slots-grid {
-        display: grid; 
-        grid-template-columns: repeat(3, 1fr); 
-        gap: 0.75rem; 
-        margin-bottom: 2rem;
-    }
-    .time-slot-btn {
-        padding: 0.875rem 1rem; 
-        background: #DE3400; 
-        border: none; 
-        border-radius: 8px;
-        cursor: pointer; 
-        transition: all 0.2s; 
-        font-size: 0.9rem; 
-        font-weight: 600;
-        color: white; 
-        text-align: center; 
-        font-family: 'Plus Jakarta Sans', Arial, sans-serif;
-    }
-    .time-slot-btn:not(.selected):hover { 
-        background: #c42e00; 
-        transform: translateY(-2px); 
-        box-shadow: 0 4px 8px rgba(222, 52, 0, 0.3); 
-    }
-    .time-slot-btn:active { 
-        transform: translateY(0); 
-        box-shadow: none; 
-    }
-    .time-slot-btn.selected {
-        background: #003E85;
-        box-shadow: 0 0 0 3px rgba(0, 62, 133, 0.3);
-        transform: scale(1.03);
-    }
-    .time-slot-btn.selected:hover { 
-        background: #002a5c; 
-    } 
-
-    .booking-summary { 
-        padding-top: 1.5rem; 
-        border-top: 1px solid #F0F0F0; 
-    }
-    .price-display {
-        font-size: 2rem; 
-        font-weight: 700; 
-        color: #111827;
-        margin-bottom: 1rem; 
-        text-align: center;
-    }
-    .book-session-btn {
-        width: 100%; 
-        padding: 1rem; 
-        background: #DE3400; 
-        color: white; 
-        border: none;
-        border-radius: 8px; 
-        font-size: 1.125rem; 
-        font-weight: 700; 
-        cursor: pointer;
-        transition: all 0.2s; 
-        font-family: 'Plus Jakarta Sans', Arial, sans-serif;
-    }
-    .book-session-btn:hover { 
-        background: #c42e00; 
-        transform: translateY(-2px); 
-        box-shadow: 0 4px 12px rgba(222, 52, 0, 0.4); 
-    }
-    .book-session-btn:disabled { 
-        background: #FECACA; 
-        color: #F87171; 
-        cursor: not-allowed; 
-        transform: none; 
-        box-shadow: none;
-    }
-    .notes-section {
-        margin-top: 1.5rem; 
-        margin-bottom: 1.5rem; 
-    }
-
-    .notes-label {
-        display: block; 
-        font-size: 0.9rem;
-        font-weight: 600;
-        color: #4B5563; 
-        margin-bottom: 0.5rem;
-    }
-
-    .notes-textarea {
-        width: 100%;    
-        padding: 0.75rem 1rem;
-        border: 1px solid #D1D5DB; 
-        border-radius: 8px; 
-        font-family: 'Plus Jakarta Sans', Arial, sans-serif; 
-        font-size: 0.95rem;
-        line-height: 1.5;
-        resize: vertical; 
-        box-sizing: border-box;  
-        min-height: 80px;   
-    }
-
-    .notes-textarea:focus {
-        outline: none;
-        border-color: #003E85;  
-        box-shadow: 0 0 0 3px rgba(0, 62, 133, 0.1);    
-    }
-    .reviews-section {
-        flex-basis: 100%; 
-        order: 3; 
-        margin-top: 2rem;
-    }
-    .reviews-section h2 { 
-        font-size: 1.5rem; 
-        font-weight: 700; 
-        color: #003E85; 
-        margin: 0 0 1.5rem 0; 
-    }
-    .reviews-container { 
-        display: flex; 
-        gap: 1.5rem; 
-        overflow-x: auto; 
-        padding-bottom: 1.5rem; 
-        scroll-snap-type: x mandatory; 
-    }
-    .reviews-container::-webkit-scrollbar { 
-        display: none; 
-    }
-    .reviews-container { 
-        -ms-overflow-style: none; 
-        scrollbar-width: none; 
-    }
-    .review-card { 
-        flex: 0 0 300px; 
-        scroll-snap-align: start;
-        padding: 1.5rem;
-    }
-    .rating {
-        color: #f1c40f;
-        margin-bottom: 0.5rem;
-    }
-    .rating i {
-        margin-right: 2px;
-    }
-    .review-author {
-        font-weight: 600;
-        color: #2c3e50;
-        margin-bottom: 0.5rem;
-    }
-    .review-text {
-        color: #34495e;
-        font-size: 0.9rem;
-        line-height: 1.5;
-        margin-bottom: 0.5rem;
-    }
-    .review-date {
-        color: #7f8c8d;
-        font-size: 0.8rem;
-    }
-    .rating-summary {
-        margin-top: 2rem;
-        text-align: center;
-    }
-    .avg-rating {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 1rem;
-    }
-    .rating-number {
-        font-size: 2rem;
-        font-weight: 700;
-        color: #2c3e50;
-    }
-    .total-reviews {
-        color: #7f8c8d;
-        font-size: 0.9rem;
-    }
-
-    @media (max-width: 968px) {
-        .page-container { flex-direction: column; }
-        .detail-column { position: static; order: 1; } 
-        .booking-column { order: 2; }
-        .reviews-section { order: 3; }
-        .time-slots-grid { grid-template-columns: repeat(2, 1fr); }
-    }
-    @media (max-width: 576px) {
-        .time-slots-grid { grid-template-columns: 1fr; }
-        .calendar-grid { gap: 0.25rem; }
-        .calendar-day { font-size: 0.8rem; }
-        .detail-column, .booking-column, .review-card { padding: 1.5rem; } 
-    }
-
-</style>
-{% endblock %}
-
 {% block content %}
-<div class="page-container">
+<div class="flex flex-wrap gap-8 my-8 mx-auto max-w-7xl px-4 items-start">
     
-    <aside class="detail-column card">
-        <div class="coach-avatar-container">
+    <aside class="flex-1 min-w-[320px] order-1 bg-white border border-gray-200 rounded-xl shadow-sm p-8">
+        <div class="w-45 h-45 mx-auto mb-6 rounded-full overflow-hidden bg-gray-100 border-4 border-white shadow-md">
              {% if coach.foto %}
-                <img src="{{ coach.foto.url }}" alt="{{ coach.name }}">
+                <img src="{{ coach.foto.url }}" alt="{{ coach.name }}" class="w-full h-full object-cover">
             {% else %}
-                <img src="{% static 'images/default_avatar.png' %}" alt="Default Avatar">
+                <img src="{% static 'images/default_avatar.png' %}" alt="Default Avatar" class="w-full h-full object-cover">
             {% endif %}
         </div>
         
-        <h1>{{ coach.name }}</h1>
-        <p class="coach-subtitle">
+        <h1 class="text-3xl font-bold mb-1 text-gray-900 text-center">{{ coach.name }}</h1>
+        <p class="text-base text-gray-500 text-center mb-6">
             {{ coach.citizenship }} | {{ coach.age }} years old
         </p>
         
-        <div class="info-divider"></div>
+        <div class="h-px bg-gray-200 my-6"></div>
         
-        <ul class="info-list">
-            <li class="info-item">
-                <i class="fas fa-shield-alt"></i> 
-                <span class="info-label">Klub: <strong>{{ coach.club|default:"-" }}</strong></span>
+        <ul class="list-none p-0 m-0">
+            <li class="flex items-center gap-3 py-2.5 text-gray-600 text-sm leading-relaxed border-b border-gray-100">
+                <i class="fas fa-shield-alt w-[18px] text-center text-[#DE3400] text-lg"></i> 
+                <span class="font-normal">Klub: <strong class="font-semibold text-gray-900">{{ coach.club|default:"-" }}</strong></span>
             </li>
-            <li class="info-item">
-                <i class="fas fa-futbol"></i> 
-                <span class="info-label">Formasi: <strong>{{ coach.preffered_formation|default:"-" }}</strong></span>
+            <li class="flex items-center gap-3 py-2.5 text-gray-600 text-sm leading-relaxed border-b border-gray-100">
+                <i class="fas fa-futbol w-[18px] text-center text-[#DE3400] text-lg"></i> 
+                <span class="font-normal">Formasi: <strong class="font-semibold text-gray-900">{{ coach.preffered_formation|default:"-" }}</strong></span>
             </li>
-            <li class="info-item">
-                <i class="fas fa-id-badge"></i> 
-                <span class="info-label">Lisensi: <strong>{{ coach.license|default:"-" }}</strong></span>
+            <li class="flex items-center gap-3 py-2.5 text-gray-600 text-sm leading-relaxed border-b border-gray-100">
+                <i class="fas fa-id-badge w-[18px] text-center text-[#DE3400] text-lg"></i> 
+                <span class="font-normal">Lisensi: <strong class="font-semibold text-gray-900">{{ coach.license|default:"-" }}</strong></span>
             </li>
-             <li class="info-item">
-                <i class="fas fa-clock"></i> 
-                <span class="info-label">Avg Term: <strong>{{ coach.average_term_as_coach|default:"-" }} Tahun</strong></span>
+             <li class="flex items-center gap-3 py-2.5 text-gray-600 text-sm leading-relaxed">
+                <i class="fas fa-clock w-[18px] text-center text-[#DE3400] text-lg"></i> 
+                <span class="font-normal">Avg Term: <strong class="font-semibold text-gray-900">{{ coach.average_term_as_coach|default:"-" }} Tahun</strong></span>
             </li>
-            </ul>
+        </ul>
         
-        <div class="info-divider"></div>
+        <div class="h-px bg-gray-200 my-6"></div>
         
-        <div class="description-section">
-             <h3>Deskripsi</h3>
-             <p>{{ coach.description|default:"Tidak ada deskripsi." }}</p>
+        <div class="mt-6">
+             <h3 class="text-lg font-semibold text-gray-900 mb-2">Deskripsi</h3>
+             <p class="text-gray-600 leading-relaxed text-sm m-0">{{ coach.description|default:"Tidak ada deskripsi." }}</p>
         </div>
 
-        <a href="{% url 'show_catalog' %}" class="back-button">Kembali</a>
+        <a href="{% url 'show_catalog' %}" class="inline-block mt-6 px-6 py-3 bg-[#DE3400] text-white no-underline rounded-lg font-semibold text-sm text-center transition-colors duration-200 hover:bg-[#c42e00]">Kembali</a>
     </aside>
 
-    <main class="booking-column card">
-        <div class="booking-header">
-            <h2>Pilih Jadwal Booking</h2>
+    <main class="flex-[1.2] min-w-[320px] order-2 bg-white border border-gray-200 rounded-xl shadow-sm p-8">
+        <div class="mb-6">
+            <h2 class="text-2xl font-bold mb-6 text-[#003E85]">Pilih Jadwal Booking</h2>
         </div>
 
-        <div class="calendar-container">
-            <div class="calendar-header">
-                <div class="calendar-month" id="currentMonth"></div>
-                <div class="calendar-nav">
-                    <button class="nav-btn" id="prevMonth" aria-label="Previous Month">
+        <div class="mb-6 border-b border-gray-100 pb-6">
+            <div class="flex justify-between items-center mb-4">
+                <div class="text-lg font-semibold text-gray-900" id="currentMonth"></div>
+                <div class="flex gap-2">
+                    <button class="bg-transparent border-none cursor-pointer text-[#003E85] p-2 hover:bg-gray-50 rounded" id="prevMonth" aria-label="Previous Month">
                         <i class="fas fa-chevron-left"></i>
                     </button>
-                    <button class="nav-btn" id="nextMonth" aria-label="Next Month">
+                    <button class="bg-transparent border-none cursor-pointer text-[#003E85] p-2 hover:bg-gray-50 rounded" id="nextMonth" aria-label="Next Month">
                         <i class="fas fa-chevron-right"></i>
                     </button>
                 </div>
             </div>
-            <div class="calendar-grid" id="calendarGrid">
-                <div class="calendar-day-header">Min</div>
-                <div class="calendar-day-header">Sen</div>
-                <div class="calendar-day-header">Sel</div>
-                <div class="calendar-day-header">Rab</div>
-                <div class="calendar-day-header">Kam</div>
-                <div class="calendar-day-header">Jum</div>
-                <div class="calendar-day-header">Sab</div>
-                </div>
+            <div class="grid grid-cols-7 gap-1" id="calendarGrid">
+                <div class="text-center text-xs font-semibold text-gray-400 pb-2">Min</div>
+                <div class="text-center text-xs font-semibold text-gray-400 pb-2">Sen</div>
+                <div class="text-center text-xs font-semibold text-gray-400 pb-2">Sel</div>
+                <div class="text-center text-xs font-semibold text-gray-400 pb-2">Rab</div>
+                <div class="text-center text-xs font-semibold text-gray-400 pb-2">Kam</div>
+                <div class="text-center text-xs font-semibold text-gray-400 pb-2">Jum</div>
+                <div class="text-center text-xs font-semibold text-gray-400 pb-2">Sab</div>
+            </div>
         </div>
 
-        <div class="time-slots-container">
-            <div class="time-slots-header" id="selectedDateDisplay" style="display: none;">Pilih sesi</div>
+        <div class="pt-6">
+            <div class="text-lg font-bold mb-4 text-[#003E85]" id="selectedDateDisplay" style="display: none;">Pilih sesi</div>
             
-            <div id="noDateSelected" class="no-date-selected">
+            <div id="noDateSelected" class="text-center py-8 text-gray-400">
                 <p>Pilih tanggal di kalender untuk melihat slot waktu yang tersedia.</p>
             </div>
             
-            <div id="timeSlotsGrid" class="time-slots-grid" style="display: none;">
-                 </div>
+            <div id="timeSlotsGrid" class="grid grid-cols-3 gap-3 mb-8 max-md:grid-cols-2 max-sm:grid-cols-1" style="display: none;"></div>
 
              <form id="booking-form" method="POST" action="" style="display: none;"> 
                 {% csrf_token %}
                 <input type="hidden" name="jadwal_id" id="selected-jadwal-id" value=""> 
-                <div class="notes-section">
-                    <label for="booking-notes" class="notes-label">Catatan untuk sesi ini (opsional):</label>
-                    <textarea id="booking-notes" name="notes" rows="3" class="notes-textarea" placeholder="Contoh: Fokus pada latihan passing..."></textarea>
+                <div class="mt-6 mb-6">
+                    <label for="booking-notes" class="block text-sm font-semibold text-gray-600 mb-2">Catatan untuk sesi ini (opsional):</label>
+                    <textarea id="booking-notes" name="notes" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm leading-relaxed resize-y box-border min-h-[80px] focus:outline-none focus:border-[#003E85] focus:ring-4 focus:ring-[#003E85]/10" placeholder="Contoh: Fokus pada latihan passing..."></textarea>
                 </div>
-                <div class="booking-summary">
-                    <div class="price-display">Rp {{ coach.rate_per_session|floatformat:0 }}</div>
-                    <button type="submit" class="book-session-btn" id="bookSessionBtn" disabled>
+                <div class="pt-6 border-t border-gray-100">
+                    <div class="text-3xl font-bold text-gray-900 mb-4 text-center">Rp {{ coach.rate_per_session|floatformat:0 }}</div>
+                    <button type="submit" class="w-full px-4 py-4 bg-[#DE3400] text-white border-none rounded-lg text-lg font-bold cursor-pointer transition-all duration-200 hover:bg-[#c42e00] hover:-translate-y-0.5 hover:shadow-lg disabled:bg-red-200 disabled:text-red-400 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none" id="bookSessionBtn" disabled>
                         Book Session
                     </button>
                 </div>
             </form>
         </div>
     </main>
-    {# TODO #: Integrate dynamic reviews from database #}
-    <section class="reviews-section">
-        <h2>Reviews ({{ total_reviews }})</h2>
-        <div class="reviews-container">
+
+    <section class="w-full order-3 mt-8 bg-white border border-gray-200 rounded-xl shadow-sm p-8">
+        <h2 class="text-2xl font-bold text-[#003E85] mb-6">Reviews ({{ total_reviews }})</h2>
+        <div class="flex gap-6 overflow-x-auto pb-6 snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {% if reviews %}
                 {% for review in reviews %}
-                    <div class="review-card card">
-                        <div class="rating">
+                    <div class="flex-[0_0_300px] snap-start bg-white border border-gray-200 rounded-xl shadow-sm p-6">
+                        <div class="text-yellow-400 mb-2">
                             {% for i in "12345" %}
                                 {% if forloop.counter <= review.rate %}
-                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star mr-0.5"></i>
                                 {% else %}
-                                    <i class="far fa-star"></i>
+                                    <i class="far fa-star mr-0.5"></i>
                                 {% endif %}
                             {% endfor %}
                         </div>
-                        <div class="review-author">{{ review.user.username }}</div>
-                        <p class="review-text">{{ review.review }}</p>
-                        <div class="review-date">{{ review.created_at|date:"d M Y" }}</div>
+                        <div class="font-semibold text-[#2c3e50] mb-2">{{ review.user.username }}</div>
+                        <p class="text-[#34495e] text-sm leading-relaxed mb-2">{{ review.review }}</p>
+                        <div class="text-[#7f8c8d] text-xs">{{ review.created_at|date:"d M Y" }}</div>
                     </div>
                 {% endfor %}
             {% else %}
-                <div class="review-card card">
-                    <p class="review-text">Belum ada review.</p>
+                <div class="flex-[0_0_300px] snap-start bg-white border border-gray-200 rounded-xl shadow-sm p-6">
+                    <p class="text-[#34495e] text-sm leading-relaxed mb-2">Belum ada review.</p>
                 </div>
             {% endif %}
         </div>
 
-        <div class="rating-summary">
-            <div class="avg-rating">
-                <span class="rating-number">{{ avg_rating }}</span>
-                <div class="rating">
+        <div class="mt-8 text-center">
+            <div class="flex items-center justify-center gap-4">
+                <span class="text-3xl font-bold text-[#2c3e50]">{{ avg_rating }}</span>
+                <div class="text-yellow-400 mb-2">
                     {% for i in "12345" %}
                         {% if forloop.counter <= avg_rating %}
-                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star mr-0.5"></i>
                         {% else %}
-                            <i class="far fa-star"></i>
+                            <i class="far fa-star mr-0.5"></i>
                         {% endif %}
                     {% endfor %}
                 </div>
-                <span class="total-reviews">({{ total_reviews }} reviews)</span>
+                <span class="text-[#7f8c8d] text-sm">({{ total_reviews }} reviews)</span>
             </div>
         </div>
     </section>
 
-</div> {% endblock %}
+</div>
 
-
-{% block content_script %}
 <script>
     const scheduleData = {
         {% for tanggal, jadwal_list in grouped_schedules.items %}
@@ -659,21 +207,22 @@
         
         calendarGrid.querySelectorAll('.calendar-day').forEach(day => day.remove()); 
         
-        
         for (let i = 0; i < firstDayOfMonth; i++) {
             const emptyDay = document.createElement('div');
-            emptyDay.className = 'calendar-day empty';
+            emptyDay.className = 'calendar-day invisible';
             calendarGrid.appendChild(emptyDay);
         }
         
-        const today = new Date(); today.setHours(0, 0, 0, 0);
+        const today = new Date(); 
+        today.setHours(0, 0, 0, 0);
         
         for (let day = 1; day <= daysInMonth; day++) {
-            const dayDate = new Date(year, month, day); dayDate.setHours(0, 0, 0, 0);
+            const dayDate = new Date(year, month, day); 
+            dayDate.setHours(0, 0, 0, 0);
             const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
             
             const dayCell = document.createElement('div');
-            dayCell.className = 'calendar-day';
+            dayCell.className = 'calendar-day aspect-square flex items-center justify-center rounded-full text-sm cursor-pointer transition-all duration-200 border-2 border-transparent bg-white text-gray-600';
             dayCell.textContent = day;
             dayCell.dataset.date = dateStr;
             
@@ -681,15 +230,24 @@
             const isPast = dayDate < today;
             
             if (isPast) {
-                dayCell.classList.add('past-disabled');
+                dayCell.className += ' text-gray-400 cursor-not-allowed line-through opacity-60';
             } else if (hasSlots) {
-                dayCell.classList.add('available');
+                dayCell.className += ' font-semibold text-[#003E85] relative hover:bg-[#EBF4FF]';
+                dayCell.innerHTML = `${day}<span class="absolute bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-[#003E85] rounded-full"></span>`;
                 dayCell.addEventListener('click', () => handleDateClick(dateStr, dayDate));
             } else {
-                dayCell.classList.add('disabled');
+                dayCell.className += ' text-gray-300 cursor-not-allowed';
             }
             
-            if (selectedDate === dateStr) { dayCell.classList.add('selected'); }
+            if (selectedDate === dateStr) { 
+                dayCell.className = dayCell.className.replace('bg-white', 'bg-[#003E85]');
+                dayCell.className = dayCell.className.replace('text-[#003E85]', 'text-white');
+                dayCell.className = dayCell.className.replace('border-transparent', 'border-[#003E85]');
+                dayCell.className += ' font-bold';
+                if (hasSlots) {
+                    dayCell.innerHTML = `${day}<span class="absolute bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-white rounded-full"></span>`;
+                }
+            }
             
             calendarGrid.appendChild(dayCell);
         }
@@ -716,7 +274,7 @@
                 slots.forEach(slot => {
                     const button = document.createElement('button');
                     button.type = 'button'; 
-                    button.className = 'time-slot-btn';
+                    button.className = 'py-3.5 px-4 bg-[#DE3400] border-none rounded-lg cursor-pointer transition-all duration-200 text-sm font-semibold text-white text-center hover:bg-[#c42e00] hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:shadow-none';
                     button.textContent = `${slot.start} - ${slot.end}`;
                     button.dataset.jadwalId = slot.id; 
 
@@ -727,8 +285,8 @@
                 timeSlotsGrid.style.display = 'grid';
                 bookingForm.style.display = 'block'; 
             } else {
-                 timeSlotsGrid.innerHTML = '<p class="no-slots-message">Tidak ada slot tersedia.</p>';
-                 timeSlotsGrid.style.display = 'block'; 
+                 timeSlotsGrid.innerHTML = '<p class="text-center py-8 text-gray-400 col-span-3">Tidak ada slot tersedia.</p>';
+                 timeSlotsGrid.style.display = 'grid'; 
                  bookingForm.style.display = 'none'; 
                  selectedSlotId = null; 
             }
@@ -744,11 +302,11 @@
     }
 
     function handleSlotClick(clickedButton, jadwalId) {
-        timeSlotsGrid.querySelectorAll('.time-slot-btn').forEach(btn => {
-            btn.classList.remove('selected');
+        timeSlotsGrid.querySelectorAll('button').forEach(btn => {
+            btn.className = 'py-3.5 px-4 bg-[#DE3400] border-none rounded-lg cursor-pointer transition-all duration-200 text-sm font-semibold text-white text-center hover:bg-[#c42e00] hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:shadow-none';
         });
 
-        clickedButton.classList.add('selected');
+        clickedButton.className = 'py-3.5 px-4 bg-[#003E85] border-none rounded-lg cursor-pointer transition-all duration-200 text-sm font-semibold text-white text-center shadow-[0_0_0_3px_rgba(0,62,133,0.3)] scale-[1.03] hover:bg-[#002a5c]';
         
         selectedSlotId = jadwalId;
         
@@ -769,14 +327,16 @@
 
     prevMonthBtn.addEventListener('click', () => {
         currentDate.setMonth(currentDate.getMonth() - 1);
-        selectedDate = null; selectedSlotId = null; 
+        selectedDate = null; 
+        selectedSlotId = null; 
         renderCalendar();
         displayTimeSlots(null, null);
     });
 
     nextMonthBtn.addEventListener('click', () => {
         currentDate.setMonth(currentDate.getMonth() + 1);
-        selectedDate = null; selectedSlotId = null; 
+        selectedDate = null; 
+        selectedSlotId = null; 
         renderCalendar();
         displayTimeSlots(null, null); 
     });
