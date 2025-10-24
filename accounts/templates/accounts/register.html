@@ -269,12 +269,10 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
-    // === Coach fields: make labels become placeholders + right-side icons ===
   (function styleCoachFields() {
     const section = document.getElementById('coach-fields-section');
     if (!section) return;
 
-    // helper untuk pilih ikon sesuai nama/tipe field
     function pickIcon(el) {
       const nm = ((el.name || el.id || '') + '').toLowerCase();
       if (el.type === 'email' || nm.includes('email')) return 'fa-envelope';
@@ -290,23 +288,20 @@ document.addEventListener('DOMContentLoaded', function () {
       return 'fa-edit';
     }
 
-    // untuk tiap blok field di dalam section coach
     section.querySelectorAll('.text-left').forEach(block => {
       const label  = block.querySelector('label');
       const control = block.querySelector('input, textarea, select');
       if (!control) return;
 
-      // 1) jadikan label → placeholder (kecuali file input)
       if (label) {
         const raw = label.textContent.replace('*', '').trim();
         control.setAttribute('aria-label', raw);
         if (!(control.tagName === 'INPUT' && control.type === 'file')) {
           control.setAttribute('placeholder', raw);
         }
-        label.classList.add('sr-only'); // sembunyikan label
+        label.classList.add('sr-only'); 
       }
 
-      // 2) samakan styling seperti kolom di atas (register fields)
       control.classList.add(
         'block','w-full','px-5','py-3','border',
         'rounded-lg','shadow-sm','focus:outline-none','focus:ring-2',
@@ -317,10 +312,9 @@ document.addEventListener('DOMContentLoaded', function () {
         control.classList.add('border-gray-300');
       }
       if (control.tagName === 'SELECT') {
-        control.classList.add('appearance-none'); // supaya ikon tidak mengganggu caret bawaan
+        control.classList.add('appearance-none'); 
       }
 
-      // 3) tambah ikon di kanan
       block.classList.add('relative');
       const iconSpan = document.createElement('span');
       iconSpan.className = 'absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 pointer-events-none';
@@ -328,7 +322,7 @@ document.addEventListener('DOMContentLoaded', function () {
       block.appendChild(iconSpan);
     });
   })();
-  // === Perbaikan field Rate: hilangkan placeholder "Rp", beri prefix + padding inline ===
+  
   (function fixRpField() {
     const coach = document.getElementById('coach-fields-section');
     if (!coach) return;
@@ -344,18 +338,12 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     if (!rateInput) return;
 
-    // 1) Jangan pakai placeholder 'Rp' (biar tidak dobel dengan prefix)
-    //    Pakai placeholder contoh angka saja (opsional).
     rateInput.setAttribute('placeholder', '1.500.000');
-
-    // 2) Sembunyikan label (tetap aksesibel)
     if (rateLabel) rateLabel.classList.add('sr-only');
 
-    // 3) Wadah relatif
     const wrapper = rateInput.closest('.text-left') || rateInput.parentElement;
     wrapper.classList.add('relative');
 
-    // 4) Prefix "Rp" di kiri (hindari duplikasi)
     if (!wrapper.querySelector('.rp-prefix')) {
       const prefix = document.createElement('span');
       prefix.className = 'rp-prefix absolute inset-y-0 left-0 pl-4 flex items-center text-gray-500 pointer-events-none';
@@ -363,10 +351,8 @@ document.addEventListener('DOMContentLoaded', function () {
       wrapper.appendChild(prefix);
     }
 
-    // 5) Pastikan padding kiri cukup (inline style akan menang atas kelas px-5)
-    rateInput.style.paddingLeft = '3.25rem'; // ~pl-13
+    rateInput.style.paddingLeft = '3.25rem';
 
-    // 6) Ikon kanan uang (jika belum ada)
     if (!wrapper.querySelector('.fa-money-bill-wave')) {
       const right = document.createElement('span');
       right.className = 'absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 pointer-events-none';
@@ -374,7 +360,7 @@ document.addEventListener('DOMContentLoaded', function () {
       wrapper.appendChild(right);
     }
   })();
-  // === Hapus ikon kanan & spinner untuk kolom Tarif/Rate ===
+
   (function removeRateRightIconAndSpinner() {
     const coach = document.getElementById('coach-fields-section');
     if (!coach) return;
@@ -391,17 +377,13 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     if (!rateInput || !wrapper) return;
 
-    // 1) Hapus ikon kanan yang pernah ditambahkan
     wrapper.querySelectorAll('.absolute.inset-y-0.right-0').forEach(el => el.remove());
 
-    // 2) Hilangkan spinner (panah naik/turun) kalau tipe number
     rateInput.classList.add('no-spinner');
 
-    // 3) Kembalikan padding kanan normal (karena ikon kanan sudah hilang)
-    rateInput.style.paddingRight = ''; // biar px-5/tailwind default yang dipakai
+    rateInput.style.paddingRight = ''; 
   })();
 
-  // Sisipkan CSS anti-spinner (tidak perlu sentuh file CSS terpisah)
   (function injectNoSpinnerCSS() {
     const css = `
       input.no-spinner[type=number]::-webkit-outer-spin-button,
@@ -412,7 +394,7 @@ document.addEventListener('DOMContentLoaded', function () {
     style.textContent = css;
     document.head.appendChild(style);
   })();
-  // === Tambah ikon uang di kanan untuk kolom Tarif/Rate ===
+
   (function addRateMoneyIcon() {
     const coach = document.getElementById('coach-fields-section');
     if (!coach) return;
@@ -429,18 +411,16 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     if (!rateInput || !wrapper) return;
 
-    // pastikan tidak dobel
+
     wrapper.querySelectorAll('.rate-right-icon').forEach(el => el.remove());
     wrapper.classList.add('relative');
 
-    // ikon uang di kanan (dekoratif)
     const right = document.createElement('span');
     right.className = 'rate-right-icon absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 pointer-events-none';
-    right.innerHTML = '<i class="fas fa-coins text-base"></i>'; // bisa ganti ke fa-tag kalau mau
+    right.innerHTML = '<i class="fas fa-coins text-base"></i>'; 
     wrapper.appendChild(right);
 
-    // beri ruang supaya teks tidak menabrak ikon
-    rateInput.style.paddingRight = '3rem'; // ~ pr-12
+    rateInput.style.paddingRight = '3rem'; 
   })();
 
 });

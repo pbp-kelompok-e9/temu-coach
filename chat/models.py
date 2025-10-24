@@ -9,7 +9,6 @@ class Conversation(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    # denormalized for list performance
     last_message = models.TextField(blank=True, default="")
     last_message_at = models.DateTimeField(null=True, blank=True)
 

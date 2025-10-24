@@ -30,10 +30,6 @@ def _json_conversation(c: Conversation, me: User):
 @login_required
 @require_http_methods(["GET", "POST"])
 def conversation_list_create(request):
-    """
-    GET  -> list conversations of current user
-    POST -> get/create 1:1 conversation with target_user_id
-    """
     me = request.user
     if request.method == "GET":
         qs = (
@@ -45,7 +41,7 @@ def conversation_list_create(request):
         data = [_json_conversation(c, me) for c in qs]
         return JsonResponse({"conversations": data})
 
-    # POST
+
     target_id = request.POST.get("target_user_id")
     if not target_id:
         return HttpResponseBadRequest("target_user_id is required")
@@ -69,13 +65,13 @@ def message_list_or_create(request, conversation_id: int):
         return HttpResponseForbidden("forbidden")
 
     if request.method == "GET":
-        # pagination
+
         try:
             limit = max(1, min(int(request.GET.get("limit", 20)), 100))
         except ValueError:
             limit = 20
         direction = request.GET.get("dir", "backward")
-        cursor = request.GET.get("cursor")  # ISO ts or empty
+        cursor = request.GET.get("cursor") 
 
         qs = Message.objects.filter(conversation=convo, deleted_at__isnull=True)
         if cursor:
@@ -93,7 +89,7 @@ def message_list_or_create(request, conversation_id: int):
         qs = qs.order_by("-created_at" if direction == "backward" else "created_at")[:limit]
         items = list(qs)
         if direction == "backward":
-            items.reverse()  # oldest -> newest
+            items.reverse() 
 
         next_cursor = items[0].created_at.isoformat() if items else cursor
         has_next = (
@@ -118,7 +114,6 @@ def message_list_or_create(request, conversation_id: int):
         ]
         return JsonResponse({"messages": data, "next_cursor": next_cursor, "has_next": has_next})
 
-    # POST send message
     body = (request.POST.get("body") or "").strip()
     if not body:
         return HttpResponseBadRequest("body is required")
@@ -126,12 +121,10 @@ def message_list_or_create(request, conversation_id: int):
         return HttpResponseBadRequest("message too long")
 
     msg = Message.objects.create(conversation=convo, sender=me, body=body)
-    # update denormalized
     convo.last_message = body[:500]
     convo.last_message_at = msg.created_at
     convo.save(update_fields=["last_message", "last_message_at", "updated_at"])
 
-    # ensure participant states exist
     ParticipantState.objects.get_or_create(conversation=convo, user=me)
     for u in convo.participants.exclude(id=me.id):
         ParticipantState.objects.get_or_create(conversation=convo, user=u)
@@ -161,7 +154,6 @@ def message_mark_read(request, conversation_id: int):
     now = timezone.now()
     state.last_read_at = now
     state.save(update_fields=["last_read_at"])
-    # mark from others as read (<= now)
     Message.objects.filter(
         conversation=convo, deleted_at__isnull=True
     ).exclude(sender=me).filter(created_at__lte=now).update(is_read=True)
@@ -189,8 +181,6 @@ def users_list(request):
     """
     me = request.user
     qs = User.objects.exclude(id=me.id)
-    # Integrasi role (CustomUser.user_type) bila ada:
-    # accounts/models.py punya 'user_type' ('customer'/'coach'). :contentReference[oaicite:4]{index=4}
     if hasattr(me, "user_type"):
         if me.user_type == "customer":
             qs = qs.filter(user_type="coach")

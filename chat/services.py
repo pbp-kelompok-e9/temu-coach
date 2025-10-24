@@ -6,9 +6,6 @@ User = get_user_model()
 
 
 def get_or_create_conversation(a: User, b: User):
-    """
-    Cari percakapan yang pesertanya persis {a,b}. Jika tidak ada -> buat.
-    """
     qs = (
         Conversation.objects.filter(participants=a)
         .filter(participants=b)
