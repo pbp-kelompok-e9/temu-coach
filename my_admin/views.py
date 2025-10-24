@@ -7,6 +7,11 @@ from coaches_book_catalog.models import Coach, CoachRequest
 
 @login_required
 def dashboard_simple(request):
+    if not request.user.is_superuser:
+        if hasattr(request.user, 'is_customer') and request.user.is_customer:
+            return redirect('customer_dashboard') 
+        if hasattr(request.user, 'is_coach') and request.user.is_coach:
+            return redirect('coach_dashboard')
     reports = Report.objects.select_related('reporter', 'coach__user').order_by('-created_at')
     pending_requests = CoachRequest.objects.filter(approved=False).select_related('user').order_by('-created_at')
 
@@ -14,7 +19,7 @@ def dashboard_simple(request):
         'reports': reports,
         'pending_requests': pending_requests,
     }
-    return render(request, 'dashboard_simple.html', context)
+    return render(request, 'dashboard_simple.html', context)    
 
 @require_POST
 def approve_coach(request, coach_id):
@@ -37,7 +42,6 @@ def approve_coach(request, coach_id):
         req.approved = True
         req.save()
 
-        # Ensure the user's type is set to coach so they are recognized as coach in the app
         req.user.user_type = 'coach'
         req.user.save()
 
@@ -56,7 +60,6 @@ def approve_coach(request, coach_id):
 def reject_coach(request, coach_id):
     req = get_object_or_404(CoachRequest, pk=coach_id)
     username = req.user.username
-    # if rejecting, make sure user stays/returns to customer role
     req.user.user_type = 'customer'
     req.user.save()
     req.delete()

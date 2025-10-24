@@ -38,8 +38,40 @@ def create_jadwal(coach, tanggal_offset_days, jam_mulai, jam_selesai, is_booked=
         coach=coach, tanggal=tanggal, jam_mulai=mulai, jam_selesai=selesai, is_booked=is_booked
     )
 
-def create_review(coach, user, rate, review_text="Tes review."):
-    return Reviews.objects.create(coach=coach, user=user, rate=rate, review=review_text)
+def create_review(coach, user, rate, review_text="Tes review.", booking=None):
+    return Reviews.objects.create(coach=coach, user=user, rate=rate, review=review_text, booking=booking)
+
+
+class CoachModelTests(TestCase):
+    def setUp(self):
+        self.coach_user = create_user('coach_model', 'password123', user_type='coach')
+        self.coach = create_coach(self.coach_user, 'Model Coach')
+
+    def test_coach_str_returns_name(self):
+        self.assertEqual(str(self.coach), 'Model Coach')
+
+
+class CoachRequestModelTests(TestCase):
+    def setUp(self):
+        self.user = create_user('request_user', 'password123')
+        self.coach_request = CoachRequest.objects.create(
+            user=self.user,
+            name='Pending Coach',
+            age=35,
+            citizenship='Testland',
+            club='Test Club',
+            license='UEFA B',
+            preffered_formation='4-4-2',
+            average_term_as_coach=3.0,
+            description='Test description',
+            rate_per_session=Decimal('50000.00')
+        )
+
+    def test_coach_request_str_returns_username(self):
+        self.assertEqual(str(self.coach_request), 'CoachRequest(request_user)')
+
+    def test_coach_request_default_approved_is_false(self):
+        self.assertFalse(self.coach_request.approved)
 
 
 class ShowCatalogViewTests(TestCase):
@@ -48,6 +80,7 @@ class ShowCatalogViewTests(TestCase):
         self.customer_user = create_user('customer1', 'password123', user_type='customer')
         self.coach_user1 = create_user('coachuser1', 'password123', user_type='coach')
         self.coach_user2 = create_user('coachuser2', 'password123', user_type='coach')
+        self.superuser = User.objects.create_superuser('admin', 'admin@test.com', 'admin123')
         
         self.coach1 = create_coach(
             self.coach_user1, 'Alpha Coach', citizenship='Avalon', rate_per_session=Decimal('150000.00')
@@ -60,6 +93,16 @@ class ShowCatalogViewTests(TestCase):
     def test_given_no_user_when_accessing_catalog_then_redirects_to_login(self):
         response = self.client.get(reverse('show_catalog'))
         self.assertRedirects(response, f"{reverse('login')}?next={reverse('show_catalog')}")
+
+    def test_given_superuser_when_accessing_catalog_then_redirects_to_admin_dashboard(self):
+        self.client.login(username='admin', password='admin123')
+        response = self.client.get(reverse('show_catalog'))
+        self.assertRedirects(response, reverse('my_admin:dashboard_simple'))
+
+    def test_given_coach_user_when_accessing_catalog_then_redirects_to_coach_dashboard(self):
+        self.client.login(username='coachuser1', password='password123')
+        response = self.client.get(reverse('show_catalog'))
+        self.assertRedirects(response, reverse('coach_dashboard'))
 
     def test_given_customer_logged_in_when_accessing_catalog_then_loads_template_and_shows_coaches(self):
         self.client.login(username='customer1', password='password123')
@@ -90,6 +133,26 @@ class ShowCatalogViewTests(TestCase):
         self.assertEqual(coaches_in_context[0].name, "Beta Coach")
         self.assertEqual(coaches_in_context[1].name, "Alpha Coach")
 
+    def test_given_customer_logged_in_when_sorting_by_rate_desc_then_returns_coaches_in_descending_price_order(self):
+        self.client.login(username='customer1', password='password123')
+        response = self.client.get(reverse('show_catalog'), {'sort': 'rate_desc'})
+        coaches_in_context = list(response.context['page_obj'])
+        self.assertEqual(coaches_in_context[0].name, "Alpha Coach")
+        self.assertEqual(coaches_in_context[1].name, "Beta Coach")
+
+    def test_given_customer_logged_in_when_sorting_by_name_then_returns_coaches_alphabetically(self):
+        self.client.login(username='customer1', password='password123')
+        response = self.client.get(reverse('show_catalog'), {'sort': 'name'})
+        coaches_in_context = list(response.context['page_obj'])
+        self.assertEqual(coaches_in_context[0].name, "Alpha Coach")
+
+    def test_given_coach_with_no_reviews_when_accessing_catalog_then_shows_zero_rating(self):
+        self.client.login(username='customer1', password='password123')
+        response = self.client.get(reverse('show_catalog'))
+        coaches_in_context = list(response.context['page_obj'])
+        beta_coach = next(c for c in coaches_in_context if c.name == "Beta Coach")
+        self.assertEqual(beta_coach.avg_rate, 0)
+
     def test_given_customer_logged_in_when_accessing_via_ajax_then_returns_partial_template(self):
         self.client.login(username='customer1', password='password123')
         response = self.client.get(reverse('show_catalog'), HTTP_X_REQUESTED_WITH='XMLHttpRequest')
@@ -102,11 +165,23 @@ class CoachDetailViewTests(TestCase):
         self.client = Client()
         self.customer_user = create_user('cust_detail', 'password123')
         self.coach_user = create_user('coach_detail', 'password123', user_type='coach')
+        self.superuser = User.objects.create_superuser('admin_detail', 'admin@test.com', 'admin123')
         self.coach = create_coach(self.coach_user, 'Detail Coach')
         self.jadwal = create_jadwal(self.coach, 1, "10:00", "11:00") 
         create_review(self.coach, self.customer_user, 4, "Bagus")
 
+    def test_given_superuser_when_accessing_coach_detail_then_redirects_to_admin_dashboard(self):
+        self.client.login(username='admin_detail', password='admin123')
+        response = self.client.get(reverse('coach_detail', args=[self.coach.id]))
+        self.assertRedirects(response, reverse('my_admin:dashboard_simple'))
+
+    def test_given_coach_user_when_accessing_coach_detail_then_redirects_to_coach_dashboard(self):
+        self.client.login(username='coach_detail', password='password123')
+        response = self.client.get(reverse('coach_detail', args=[self.coach.id]))
+        self.assertRedirects(response, reverse('coach_dashboard'))
+
     def test_given_valid_coach_id_when_accessing_detail_then_loads_template_and_shows_data(self):
+        self.client.login(username='cust_detail', password='password123')
         response = self.client.get(reverse('coach_detail', args=[self.coach.id]))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'coaches_book_catalog/coach_detail.html')
@@ -115,10 +190,12 @@ class CoachDetailViewTests(TestCase):
         self.assertEqual(response.context['avg_rating'], 4.0)
 
     def test_given_invalid_coach_id_when_accessing_detail_then_returns_404(self):
+        self.client.login(username='cust_detail', password='password123')
         response = self.client.get(reverse('coach_detail', args=[999]))
         self.assertEqual(response.status_code, 404)
 
     def test_given_coach_with_no_reviews_when_accessing_detail_then_shows_zero_rating(self):
+        self.client.login(username='cust_detail', password='password123')
         Reviews.objects.all().delete()
         response = self.client.get(reverse('coach_detail', args=[self.coach.id]))
         self.assertEqual(response.status_code, 200)
@@ -131,6 +208,7 @@ class BookCoachViewTests(TestCase):
         self.client = Client()
         self.customer_user = create_user('cust_book', 'password123')
         self.coach_user = create_user('coach_book', 'password123', user_type='coach')
+        self.superuser = User.objects.create_superuser('admin_book', 'admin@test.com', 'admin123')
         self.coach = create_coach(self.coach_user, 'Bookable Coach')
         self.jadwal_available = create_jadwal(self.coach, 2, "14:00", "15:00", is_booked=False)
         self.jadwal_booked = create_jadwal(self.coach, 3, "09:00", "10:00", is_booked=True)
@@ -140,6 +218,16 @@ class BookCoachViewTests(TestCase):
     def test_given_no_user_when_posting_to_book_then_redirects_to_login(self):
         response = self.client.post(self.book_url_available)
         self.assertRedirects(response, f"{reverse('login')}?next={self.book_url_available}")
+
+    def test_given_superuser_when_posting_to_book_then_redirects_to_admin_dashboard(self):
+        self.client.login(username='admin_book', password='admin123')
+        response = self.client.post(self.book_url_available)
+        self.assertRedirects(response, reverse('my_admin:dashboard_simple'))
+
+    def test_given_coach_user_when_posting_to_book_then_redirects_to_coach_dashboard(self):
+        self.client.login(username='coach_book', password='password123')
+        response = self.client.post(self.book_url_available)
+        self.assertRedirects(response, reverse('coach_dashboard'))
 
     def test_given_user_logged_in_when_getting_book_url_then_redirects_to_catalog(self):
         self.client.login(username='cust_book', password='password123')
@@ -169,16 +257,29 @@ class CustomerDashboardTests(TestCase):
         self.client = Client()
         self.customer_user = create_user('dash_user', 'password123')
         self.coach_user = create_user('dash_coach', 'password123', user_type='coach')
+        self.superuser = User.objects.create_superuser('admin_dash', 'admin@test.com', 'admin123')
         self.coach = create_coach(self.coach_user, 'Dashboard Coach')
         
         self.jadwal_upcoming = create_jadwal(self.coach, 2, "10:00", "11:00")
         self.booking_upcoming = Booking.objects.create(jadwal=self.jadwal_upcoming, customer=self.customer_user)
         self.jadwal_completed = create_jadwal(self.coach, -1, "10:00", "11:00") 
         self.booking_completed = Booking.objects.create(jadwal=self.jadwal_completed, customer=self.customer_user)
+        
+        create_review(self.coach, self.customer_user, 5, "Great!", booking=self.booking_completed)
 
     def test_given_no_user_when_accessing_dashboard_then_redirects_to_login(self):
         response = self.client.get(reverse('customer_dashboard'))
         self.assertRedirects(response, f"{reverse('login')}?next={reverse('customer_dashboard')}")
+
+    def test_given_superuser_when_accessing_dashboard_then_redirects_to_admin_dashboard(self):
+        self.client.login(username='admin_dash', password='admin123')
+        response = self.client.get(reverse('customer_dashboard'))
+        self.assertRedirects(response, reverse('my_admin:dashboard_simple'))
+
+    def test_given_coach_user_when_accessing_dashboard_then_redirects_to_coach_dashboard(self):
+        self.client.login(username='dash_coach', password='password123')
+        response = self.client.get(reverse('customer_dashboard'))
+        self.assertRedirects(response, reverse('coach_dashboard'))
 
     def test_given_user_with_mixed_bookings_when_accessing_dashboard_then_separates_upcoming_and_completed(self):
         self.client.login(username='dash_user', password='password123')
@@ -188,6 +289,30 @@ class CustomerDashboardTests(TestCase):
         self.assertIn(self.booking_completed, response.context['completed_bookings'])
         self.assertNotIn(self.booking_completed, response.context['upcoming_bookings'])
         self.assertNotIn(self.booking_upcoming, response.context['completed_bookings'])
+
+    def test_given_completed_booking_when_accessing_dashboard_then_shows_review_if_exists(self):
+        self.client.login(username='dash_user', password='password123')
+        response = self.client.get(reverse('customer_dashboard'))
+        completed = response.context['completed_bookings']
+        self.assertTrue(hasattr(completed[0], 'user_review'))
+        self.assertIsNotNone(completed[0].user_review)
+
+    def test_given_user_with_pending_coach_request_when_accessing_dashboard_then_shows_pending_status(self):
+        CoachRequest.objects.create(
+            user=self.customer_user,
+            name='Pending Coach',
+            age=30,
+            citizenship='Test',
+            club='Test Club',
+            license='UEFA B',
+            preffered_formation='4-4-2',
+            average_term_as_coach=2.0,
+            description='Test',
+            rate_per_session=Decimal('50000.00')
+        )
+        self.client.login(username='dash_user', password='password123')
+        response = self.client.get(reverse('customer_dashboard'))
+        self.assertTrue(response.context['coach_request_pending'])
 
 
 class UpdateBookingNotesTests(TestCase):
@@ -286,4 +411,4 @@ class CancelBookingTests(TestCase):
         self.assertRedirects(response, reverse('customer_dashboard'))
         storage = messages.get_messages(response.wsgi_request)
         self.assertTrue(any(message.level == messages.ERROR for message in storage))
-        self.assertEqual(Booking.objects.count(), initial_booking_count) 
+        self.assertEqual(Booking.objects.count(), initial_booking_count)

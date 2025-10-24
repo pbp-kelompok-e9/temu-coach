@@ -71,7 +71,7 @@ def login_view(request):
                 if user.is_superuser:
                     return redirect('my_admin:dashboard_simple')
                 elif user.is_coach: 
-                     return redirect('show_catalog') 
+                     return redirect('coach_dashboard') 
                 elif user.is_customer:
                      return redirect('customer_dashboard')
                 else:
@@ -84,7 +84,7 @@ def login_view(request):
     else: 
          if request.user.is_authenticated:
               if request.user.is_coach:
-                   return redirect('show_catalog') 
+                   return redirect('coach_dashboard') 
               else:
                    return redirect('customer_dashboard') 
          form = AuthenticationForm()

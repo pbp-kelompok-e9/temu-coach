@@ -20,6 +20,11 @@ from django.contrib import messages
 
 @login_required
 def show_catalog(request):
+    if request.user.is_superuser:
+        return redirect('my_admin:dashboard_simple') 
+    if hasattr(request.user, 'is_coach') and request.user.is_coach:
+        return redirect('coach_dashboard')
+    
     search_query = request.GET.get('q', '')
     country_filter = request.GET.get('country', '')
     sort_by = request.GET.get('sort', 'name')
@@ -63,14 +68,18 @@ def show_catalog(request):
     
     return render(request, "coaches_book_catalog/catalog.html", context)
 
+@login_required
 def coach_detail(request, coach_id):
+    if request.user.is_superuser:
+        return redirect('my_admin:dashboard_simple') 
+    if hasattr(request.user, 'is_coach') and request.user.is_coach:
+        return redirect('coach_dashboard')
     coach = get_object_or_404(Coach, pk=coach_id)
     available_schedules = Jadwal.objects.filter(coach=coach, is_booked=False).order_by('tanggal', 'jam_mulai')
     grouped_schedules = defaultdict(list)
     for jadwal in available_schedules:
         grouped_schedules[jadwal.tanggal].append(jadwal)
     
-    # Get ratings data
     reviews = Reviews.objects.filter(coach=coach).order_by('-created_at')
     stats = reviews.aggregate(avg_rate=Avg('rate'))
     avg_rating = round(stats['avg_rate'] or 0, 1)  
@@ -88,6 +97,10 @@ def coach_detail(request, coach_id):
 
 @login_required
 def book_coach(request, jadwal_id):
+    if request.user.is_superuser:
+        return redirect('my_admin:dashboard_simple') 
+    if hasattr(request.user, 'is_coach') and request.user.is_coach:
+        return redirect('coach_dashboard')
     if request.method == 'POST':
         jadwal_to_book = get_object_or_404(Jadwal, pk=jadwal_id, is_booked=False)
 
@@ -106,6 +119,10 @@ def book_coach(request, jadwal_id):
 
 @login_required
 def customer_dashboard(request):
+    if request.user.is_superuser:
+        return redirect('my_admin:dashboard_simple') 
+    if hasattr(request.user, 'is_coach') and request.user.is_coach:
+        return redirect('coach_dashboard')
     now = timezone.now()
     print(f"Current time (with TZ): {now}")
     
@@ -118,21 +135,20 @@ def customer_dashboard(request):
 
     for booking in all_bookings:
         if booking.jadwal:
-            # Make sure we're working with timezone-aware datetime objects
-                # Build a timezone-aware datetime for the schedule end time
+
                 tz = timezone.get_current_timezone()
                 schedule_end_datetime = timezone.make_aware(
                     timezone.datetime.combine(booking.jadwal.tanggal, booking.jadwal.jam_selesai),
                     tz
                 )
 
-                # If the schedule's end time is still in the future, it's upcoming
+          
                 if schedule_end_datetime > now:
                     upcoming_bookings.append(booking)
                 else:
                     completed_bookings.append(booking)
 
-    # Get existing reviews for each completed booking
+ 
     for booking in completed_bookings:
         booking.user_review = Reviews.objects.filter(
             booking=booking
