@@ -1,190 +1,138 @@
-from django.contrib.auth.decorators import login_required
+from django.db.models import Q
+from .models import Message
+from coaches_book_catalog.models import Coach, Booking
 from django.contrib.auth import get_user_model
-from django.db.models import Count, Q
-from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseForbidden
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect, render
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.http import JsonResponse
 from django.utils import timezone
-from django.views.decorators.http import require_GET, require_http_methods, require_POST
-from .models import Conversation, Message, ParticipantState
-from .services import get_or_create_conversation, unread_count_for_user
-
+import json
 User = get_user_model()
 
+@login_required
+def chat_list_view(request):
+    search_query = request.GET.get('q', '')
+    
+    
+    if request.user.is_superuser:
+        users_list_qs = User.objects.filter(user_type='coach', coach_profile__isnull=False)
+    
+    elif hasattr(request.user, 'is_coach') and request.user.is_coach:
+        try:
+            coach_profile = request.user.coach_profile 
+        except Coach.DoesNotExist:
+            coach_profile = get_object_or_404(Coach, user=request.user) 
+        
+        coach_user_obj = request.user
+        booked_customer_ids = Booking.objects.filter(
+            jadwal__coach__user=coach_user_obj
+        ).values_list('customer_id', flat=True)
+        
+        messaging_customer_ids = Message.objects.filter(
+            receiver=coach_user_obj
+        ).values_list('sender_id', flat=True)
+        
+        all_customer_ids = set(booked_customer_ids).union(set(messaging_customer_ids))
+        users_list_qs = User.objects.filter(id__in=all_customer_ids).exclude(id=request.user.id)
+        
+    elif hasattr(request.user, 'is_customer') and request.user.is_customer:
+        users_list_qs = User.objects.filter(user_type='coach', coach_profile__isnull=False)
+        
+    else:
+        users_list_qs = User.objects.none() 
+        if hasattr(request.user, 'user_type') and request.user.user_type == 'coach':
+             messages.warning(request, "Akun Coach Anda belum disetujui, Anda belum bisa chat.")
+        else:
+             messages.error(request, "Anda tidak memiliki akses ke chat.")
 
-def _json_user(u: User):
-    return {"id": u.id, "username": u.username}
+    
+    if search_query:
+        users_list_qs = users_list_qs.filter(username__icontains=search_query) 
 
-
-def _json_conversation(c: Conversation, me: User):
-    others = c.participants.exclude(id=me.id)
-    return {
-        "id": c.id,
-        "participants": [_json_user(p) for p in c.participants.all()],
-        "other_participants": [_json_user(p) for p in others],
-        "last_message": c.last_message,
-        "last_message_at": c.last_message_at.isoformat() if c.last_message_at else None,
-        "unread_count": unread_count_for_user(c, me),
+    context = {
+        'users_list': users_list_qs,
+        'search_query': search_query,
     }
 
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return render(request, 'chat_user_list_partial.html', context) 
+
+    return render(request, 'chat_list.html', context)
 
 @login_required
-@require_http_methods(["GET", "POST"])
-def conversation_list_create(request):
-    me = request.user
-    if request.method == "GET":
-        qs = (
-            Conversation.objects.filter(participants=me)
-            .annotate(num=Count("participants"))
-            .filter(num__gte=1)
-            .order_by("-last_message_at", "-updated_at", "-id")
-        )
-        data = [_json_conversation(c, me) for c in qs]
-        return JsonResponse({"conversations": data})
+def chat_room_view(request, receiver_id):
+    receiver = get_object_or_404(User, id=receiver_id)
+    sender = request.user
 
+    if receiver == sender:
+        messages.error(request, "Anda tidak bisa mengirim pesan ke diri sendiri.")
+        return redirect('chat_list')
 
-    target_id = request.POST.get("target_user_id")
-    if not target_id:
-        return HttpResponseBadRequest("target_user_id is required")
-    if str(me.id) == str(target_id):
-        return HttpResponseBadRequest("cannot start conversation with yourself")
-    try:
-        target = User.objects.get(id=target_id)
-    except User.DoesNotExist:
-        return HttpResponseBadRequest("target user not found")
-
-    convo, _created = get_or_create_conversation(me, target)
-    return JsonResponse({"conversation": _json_conversation(convo, me)})
-
-
-@login_required
-@require_http_methods(["GET", "POST"])
-def message_list_or_create(request, conversation_id: int):
-    me = request.user
-    convo = get_object_or_404(Conversation, id=conversation_id)
-    if not convo.has_participant(me):
-        return HttpResponseForbidden("forbidden")
-
-    if request.method == "GET":
-
-        try:
-            limit = max(1, min(int(request.GET.get("limit", 20)), 100))
-        except ValueError:
-            limit = 20
-        direction = request.GET.get("dir", "backward")
-        cursor = request.GET.get("cursor") 
-
-        qs = Message.objects.filter(conversation=convo, deleted_at__isnull=True)
-        if cursor:
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        
+        if request.method == 'PUT':
             try:
-                cursor_dt = timezone.datetime.fromisoformat(cursor)
-                if timezone.is_naive(cursor_dt):
-                    cursor_dt = timezone.make_aware(cursor_dt, timezone.get_current_timezone())
-            except Exception:
-                return HttpResponseBadRequest("invalid cursor")
-            if direction == "backward":
-                qs = qs.filter(created_at__lt=cursor_dt)
-            else:
-                qs = qs.filter(created_at__gt=cursor_dt)
+                data = json.loads(request.body)
+                message_id = data.get('message_id')
+                new_content = data.get('content')
+                
+                msg = Message.objects.get(id=message_id, sender=sender)
+                
+                time_diff = timezone.now() - msg.timestamp
+                if time_diff.total_seconds() > 300: 
+                    return JsonResponse({'success': False, 'error': 'Waktu edit sudah habis (5 menit).'}, status=403)
 
-        qs = qs.order_by("-created_at" if direction == "backward" else "created_at")[:limit]
-        items = list(qs)
-        if direction == "backward":
-            items.reverse() 
+                msg.content = new_content
+                msg.save()
+                return JsonResponse({'success': True, 'content': msg.content})
+            except Message.DoesNotExist:
+                return JsonResponse({'success': False, 'error': 'Pesan tidak ditemukan atau Anda tidak punya izin.'}, status=404)
+            except Exception as e:
+                return JsonResponse({'success': False, 'error': str(e)}, status=400)
 
-        next_cursor = items[0].created_at.isoformat() if items else cursor
-        has_next = (
-            Message.objects.filter(conversation=convo, deleted_at__isnull=True)
-            .filter(created_at__lt=(items[0].created_at if items else timezone.now()))
-            .exists()
-            if direction == "backward"
-            else Message.objects.filter(conversation=convo, deleted_at__isnull=True)
-            .filter(created_at__gt=(items[-1].created_at if items else timezone.now()))
-            .exists()
-        )
+        if request.method == 'DELETE':
+            try:
+                data = json.loads(request.body)
+                message_id = data.get('message_id')
+                
+                msg = Message.objects.get(id=message_id, sender=sender)
 
-        data = [
-            {
-                "id": m.id,
-                "sender_id": m.sender_id,
-                "body": m.body,
-                "created_at": m.created_at.isoformat(),
-                "is_read": m.is_read,
-            }
-            for m in items
-        ]
-        return JsonResponse({"messages": data, "next_cursor": next_cursor, "has_next": has_next})
+                time_diff = timezone.now() - msg.timestamp
+                if time_diff.total_seconds() > 300: 
+                    return JsonResponse({'success': False, 'error': 'Waktu hapus sudah habis (5 menit).'}, status=403)
+                
+                msg.delete()
+                return JsonResponse({'success': True})
+            except Message.DoesNotExist:
+                return JsonResponse({'success': False, 'error': 'Pesan tidak ditemukan atau Anda tidak punya izin.'}, status=404)
+            except Exception as e:
+                return JsonResponse({'success': False, 'error': str(e)}, status=400)
 
-    body = (request.POST.get("body") or "").strip()
-    if not body:
-        return HttpResponseBadRequest("body is required")
-    if len(body) > 4000:
-        return HttpResponseBadRequest("message too long")
+        if request.method == 'POST':
+            content = request.POST.get('content')
+            if content:
+                msg = Message.objects.create(sender=sender, receiver=receiver, content=content)
+                return JsonResponse({
+                    'success': True,
+                    'message_id': msg.id,
+                    'content': msg.content,
+                    'timestamp': msg.timestamp.strftime('%H:%M')
+                })
+            return JsonResponse({'success': False, 'error': 'Pesan tidak boleh kosong.'}, status=400)
+    
+    if request.method == 'GET':
+        message_list = Message.objects.filter(
+            (Q(sender=sender) & Q(receiver=receiver)) |
+            (Q(sender=receiver) & Q(receiver=sender))
+        ).order_by('timestamp')
 
-    msg = Message.objects.create(conversation=convo, sender=me, body=body)
-    convo.last_message = body[:500]
-    convo.last_message_at = msg.created_at
-    convo.save(update_fields=["last_message", "last_message_at", "updated_at"])
+        message_list.filter(receiver=sender, is_read=False).update(is_read=True)
 
-    ParticipantState.objects.get_or_create(conversation=convo, user=me)
-    for u in convo.participants.exclude(id=me.id):
-        ParticipantState.objects.get_or_create(conversation=convo, user=u)
-
-    return JsonResponse(
-        {
-            "message": {
-                "id": msg.id,
-                "sender_id": msg.sender_id,
-                "body": msg.body,
-                "created_at": msg.created_at.isoformat(),
-                "is_read": msg.is_read,
-            }
-        },
-        status=201,
-    )
-
-
-@login_required
-@require_POST
-def message_mark_read(request, conversation_id: int):
-    me = request.user
-    convo = get_object_or_404(Conversation, id=conversation_id)
-    if not convo.has_participant(me):
-        return HttpResponseForbidden("forbidden")
-    state, _ = ParticipantState.objects.get_or_create(conversation=convo, user=me)
-    now = timezone.now()
-    state.last_read_at = now
-    state.save(update_fields=["last_read_at"])
-    Message.objects.filter(
-        conversation=convo, deleted_at__isnull=True
-    ).exclude(sender=me).filter(created_at__lte=now).update(is_read=True)
-    return JsonResponse({"ok": True, "last_read_at": now.isoformat()})
-
-
-@login_required
-@require_http_methods(["DELETE"])
-def message_delete(request, message_id: int):
-    me = request.user
-    msg = get_object_or_404(Message, id=message_id)
-    if not msg.conversation.has_participant(me):
-        return HttpResponseForbidden("forbidden")
-    if msg.sender_id != me.id:
-        return HttpResponseForbidden("only sender may delete")
-    msg.soft_delete()
-    return JsonResponse({"ok": True})
-
-
-@login_required
-@require_GET
-def users_list(request):
-    """
-    Calon kontak. Integrasi role: jika user customer -> tampilkan coach; jika coach -> tampilkan customer.
-    """
-    me = request.user
-    qs = User.objects.exclude(id=me.id)
-    if hasattr(me, "user_type"):
-        if me.user_type == "customer":
-            qs = qs.filter(user_type="coach")
-        elif me.user_type == "coach":
-            qs = qs.filter(user_type="customer")
-    data = [{"id": u.id, "username": u.username} for u in qs.order_by("username")[:200]]
-    return JsonResponse({"users": data})
+        context = {
+            'receiver_user': receiver,
+            'message_list': message_list,
+        }
+        return render(request, 'chat_room.html', context)
+    
+    return JsonResponse({'success': False, 'error': 'Method not allowed.'}, status=405)

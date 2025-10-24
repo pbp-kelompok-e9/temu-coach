@@ -217,40 +217,43 @@
         today.setHours(0, 0, 0, 0);
         
         for (let day = 1; day <= daysInMonth; day++) {
-            const dayDate = new Date(year, month, day); 
-            dayDate.setHours(0, 0, 0, 0);
-            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            
-            const dayCell = document.createElement('div');
-            dayCell.className = 'calendar-day aspect-square flex items-center justify-center rounded-full text-sm cursor-pointer transition-all duration-200 border-2 border-transparent bg-white text-gray-600';
-            dayCell.textContent = day;
-            dayCell.dataset.date = dateStr;
-            
-            const hasSlots = scheduleData[dateStr] && scheduleData[dateStr].length > 0;
-            const isPast = dayDate < today;
-            
-            if (isPast) {
-                dayCell.className += ' text-gray-400 cursor-not-allowed line-through opacity-60';
-            } else if (hasSlots) {
-                dayCell.className += ' font-semibold text-[#003E85] relative hover:bg-[#EBF4FF]';
-                dayCell.innerHTML = `${day}<span class="absolute bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-[#003E85] rounded-full"></span>`;
-                dayCell.addEventListener('click', () => handleDateClick(dateStr, dayDate));
-            } else {
-                dayCell.className += ' text-gray-300 cursor-not-allowed';
-            }
-            
-            if (selectedDate === dateStr) { 
-                dayCell.className = dayCell.className.replace('bg-white', 'bg-[#003E85]');
-                dayCell.className = dayCell.className.replace('text-[#003E85]', 'text-white');
-                dayCell.className = dayCell.className.replace('border-transparent', 'border-[#003E85]');
-                dayCell.className += ' font-bold';
-                if (hasSlots) {
-                    dayCell.innerHTML = `${day}<span class="absolute bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-white rounded-full"></span>`;
-                }
-            }
-            
-            calendarGrid.appendChild(dayCell);
-        }
+            const dayDate = new Date(year, month, day); 
+            dayDate.setHours(0, 0, 0, 0);
+            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            
+            const dayCell = document.createElement('div');
+            dayCell.className = 'calendar-day aspect-square flex items-center justify-center rounded-full text-sm cursor-pointer transition-all duration-200 border-2 border-transparent bg-white text-gray-600';
+            dayCell.textContent = day;
+            dayCell.dataset.date = dateStr;
+            
+            const hasSlots = scheduleData[dateStr] && scheduleData[dateStr].length > 0;
+            const isPast = dayDate < today;
+            
+            if (isPast) {
+                dayCell.className += ' text-gray-400 cursor-not-allowed line-through opacity-60';
+            } else if (hasSlots) {
+                dayCell.className += ' font-semibold text-[#003E85] relative hover:bg-[#EBF4FF]';
+                dayCell.innerHTML = `${day}<span class="absolute bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-[#003E85] rounded-full"></span>`;
+                dayCell.addEventListener('click', () => handleDateClick(dateStr, dayDate));
+            } else {
+                dayCell.className += ' text-gray-300 cursor-not-allowed';
+            }
+            
+            if (selectedDate === dateStr) { 
+                dayCell.className = dayCell.className.replace('hover:bg-[#EBF4FF]', ''); 
+
+                dayCell.className = dayCell.className.replace('bg-white', 'bg-[#003E85]');
+                dayCell.className = dayCell.className.replace('text-[#003E85]', 'text-white');
+                dayCell.className = dayCell.className.replace('text-gray-600', 'text-white'); 
+                dayCell.className = dayCell.className.replace('border-transparent', 'border-[#003E85]');
+                dayCell.className += ' font-bold';
+                if (hasSlots) {
+                    dayCell.innerHTML = `${day}<span class="absolute bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-white rounded-full"></span>`;
+                }
+            }
+            
+            calendarGrid.appendChild(dayCell);
+        }
     }
 
     function handleDateClick(dateStr, dateObj) {

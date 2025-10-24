@@ -1,0 +1,273 @@
+{% extends 'base.html' %}
+
+{% block title %}Chat dengan {{ receiver_user.username }}{% endblock %}
+
+{% block content_style %}
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+    .message-bubble-sent { background: linear-gradient(135deg, #DE3400 0%, #ff6b3d 100%); }
+    .message-bubble-received { background: #f3f4f6; }
+    .textarea-auto-resize { resize: none; overflow: hidden; }
+    #message-list::-webkit-scrollbar { width: 8px; }
+    #message-list::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+    #message-list::-webkit-scrollbar-thumb { background: #DE3400; border-radius: 4px; }
+    #message-list::-webkit-scrollbar-thumb:hover { background: #b82b00; }
+    
+    .message-actions {
+        display: flex; 
+        align-items: center;
+        gap: 4px; 
+    }
+    
+    .action-btn {
+        background-color: #DE3400; 
+        border: none;
+        cursor: pointer;
+        padding: 6px; 
+        border-radius: 6px;
+        color: white; 
+        opacity: 0.8;
+        transition: all 0.2s;
+    }
+    .action-btn:hover {
+        opacity: 1;
+        background-color: #003E85; 
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-[1100px] mx-auto px-8 py-8 font-[Plus Jakarta Sans]">
+    
+    <div class="bg-gradient-to-r from-[#003E85] to-[#0052b3] border-[3px] border-[#B0B0B0] rounded-t-[10px] p-5 shadow-md">
+        <div class="flex items-center justify-between">
+            <a href="{% url 'chat_list' %}" class="flex items-center text-white hover:text-[#ffe5dd] transition duration-200 font-semibold text-base">
+                <i class="fas fa-arrow-left mr-2"></i>
+                <span>Kembali</span>
+            </a>
+            <div class="flex items-center">
+                <div class="w-12 h-12 rounded-full bg-gradient-to-br from-[#DE3400] to-[#ff6b3d] flex items-center justify-center text-white font-bold text-xl mr-3 shadow-md">
+                    {{ receiver_user.username.0|upper }}
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-white">{{ receiver_user.username }}</h1>
+                    <span class="text-xs text-[#ffe5dd]">
+                        {% if receiver_user.is_coach %}<i class="fas fa-chalkboard-teacher mr-1"></i>Coach Profesional{% else %}<i class="fas fa-user mr-1"></i>Customer{% endif %}
+                    </span>
+                </div>
+            </div>
+            <div class="w-24"></div>
+        </div>
+    </div>
+
+    <div class="bg-white border-x-[3px] border-[#B0B0B0]">
+        <div class="h-[500px] p-6 space-y-4 overflow-y-auto bg-gradient-to-b from-gray-50 to-white" id="message-list">
+            {% for msg in message_list %}
+                {% if msg.sender == request.user %}
+                    <div class="flex justify-end group message-container" data-message-id="{{ msg.id }}">
+                        <div class="message-actions mr-2">
+                            <button class="action-btn" onclick="editMessage({{ msg.id }})" title="Edit Pesan">
+                                <i class="fas fa-pen fa-xs"></i>
+                            </button>
+                            <button class="action-btn" onclick="deleteMessage({{ msg.id }})" title="Hapus Pesan">
+                                <i class="fas fa-trash fa-xs"></i>
+                            </button>
+                        </div>
+                        <div class="message-bubble-sent text-white rounded-2xl rounded-br-md py-3 px-5 max-w-xs lg:max-w-md shadow-lg">
+                            <p class="text-sm leading-relaxed" id="msg-content-{{ msg.id }}">{{ msg.content }}</p>
+                            <div class="flex items-center justify-end mt-2 text-xs text-white opacity-80">
+                                <i class="far fa-clock mr-1"></i>
+                                <span>{{ msg.timestamp|time:"H:i" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="flex justify-start message-container" data-message-id="{{ msg.id }}">
+                        <div class="message-bubble-received text-gray-800 rounded-2xl rounded-bl-md py-3 px-5 max-w-xs lg:max-w-md shadow-md border border-gray-200">
+                            <p class="text-sm leading-relaxed">{{ msg.content }}</p>
+                            <div class="flex items-center justify-end mt-2 text-xs text-gray-500">
+                                <i class="far fa-clock mr-1"></i>
+                                <span>{{ msg.timestamp|time:"H:i" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            {% empty %}
+                <div class="flex flex-col items-center justify-center h-full text-center" id="empty-state">
+                    </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="bg-white border-[3px] border-[#B0B0B0] rounded-b-[10px] p-4 shadow-md">
+        <form method="POST" id="chat-form" class="flex gap-3 items-end">
+            {% csrf_token %}
+            <textarea name="content" rows="1" class="textarea-auto-resize flex-grow p-3 border-[3px] border-[#B0B0B0] rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#DE3400] focus:border-[#DE3400] text-base resize-none" placeholder="Ketik pesan Anda..." required id="message-input"></textarea>
+            <button type="submit" id="send-button" class="bg-[#DE3400] text-white font-semibold py-3 px-6 rounded-[10px] hover:bg-[#b82b00] transition duration-200 shadow-md hover:shadow-lg flex items-center gap-2 border-[3px] border-[#B0B0B0]">
+                <i class="fas fa-paper-plane"></i>
+                <span>Kirim</span>
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block content_script %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const messageList = document.getElementById('message-list');
+    const messageInput = document.getElementById('message-input');
+    const chatForm = document.getElementById('chat-form');
+    const sendButton = document.getElementById('send-button');
+    const emptyState = document.getElementById('empty-state');
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    function scrollToBottom() {
+        messageList.scrollTop = messageList.scrollHeight;
+    }
+    scrollToBottom();
+
+    messageInput.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = Math.min(this.scrollHeight, 150) + 'px';
+    });
+    
+    messageInput.focus();
+    
+    messageInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            chatForm.dispatchEvent(new Event('submit', { 'bubbles': true, 'cancelable': true }));
+        }
+    });
+    
+    chatForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(chatForm);
+        const content = messageInput.value.trim();
+        
+        if (!content) return;
+        
+        sendButton.disabled = true;
+        sendButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Mengirim...</span>';
+        
+        fetch(window.location.href, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if (emptyState) {
+                    emptyState.remove();
+                }
+                const messageHTML = `
+                    <div class="flex justify-end group message-container" data-message-id="${data.message_id}">
+                        <div class="message-actions mr-2">
+                            <button class="action-btn" onclick="editMessage(${data.message_id})">
+                                <i class="fas fa-pen fa-xs"></i>
+                            </button>
+                            <button class="action-btn" onclick="deleteMessage(${data.message_id})">
+                                <i class="fas fa-trash fa-xs"></i>
+                            </button>
+                        </div>
+                        <div class="message-bubble-sent text-white rounded-2xl rounded-br-md py-3 px-5 max-w-xs lg:max-w-md shadow-lg">
+                            <p class="text-sm leading-relaxed" id="msg-content-${data.message_id}">${escapeHtml(data.content)}</p>
+                            <div class="flex items-center justify-end mt-2 text-xs text-white opacity-80">
+                                <i class="far fa-clock mr-1"></i>
+                                <span>${data.timestamp}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                messageList.insertAdjacentHTML('beforeend', messageHTML);
+                messageInput.value = '';
+                messageInput.style.height = 'auto';
+                scrollToBottom();
+                messageInput.focus();
+            } else {
+                alert(data.error || 'Gagal mengirim pesan. Silakan coba lagi.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Terjadi kesalahan. Silakan coba lagi.');
+        })
+        .finally(() => {
+            sendButton.disabled = false;
+            sendButton.innerHTML = '<i class="fas fa-paper-plane"></i><span>Kirim</span>';
+        });
+    });
+    
+    function escapeHtml(text) {
+        const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+        return text.replace(/[&<>"']/g, m => map[m]);
+    }
+    
+    
+    window.editMessage = function(messageId) {
+        const contentElement = document.getElementById(`msg-content-${messageId}`);
+        const currentContent = contentElement.innerText;
+        const newContent = prompt("Edit pesan Anda:", currentContent);
+        
+        if (newContent && newContent.trim() !== '' && newContent !== currentContent) {
+            fetch(window.location.href, {
+                method: 'PUT',
+                body: JSON.stringify({
+                    'message_id': messageId,
+                    'content': newContent.trim()
+                }),
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    contentElement.innerText = data.content; 
+                } else {
+                    alert(data.error || 'Gagal mengedit pesan.');
+                }
+            })
+            .catch(error => alert('Terjadi kesalahan.'));
+        }
+    }
+
+    window.deleteMessage = function(messageId) {
+        if (confirm("Anda yakin ingin menghapus pesan ini?")) {
+            fetch(window.location.href, {
+                method: 'DELETE',
+                body: JSON.stringify({
+                    'message_id': messageId
+                }),
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.querySelector(`.message-container[data-message-id="${messageId}"]`).remove();
+                } else {
+                    alert(data.error || 'Gagal menghapus pesan.');
+                }
+            })
+            .catch(error => alert('Terjadi kesalahan.'));
+        }
+    }
+});
+</script>
+{% endblock %}

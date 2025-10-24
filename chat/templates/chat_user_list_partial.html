@@ -1,0 +1,54 @@
+{% for user in users_list %}
+    <a href="{% url 'chat_room' user.id %}" class="flex items-center p-6 hover:bg-[#ffe5dd] transition duration-200 border-b-[2px] border-[#E0E0E0] last:border-b-0 group">
+        <div class="flex-shrink-0">
+            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-[#DE3400] to-[#ff6b3d] flex items-center justify-center text-white font-bold text-2xl shadow-md">
+                {{ user.username.0|upper }}
+            </div>
+        </div>
+        <div class="flex-grow ml-6">
+            <div class="text-xl font-bold text-[#003E85] group-hover:text-[#DE3400] transition duration-200">
+                {{ user.username }}
+            </div>
+            <div class="flex items-center mt-1 text-sm text-[#003E85]">
+                {% if user.is_coach %}
+                    <i class="fas fa-chalkboard-teacher mr-2 text-[#DE3400]"></i>
+                    <span class="font-semibold">Coach Profesional</span>
+                {% else %}
+                    <i class="fas fa-user mr-2 text-[#DE3400]"></i>
+                    <span class="font-semibold">Customer</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="flex-shrink-0">
+            <div class="w-10 h-10 rounded-full bg-[#DE3400] flex items-center justify-center group-hover:scale-110 transition duration-200">
+                <i class="fas fa-chevron-right text-white text-lg"></i>
+            </div>
+        </div>
+    </a>
+{% empty %}
+    <div class="p-12 text-center">
+        <div class="flex justify-center mb-6">
+            <div class="w-24 h-24 rounded-full bg-[#ffe5dd] flex items-center justify-center">
+                <i class="fas fa-comments text-5xl text-[#DE3400]"></i>
+            </div>
+        </div>
+        <p class="text-xl text-[#003E85] font-semibold mb-2">
+            {% if search_query %}
+                Pengguna tidak ditemukan
+            {% elif request.user.is_coach %}
+                Belum Ada Customer
+            {% else %}
+                Belum Ada Coach
+            {% endif %}
+        </p>
+        <p class="text-base text-gray-600">
+             {% if search_query %}
+                Coba kata kunci lain untuk mencari pengguna.
+            {% elif request.user.is_coach %}
+                Belum ada customer yang memesan jadwal Anda. Percakapan akan muncul di sini setelah ada pemesanan.
+            {% else %}
+                Tidak ada coach yang tersedia untuk dihubungi. Pesan jadwal coach untuk memulai percakapan.
+            {% endif %}
+        </p>
+    </div>
+{% endfor %}

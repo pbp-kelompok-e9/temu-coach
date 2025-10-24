@@ -57,7 +57,6 @@ def register_view(request):
     context = {'user_form': user_form, 'coach_form': coach_form}
     return render(request, 'accounts/register.html', context)
 
-
 def login_view(request):
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
@@ -68,26 +67,37 @@ def login_view(request):
             if user is not None:
                 login(request, user)
                 messages.info(request, f"Anda berhasil login sebagai {username}.")
+                
                 if user.is_superuser:
                     return redirect('my_admin:dashboard_simple')
+                
                 elif user.is_coach: 
-                     return redirect('coach_dashboard') 
+                    return redirect('coach_dashboard') 
+                
                 elif user.is_customer:
-                     return redirect('customer_dashboard')
-                else:
-                    messages.info(request, "Permintaan menjadi coach Anda sedang menunggu persetujuan admin. Anda dapat menggunakan akun sebagai customer sampai disetujui.")
                     return redirect('customer_dashboard')
+                
+                else: 
+                    messages.warning(request, "Akun Coach Anda sedang menunggu persetujuan admin.")
+                    logout(request) 
+                    return redirect('login') 
+            
             else:
                 messages.error(request,"Username atau password salah.")
         else:
             messages.error(request,"Username atau password salah.")
     else: 
-         if request.user.is_authenticated:
-              if request.user.is_coach:
-                   return redirect('coach_dashboard') 
-              else:
-                   return redirect('customer_dashboard') 
-         form = AuthenticationForm()
+        if request.user.is_authenticated:
+             if user.is_superuser:
+                 return redirect('my_admin:dashboard_simple')
+             elif user.is_coach:
+                 return redirect('coach_dashboard') 
+             elif user.is_customer:
+                 return redirect('customer_dashboard')
+             else: 
+                 logout(request)
+                 return redirect('login')
+        form = AuthenticationForm()
          
     form = AuthenticationForm() 
     return render(request, 'accounts/login.html', {'form': form})
