@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'reviews_ratings',
     'scheduler',
     'my_admin',
+    'chat'
 ]
 
 MIDDLEWARE = [
