@@ -7,10 +7,11 @@ from coaches_book_catalog.models import Coach, CoachRequest
 
 @login_required
 def dashboard_simple(request):
-    if hasattr(request.user, 'is_customer') and request.user.is_customer:
-        return redirect('customer_dashboard') 
-    if hasattr(request.user, 'is_coach') and request.user.is_coach:
-        return redirect('coach_dashboard')
+    if not request.user.is_superuser:
+        if hasattr(request.user, 'is_customer') and request.user.is_customer:
+            return redirect('customer_dashboard') 
+        if hasattr(request.user, 'is_coach') and request.user.is_coach:
+            return redirect('coach_dashboard')
     reports = Report.objects.select_related('reporter', 'coach__user').order_by('-created_at')
     pending_requests = CoachRequest.objects.filter(approved=False).select_related('user').order_by('-created_at')
 
@@ -18,7 +19,7 @@ def dashboard_simple(request):
         'reports': reports,
         'pending_requests': pending_requests,
     }
-    return render(request, 'dashboard_simple.html', context)
+    return render(request, 'dashboard_simple.html', context)    
 
 @require_POST
 def approve_coach(request, coach_id):
