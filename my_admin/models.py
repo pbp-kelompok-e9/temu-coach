@@ -1,7 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
 from coaches_book_catalog.models import Coach
-import uuid
 from django.conf import settings
 class Report(models.Model):
     reporter = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='reports_made')
