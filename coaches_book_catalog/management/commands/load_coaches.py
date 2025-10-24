@@ -1,4 +1,5 @@
 import csv
+import random
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model # <-- Gunakan ini
 from coaches_book_catalog.models import Coach
@@ -53,7 +54,7 @@ class Command(BaseCommand):
                             'preffered_formation': row['preffered_formation'],
                             'average_term_as_coach': float(row['avg_term_as_coach'].replace(' Years', '')),
                             'description': f"Seorang pelatih berpengalaman dari {row['club']}.",
-                            'rate_per_session': 500000.00 
+                            'rate_per_session': 1000000 * random.randint(0, 5)
                         }
                     )
                     count += 1 
