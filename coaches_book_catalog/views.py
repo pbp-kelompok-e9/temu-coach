@@ -1,6 +1,6 @@
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
-from .models import Coach, Booking
+from .models import Coach, Booking, CoachRequest
 from scheduler.models import Jadwal
 from django.contrib.auth.decorators import login_required
 from django.db.models.functions import Lower
@@ -141,6 +141,7 @@ def customer_dashboard(request):
     context = {
         'upcoming_bookings': upcoming_bookings,
         'completed_bookings': completed_bookings,
+        'coach_request_pending': CoachRequest.objects.filter(user=request.user, approved=False).exists(),
     }
     return render(request, 'coaches_book_catalog/dashboard_customer.html', context)
 
