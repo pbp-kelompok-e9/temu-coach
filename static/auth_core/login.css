@@ -301,3 +301,8 @@
   object-fit: contain;
   transform: translateY(-3px);
 }
+
+#togglePassword {
+  cursor: pointer;
+  user-select: none;
+}
