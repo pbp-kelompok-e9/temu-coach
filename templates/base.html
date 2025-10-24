@@ -1,18 +1,26 @@
 {% load static %}<!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
     <script src="https://cdn.tailwindcss.com"></script>
     <title>{% block title %}TemuCoach{% endblock %}</title>
     <style>
-        @layer utilities {
-            .font-plus-jakarta { font-family: "Plus Jakarta Sans", Arial, sans-serif; }
+      @layer utilities {
+        .font-plus-jakarta {
+          font-family: "Plus Jakarta Sans", Arial, sans-serif;
         }
+      }
     </style>
     {% block content_style %}{% endblock %}
 </head>
@@ -25,10 +33,11 @@
     </main>
     {#TODO Chat link#}
     {% block chat_widget_content %}
-        <a href="#" class="fixed bottom-6 right-6 w-[50px] h-[50px] bg-[#DE3400] rounded-[8px] flex items-center justify-center text-white text-[1.75rem] shadow-[0_4px_8px_rgba(0,0,0,0.2)] cursor-pointer z-[999] no-underline">
+        <a href="{% url 'chat_list' %}" class="fixed bottom-6 right-6 w-[50px] h-[50px] bg-[#DE3400] rounded-[8px] flex items-center justify-center text-white text-[1.75rem] shadow-[0_4px_8px_rgba(0,0,0,0.2)] cursor-pointer z-[999] no-underline">
             <i class="fas fa-comment-dots"></i>
         </a>
     {% endblock chat_widget_content %}
     {% block content_script %}{% endblock %}
 </body>
 </html>
+

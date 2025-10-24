@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %}Pilih Percakapan{% endblock %}
+
+{% block content %}
+<div class="max-w-[1100px] mx-auto px-8 py-4 font-[Plus Jakarta Sans] bg-white text-black font-normal">
+    <div class="text-left mt-8 mb-8">
+        <h1 class="text-[4.375rem] font-bold text-[#003E85] m-0">Percakapan Anda</h1>
+        <p class="text-[2.625rem] text-[#003E85] mt-2 font-semibold">Pilih untuk melanjutkan chat.</p>
+    </div>
+
+    <form method="GET" action="{% url 'chat_list' %}" class="mb-8 flex gap-2" id="controls-form"> 
+        <input 
+            type="text" 
+            id="search-input" {# Ganti ID #}
+            name="q" 
+            value="{{ search_query }}"
+            placeholder="Cari nama pengguna..." 
+            class="flex-grow px-4 py-3 text-base border-[3px] border-[#B0B0B0] rounded-[10px] font-normal placeholder:text-gray-500" {# Style dari Katalog #}
+        >
+        <button 
+            type="submit" 
+            class="px-6 py-3 text-base font-semibold bg-[#DE3400] text-white border-[3px] border-[#B0B0B0] rounded-[10px] cursor-pointer"> 
+            Cari
+        </button>
+    </form>
+    <div id="chat-list-container" class="bg-white rounded-[10px] shadow-lg border-[3px] border-[#B0B0B0]">
+        {% include 'chat_user_list_partial.html' %}
+    </div>
+
+    <section class="text-left mt-16 pt-8">
+        <h2 class="text-[2rem] font-bold text-[#003E85] mb-8">Tips Berkomunikasi</h2>
+        <div class="grid grid-cols-3 gap-6 text-left max-md:grid-cols-1">
+            <div class="bg-white border border-[#E0E0E0] rounded-lg p-6 text-center">
+                <div class="flex justify-center items-center w-[60px] h-[60px] bg-[#ffe5dd] rounded-full shadow mx-auto mb-4">
+                    <i class="fas fa-comment-dots text-[2.5rem] text-[#DE3400]"></i>
+                </div>
+                <h3 class="text-[#003E85] text-xl font-bold mb-2">Responsif</h3>
+                <p class="text-sm text-[#003E85] leading-[1.5]">Balas pesan dengan cepat untuk menjaga komunikasi yang baik dan produktif.</p>
+            </div>
+            <div class="bg-white border border-[#E0E0E0] rounded-lg p-6 text-center">
+                <div class="flex justify-center items-center w-[60px] h-[60px] bg-[#ffe5dd] rounded-full shadow mx-auto mb-4">
+                    <i class="fas fa-handshake text-[2.5rem] text-[#DE3400]"></i>
+                </div>
+                <h3 class="text-[#003E85] text-xl font-bold mb-2">Profesional</h3>
+                <p class="text-sm text-[#003E85] leading-[1.5]">Jaga etika dan profesionalisme dalam setiap percakapan untuk hasil terbaik.</p>
+            </div>
+            <div class="bg-white border border-[#E0E0E0] rounded-lg p-6 text-center">
+                <div class="flex justify-center items-center w-[60px] h-[60px] bg-[#ffe5dd] rounded-full shadow mx-auto mb-4">
+                    <i class="fas fa-bullseye text-[2.5rem] text-[#DE3400]"></i>
+                </div>
+                <h3 class="text-[#003E85] text-xl font-bold mb-2">Jelas</h3>
+                <p class="text-sm text-[#003E85] leading-[1.5]">Komunikasikan kebutuhan dan ekspektasi Anda dengan jelas dan spesifik.</p>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block content_script %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('controls-form'); 
+    const container = document.getElementById('chat-list-container');
+    const searchInput = document.getElementById('search-input'); 
+
+    function fetchAndUpdate(url) {
+        container.style.opacity = '0.5';
+
+        fetch(url, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => response.text())
+        .then(html => {
+            container.innerHTML = html;
+            container.style.opacity = '1';
+        })
+        .catch(error => {
+            console.error('Error fetching chat list:', error);
+            container.style.opacity = '1';
+        });
+    }
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault(); 
+        
+        const formData = new FormData(form);
+        const params = new URLSearchParams(formData);
+        const url = `${form.action}?${params.toString()}`;
+        
+        fetchAndUpdate(url);
+    });
+
+});
+</script>
+{% endblock %}
