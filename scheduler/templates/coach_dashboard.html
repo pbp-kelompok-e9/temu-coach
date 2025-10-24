@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="bg-gray-100 min-h-screen p-6">
+
+  
+
+  <!-- Profile Section -->
+  <div class="bg-white rounded-xl shadow p-6 mb-8">
+    <h2 class="text-3xl font-bold text-blue-900 mb-4 border-b-2 border-gray-200 pb-2">Profile</h2>
+
+    <div class="flex flex-col md:flex-row items-center md:items-start gap-6">
+      <div class="flex flex-col items-center">
+        {% if coach.foto %}
+          <img src="{{ coach.foto.url }}" alt="Coach Photo" class="w-32 h-32 object-cover rounded-full border">
+        {% else %}
+          <img src="{% static 'images/default_avatar.png' %}" alt="Default" class="w-32 h-32 object-cover rounded-full border">
+        {% endif %}
+        <a href="#" class="mt-3 bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 rounded-lg transition">
+            Edit Profile
+        </a>
+      </div>
+
+      <div class="flex-1">
+        <h3 class="text-2xl font-bold text-blue-900">{{ coach.name }}</h3>
+        <p class="text-gray-600">{{ coach.citizenship }}</p>
+        <p class="text-gray-600">{{ coach.age }} years old</p>
+        <p class="text-gray-800 font-semibold mt-2">{{ coach.club }}</p>
+        <p class="text-gray-700">{{ coach.preffered_formation }}</p>
+        <p class="text-gray-700">Avg term: {{ coach.average_term_as_coach }} Years</p>
+        <p class="text-gray-700">{{ coach.license }}</p>
+        <p class="mt-3 text-gray-600">{{ coach.description }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tambahkan Jadwal -->
+  <div class="bg-white rounded-xl shadow p-6 mb-8">
+    <h2 class="text-2xl font-bold text-blue-900 mb-4 border-b-2 border-gray-200 pb-2">Tambahkan Jadwal</h2>
+    <div class="text-center">
+      <button class="bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-2 rounded-lg transition " onclick="showModal()" >
+        Tambahkan Jadwal
+      </button>
+    </div>
+  </div>
+
+  <!-- Jadwal Section -->
+  <div class="bg-white rounded-xl shadow p-6">
+    <h2 class="text-2xl font-bold text-blue-900 mb-4 border-b-2 border-gray-200 pb-2">Janji Temu</h2>
+
+    {% if jadwal_list %}
+      <div id="jadwalList" class="space-y-4">
+        {% for jadwal in jadwal_list %}
+            <div id="jadwal-{{ jadwal.id }}" class="border-2 border-blue-800 rounded-xl p-4 flex justify-between items-start">
+                <div>
+                    <p class="font-bold text-lg text-blue-900">{{ jadwal.tanggal|date:"F j" }}, {{ jadwal.jam_mulai|time:"H:i" }} - {{ jadwal.jam_selesai|time:"H:i" }}</p>
+                    <p class="text-gray-700">
+                    {% if jadwal.is_booked %}
+                        <span class="font-semibold text-red-600">Sudah dipesan</span>
+                    {% else %}
+                        <span class="font-semibold text-green-600">Tersedia</span>
+                    {% endif %}
+                    </p>
+                </div>
+
+                <button 
+                    class="bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 rounded-lg transition delete-jadwal-btn" 
+                    data-id="{{ jadwal.id }}">
+                    Batalkan
+                </button>
+            </div>
+        {% endfor %}
+    </div>
+
+    {% else %}
+      <p class="text-gray-500 italic">Belum ada jadwal.</p>
+    {% endif %}
+  </div>
+
+</div>
+
+{% include 'modal_schedule.html' %}
+{% endblock %}

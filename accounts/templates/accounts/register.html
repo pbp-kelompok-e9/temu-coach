@@ -5,8 +5,30 @@
 
 {% block content_style %}
 <style>
-    body { padding-top: 0 !important; }
-    .bg-gradient-custom::before { content:""; position:absolute; inset:0; z-index:1; }
+  body { padding-top: 0 !important; }
+  .bg-gradient-custom::before { content:""; position:absolute; inset:0; z-index:1; }
+
+  .coach-scope input,
+  .coach-scope select,
+  .coach-scope textarea {
+    width: 100%;
+    padding: 0.75rem 1.25rem;
+    border: 1px solid #D1D5DB;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 2px rgba(0,0,0,.05);
+    color: #111827;
+    font-size: 1.125rem;
+    line-height: 1.5rem;
+  }
+  .coach-scope input::placeholder,
+  .coach-scope textarea::placeholder { color: #6B7280; }
+  .coach-scope input:focus,
+  .coach-scope select:focus,
+  .coach-scope textarea:focus {
+    outline: 2px solid #6366F1; border-color: transparent; box-shadow: 0 0 0 2px #6366F1;
+  }
+  .coach-scope textarea { min-height: 3.25rem; }
+  .coach-scope input[type="file"] { padding: .5rem .75rem; font-size: 1rem; }
 </style>
 {% endblock %}
 
@@ -14,38 +36,52 @@
 {% block chat_widget_content %}{% endblock %}
 
 {% block content %}
-<div class="min-h-screen flex items-stretch text-white">
+<div class="reg-layout lg:h-screen flex text-white">
 
-  <!-- LEFT: hero tanpa link login -->
-  <div class="relative hidden lg:flex lg:w-4/5 items-center justify-start bg-cover bg-center bg-gradient-custom"
-       style="background-image: url('{% static 'images/football-background.png' %}');">
-      <div class="z-10 p-12 xl:p-16 max-w-lg relative ml-10 xl:ml-16">
-          <h1 class="text-4xl xl:text-5xl font-bold mb-6 leading-tight">
-              Join the Community,<br> Achieve Your Goals
-          </h1>
-      </div>
+  <div
+    class="hero-pane hidden lg:flex lg:w-3/5 shrink-0 grow-0 h-full relative items-center justify-start bg-cover bg-center bg-gradient-custom"
+    style="background-image: url('{% static 'images/football-background.png' %}');">
+    <div class="z-10 p-12 xl:p-16 max-w-lg relative ml-10 xl:ml-16">
+      <h1 class="text-4xl xl:text-5xl font-bold mb-6 leading-tight">
+        Join the Community,<br> Achieve Your Goals
+      </h1>
+    </div>
   </div>
 
-  <!-- RIGHT: form -->
-  <div class="lg:w-2/5 w-full flex items-center justify-center text-center md:px-12 px-6 z-10 bg-white text-gray-800">
+  <div class="form-pane lg:w-2/5 w-full h-full overflow-y-auto flex justify-center items-start text-center md:px-12 px-6 z-10 bg-white text-gray-800">
     <div class="w-full py-6 z-20 max-w-md">
-
       <div class="flex items-center justify-center mb-8">
         <img src="{% static 'images/logo.png' %}" alt="TemuCoach Logo" class="w-12 h-12 mr-3">
         <span class="text-3xl font-bold text-[#003E85]">TemuCoach</span>
       </div>
-      <h1 class="text-3xl font-semibold mb-8 text-gray-700">Create Account</h1>
+      <h1 class="text-3xl font-semibold mb-8 text-gray-700">Register</h1>
 
-      {% if user_form.errors or coach_form.errors and not messages %}
-        <div class="mb-4 p-3 rounded bg-red-100 text-red-700 text-sm" role="alert">
-          Please correct the errors below.
+      {% if user_form.errors or coach_form.errors %}
+      <div class="mb-4 p-4 rounded-lg bg-red-50 border border-red-200" role="alert">
+        <div class="flex items-start">
+          <i class="fas fa-exclamation-circle text-red-600 mt-0.5 mr-3"></i>
+          <div class="text-left">
+            <h3 class="text-sm font-semibold text-red-800 mb-2">Please correct the following errors:</h3>
+            <ul class="text-sm text-red-700 space-y-1">
+              {% for field, errors in user_form.errors.items %}
+                {% for error in errors %}
+                  <li>{{ field|title }}: {{ error }}</li>
+                {% endfor %}
+              {% endfor %}
+              {% for field, errors in coach_form.errors.items %}
+                {% for error in errors %}
+                  <li>{{ field|title }}: {{ error }}</li>
+                {% endfor %}
+              {% endfor %}
+            </ul>
+          </div>
         </div>
+      </div>
       {% endif %}
 
       <form method="post" enctype="multipart/form-data" id="register-form" class="space-y-6 text-left">
         {% csrf_token %}
 
-        <!-- a) Daftar sebagai (dipindah ke paling atas) -->
         <div class="text-left">
           <label class="block text-sm font-medium text-gray-700 mb-1">
             {{ user_form.user_type.label }} {% if user_form.user_type.field.required %}<span class="text-red-500">*</span>{% endif %}
@@ -53,8 +89,7 @@
           <div class="flex gap-6 mt-2" id="user_type_group">
             {% for radio in user_form.user_type %}
               <label class="inline-flex items-center text-gray-700">
-                {{ radio.tag }}
-                <span class="ml-2">{{ radio.choice_label }}</span>
+                {{ radio.tag }} <span class="ml-2">{{ radio.choice_label }}</span>
               </label>
             {% endfor %}
           </div>
@@ -65,128 +100,104 @@
           {% endif %}
         </div>
 
-        <!-- b) First name (styling sama seperti Username) -->
         <div class="relative">
-          <input
-            type="text" name="{{ user_form.first_name.name }}" id="{{ user_form.first_name.id_for_label }}"
-            class="block w-full px-5 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6366F1] focus:border-transparent placeholder-gray-500 text-gray-900 pr-12 text-lg"
-            placeholder="First name" {% if user_form.first_name.field.required %}required{% endif %}>
+          <input type="text" name="{{ user_form.first_name.name }}" id="{{ user_form.first_name.id_for_label }}"
+                 value="{{ user_form.first_name.value|default:'' }}"
+                 class="block w-full px-5 py-3 border {% if user_form.first_name.errors %}border-red-500{% else %}border-gray-300{% endif %} rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6366F1] focus:border-transparent placeholder-gray-500 text-gray-900 pr-12 text-lg"
+                 placeholder="First name" {% if user_form.first_name.field.required %}required{% endif %}>
           <span class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 pointer-events-none">
             <i class="fas fa-user text-lg"></i>
           </span>
           {% if user_form.first_name.errors %}
-            <ul class="text-red-600 text-sm mt-1">
-              {% for error in user_form.first_name.errors %}<li>{{ error }}</li>{% endfor %}
-            </ul>
+            <p class="text-red-600 text-sm mt-1">{{ user_form.first_name.errors.0 }}</p>
           {% endif %}
         </div>
 
-        <!-- c) Last name (styling sama seperti Username) -->
         <div class="relative">
-          <input
-            type="text" name="{{ user_form.last_name.name }}" id="{{ user_form.last_name.id_for_label }}"
-            class="block w-full px-5 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6366F1] focus:border-transparent placeholder-gray-500 text-gray-900 pr-12 text-lg"
-            placeholder="Last name" {% if user_form.last_name.field.required %}required{% endif %}>
+          <input type="text" name="{{ user_form.last_name.name }}" id="{{ user_form.last_name.id_for_label }}"
+                 value="{{ user_form.last_name.value|default:'' }}"
+                 class="block w-full px-5 py-3 border {% if user_form.last_name.errors %}border-red-500{% else %}border-gray-300{% endif %} rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6366F1] focus:border-transparent placeholder-gray-500 text-gray-900 pr-12 text-lg"
+                 placeholder="Last name" {% if user_form.last_name.field.required %}required{% endif %}>
           <span class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 pointer-events-none">
             <i class="fas fa-user text-lg"></i>
           </span>
           {% if user_form.last_name.errors %}
-            <ul class="text-red-600 text-sm mt-1">
-              {% for error in user_form.last_name.errors %}<li>{{ error }}</li>{% endfor %}
-            </ul>
+            <p class="text-red-600 text-sm mt-1">{{ user_form.last_name.errors.0 }}</p>
           {% endif %}
         </div>
 
-        <!-- d) Username -->
         <div class="relative">
-          <input
-            type="text" name="{{ user_form.username.name }}" id="{{ user_form.username.id_for_label }}"
-            class="block w-full px-5 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6366F1] focus:border-transparent placeholder-gray-500 text-gray-900 pr-12 text-lg"
-            placeholder="Username" {% if user_form.username.field.required %}required{% endif %} autofocus>
+          <input type="text" name="{{ user_form.username.name }}" id="{{ user_form.username.id_for_label }}"
+                 value="{{ user_form.username.value|default:'' }}"
+                 class="block w-full px-5 py-3 border {% if user_form.username.errors %}border-red-500{% else %}border-gray-300{% endif %} rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6366F1] focus:border-transparent placeholder-gray-500 text-gray-900 pr-12 text-lg"
+                 placeholder="Username" {% if user_form.username.field.required %}required{% endif %} autofocus>
           <span class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 pointer-events-none">
             <i class="fas fa-user text-lg"></i>
           </span>
           {% if user_form.username.errors %}
-            <ul class="text-red-600 text-sm mt-1">
-              {% for error in user_form.username.errors %}<li>{{ error }}</li>{% endfor %}
-            </ul>
+            <p class="text-red-600 text-sm mt-1">{{ user_form.username.errors.0 }}</p>
           {% endif %}
         </div>
 
-        <!-- e) Email -->
         <div class="relative">
-          <input
-            type="email" name="{{ user_form.email.name }}" id="{{ user_form.email.id_for_label }}"
-            class="block w-full px-5 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6366F1] focus:border-transparent placeholder-gray-500 text-gray-900 pr-12 text-lg"
-            placeholder="Email" {% if user_form.email.field.required %}required{% endif %}>
+          <input type="email" name="{{ user_form.email.name }}" id="{{ user_form.email.id_for_label }}"
+                 value="{{ user_form.email.value|default:'' }}"
+                 class="block w-full px-5 py-3 border {% if user_form.email.errors %}border-red-500{% else %}border-gray-300{% endif %} rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6366F1] focus:border-transparent placeholder-gray-500 text-gray-900 pr-12 text-lg"
+                 placeholder="Email" {% if user_form.email.field.required %}required{% endif %}>
           <span class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 pointer-events-none">
             <i class="fas fa-envelope text-lg"></i>
           </span>
           {% if user_form.email.errors %}
-            <ul class="text-red-600 text-sm mt-1">
-              {% for error in user_form.email.errors %}<li>{{ error }}</li>{% endfor %}
-            </ul>
+            <p class="text-red-600 text-sm mt-1">{{ user_form.email.errors.0 }}</p>
           {% endif %}
         </div>
 
-        <!-- f) Password -->
         <div class="relative">
-          <input
-            type="password" name="{{ user_form.password1.name }}" id="{{ user_form.password1.id_for_label }}"
-            class="block w-full px-5 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6366F1] focus:border-transparent placeholder-gray-500 text-gray-900 pr-12 text-lg"
-            placeholder="{{ user_form.password1.label }}" {% if user_form.password1.field.required %}required{% endif %}>
+          <input type="password" name="{{ user_form.password1.name }}" id="{{ user_form.password1.id_for_label }}"
+                 class="block w-full px-5 py-3 border {% if user_form.password1.errors %}border-red-500{% else %}border-gray-300{% endif %} rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6366F1] focus:border-transparent placeholder-gray-500 text-gray-900 pr-12 text-lg"
+                 placeholder="{{ user_form.password1.label }}" {% if user_form.password1.field.required %}required{% endif %}>
           <span class="absolute inset-y-0 right-0 pr-4 flex items-center cursor-pointer text-gray-400 hover:text-gray-600 toggle-password">
             <i class="fas fa-eye-slash text-lg"></i>
           </span>
           {% if user_form.password1.errors %}
-            <ul class="text-red-600 text-sm mt-1">
-              {% for error in user_form.password1.errors %}<li>{{ error }}</li>{% endfor %}
-            </ul>
+            <div class="text-red-600 text-sm mt-1">
+              {% for error in user_form.password1.errors %}<p>{{ error }}</p>{% endfor %}
+            </div>
           {% endif %}
         </div>
 
-        <!-- g) Confirmation password -->
         <div class="relative">
-          <input
-            type="password" name="{{ user_form.password2.name }}" id="{{ user_form.password2.id_for_label }}"
-            class="block w-full px-5 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6366F1] focus:border-transparent placeholder-gray-500 text-gray-900 pr-12 text-lg"
-            placeholder="{{ user_form.password2.label }}" {% if user_form.password2.field.required %}required{% endif %}>
+          <input type="password" name="{{ user_form.password2.name }}" id="{{ user_form.password2.id_for_label }}"
+                 class="block w-full px-5 py-3 border {% if user_form.password2.errors %}border-red-500{% else %}border-gray-300{% endif %} rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6366F1] focus:border-transparent placeholder-gray-500 text-gray-900 pr-12 text-lg"
+                 placeholder="{{ user_form.password2.label }}" {% if user_form.password2.field.required %}required{% endif %}>
           <span class="absolute inset-y-0 right-0 pr-4 flex items-center cursor-pointer text-gray-400 hover:text-gray-600 toggle-password">
             <i class="fas fa-eye-slash text-lg"></i>
           </span>
           {% if user_form.password2.errors %}
-            <ul class="text-red-600 text-sm mt-1">
-              {% for error in user_form.password2.errors %}<li>{{ error }}</li>{% endfor %}
-            </ul>
+            <div class="text-red-600 text-sm mt-1">
+              {% for error in user_form.password2.errors %}<p>{{ error }}</p>{% endfor %}
+            </div>
           {% endif %}
         </div>
 
-        <!-- Coach extra fields (tetap seperti sebelumnya) -->
-        <div id="coach-fields-section" class="hidden space-y-6">
+        <button type="button" id="coach-jump-btn"
+                class="hidden w-full py-2 px-4 border border-blue-600 text-blue-600 font-semibold rounded-lg hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-200 text-sm"
+                aria-controls="coach-fields-section">
+          Isi data pelatih
+        </button>
+
+        <div id="coach-fields-section" class="hidden space-y-6 coach-scope">
           <h2 class="text-xl font-semibold text-gray-700 mb-4 mt-8">Coach Details</h2>
           {% for field in coach_form %}
             <div class="text-left">
               <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                 {{ field.label }} {% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
               </label>
+              {{ field }}
 
-              {% if field.name == 'bio' %}
-                <textarea name="{{ field.name }}" id="{{ field.id_for_label }}" rows="4"
-                  class="block w-full px-5 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6366F1] focus:border-transparent placeholder-gray-500 text-gray-900 text-lg"
-                  placeholder="Bio"></textarea>
-              {% elif field.name == 'spesialisasi' %}
-                <select name="{{ field.name }}" id="{{ field.id_for_label }}"
-                  class="block w-full px-5 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6366F1] focus:border-transparent text-gray-900 text-lg">
-                  {{ field }}
-                </select>
-              {% elif field.name == 'foto' %}
-                {{ field }}
-              {% else %}
-                <input type="text" name="{{ field.name }}" id="{{ field.id_for_label }}"
-                  class="block w-full px-5 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6366F1] focus:border-transparent placeholder-gray-500 text-gray-900 text-lg"
-                  placeholder="{{ field.label }}">
+              {% if field.help_text %}
+                <p class="text-xs text-gray-500 mt-1">{{ field.help_text|safe }}</p>
               {% endif %}
-
               {% if field.errors %}
                 <ul class="text-red-600 text-sm mt-1">
                   {% for error in field.errors %}<li>{{ error }}</li>{% endfor %}
@@ -197,19 +208,17 @@
         </div>
 
         <button type="submit"
-          class="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-200 text-lg">
+                class="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-200 text-lg">
           Register
         </button>
       </form>
 
-      <!-- Teks baru dipindah ke bawah tombol -->
       <div class="mt-4 text-sm text-center">
         <p class="text-gray-600">
           Have an account already?
           <a href="{% url 'login' %}" class="font-semibold text-[#003E85] hover:text-blue-700">Sign In</a>
         </p>
       </div>
-
     </div>
   </div>
 </div>
@@ -218,40 +227,202 @@
 {% block content_script %}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-  // Tampilkan/semmbunyikan coach fields
+  const scroller     = document.querySelector('.form-pane');
   const userTypeRadios = document.querySelectorAll('#user_type_group input[name="user_type"]');
-  const coachFields = document.getElementById('coach-fields-section');
-  const coachFormInputs = coachFields.querySelectorAll('input, textarea, select');
-  const initialRequiredStatus = new Map();
-  coachFormInputs.forEach(input => initialRequiredStatus.set(input, input.required));
+  const coachFields  = document.getElementById('coach-fields-section');
+  const coachInputs  = coachFields.querySelectorAll('input, textarea, select');
+  const jumpBtn      = document.getElementById('coach-jump-btn');
 
   function toggleCoachFields() {
-    const selected = document.querySelector('#user_type_group input[name="user_type"]:checked');
-    if (selected && selected.value === 'coach') {
-      coachFields.classList.remove('hidden');
-      coachFormInputs.forEach(input => input.required = initialRequiredStatus.get(input));
-      const foto = coachFields.querySelector('input[type="file"][name="foto"]');
-      if (foto) foto.required = false; // file opsional
-    } else {
-      coachFields.classList.add('hidden');
-      coachFormInputs.forEach(input => input.required = false);
-    }
-  }
-  toggleCoachFields();
-  userTypeRadios.forEach(radio => radio.addEventListener('change', toggleCoachFields));
+    const sel  = document.querySelector('#user_type_group input[name="user_type"]:checked');
+    const show = sel && sel.value === 'coach';
 
-  // Toggle password1 & password2
+    coachFields.classList.toggle('hidden', !show);
+    jumpBtn.classList.toggle('hidden', !show);
+
+    coachInputs.forEach(i => {
+      if (!i.hasAttribute('data-required') && i.required) i.setAttribute('data-required', '1');
+      i.required = show && i.getAttribute('data-required') === '1';
+    });
+  }
+
+  function scrollToCoach() {
+    const rect  = coachFields.getBoundingClientRect();
+    const srect = scroller.getBoundingClientRect();
+    const top   = scroller.scrollTop + (rect.top - srect.top) - 16;
+    scroller.scrollTo({ top, behavior: 'smooth' });
+  }
+
+  jumpBtn.addEventListener('click', scrollToCoach);
+
+  toggleCoachFields();
+  userTypeRadios.forEach(r => r.addEventListener('change', toggleCoachFields));
+
   document.querySelectorAll('.toggle-password').forEach(btn => {
     btn.addEventListener('click', function () {
       const input = this.parentElement.querySelector('input');
-      const icon  = this.querySelector('i');
-      if (!input) return;
       const show = input.type === 'password';
       input.type = show ? 'text' : 'password';
+      const icon = this.querySelector('i');
       icon.classList.toggle('fa-eye', show);
       icon.classList.toggle('fa-eye-slash', !show);
     });
   });
+
+  (function styleCoachFields() {
+    const section = document.getElementById('coach-fields-section');
+    if (!section) return;
+
+    function pickIcon(el) {
+      const nm = ((el.name || el.id || '') + '').toLowerCase();
+      if (el.type === 'email' || nm.includes('email')) return 'fa-envelope';
+      if (el.type === 'file'  || /photo|image|foto|avatar|picture/.test(nm)) return 'fa-image';
+      if (el.type === 'number' || nm.includes('age')) return 'fa-hashtag';
+      if (/name|coach/.test(nm)) return 'fa-user';
+      if (/citizen|national/.test(nm)) return 'fa-flag';
+      if (/club|team/.test(nm)) return 'fa-building';
+      if (/license|licen[cs]e/.test(nm)) return 'fa-id-card';
+      if (/formation|tactic|lineup/.test(nm)) return 'fa-th-large';
+      if (/average|term|experience|years/.test(nm)) return 'fa-hourglass-half';
+      if (/desc|bio|about/.test(nm)) return 'fa-align-left';
+      return 'fa-edit';
+    }
+
+    section.querySelectorAll('.text-left').forEach(block => {
+      const label  = block.querySelector('label');
+      const control = block.querySelector('input, textarea, select');
+      if (!control) return;
+
+      if (label) {
+        const raw = label.textContent.replace('*', '').trim();
+        control.setAttribute('aria-label', raw);
+        if (!(control.tagName === 'INPUT' && control.type === 'file')) {
+          control.setAttribute('placeholder', raw);
+        }
+        label.classList.add('sr-only'); 
+      }
+
+      control.classList.add(
+        'block','w-full','px-5','py-3','border',
+        'rounded-lg','shadow-sm','focus:outline-none','focus:ring-2',
+        'focus:ring-[#6366F1]','focus:border-transparent',
+        'placeholder-gray-500','text-gray-900','pr-12','text-lg'
+      );
+      if (!control.classList.contains('border-red-500')) {
+        control.classList.add('border-gray-300');
+      }
+      if (control.tagName === 'SELECT') {
+        control.classList.add('appearance-none'); 
+      }
+
+      block.classList.add('relative');
+      const iconSpan = document.createElement('span');
+      iconSpan.className = 'absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 pointer-events-none';
+      iconSpan.innerHTML = `<i class="fas ${pickIcon(control)} text-lg"></i>`;
+      block.appendChild(iconSpan);
+    });
+  })();
+  
+  (function fixRpField() {
+    const coach = document.getElementById('coach-fields-section');
+    if (!coach) return;
+
+    let rateInput = null, rateLabel = null;
+    coach.querySelectorAll('input, textarea, select').forEach(el => {
+      const lbl = coach.querySelector(`label[for="${el.id}"]`);
+      const txt = (lbl?.textContent || '').trim().toLowerCase();
+      const nm  = (el.name || '').toLowerCase();
+      if (/rate\s*per\s*session/.test(txt) || /(rate|tarif|harga|biaya)/.test(nm)) {
+        rateInput = el; rateLabel = lbl;
+      }
+    });
+    if (!rateInput) return;
+
+    rateInput.setAttribute('placeholder', '1.500.000');
+    if (rateLabel) rateLabel.classList.add('sr-only');
+
+    const wrapper = rateInput.closest('.text-left') || rateInput.parentElement;
+    wrapper.classList.add('relative');
+
+    if (!wrapper.querySelector('.rp-prefix')) {
+      const prefix = document.createElement('span');
+      prefix.className = 'rp-prefix absolute inset-y-0 left-0 pl-4 flex items-center text-gray-500 pointer-events-none';
+      prefix.textContent = 'Rp';
+      wrapper.appendChild(prefix);
+    }
+
+    rateInput.style.paddingLeft = '3.25rem';
+
+    if (!wrapper.querySelector('.fa-money-bill-wave')) {
+      const right = document.createElement('span');
+      right.className = 'absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 pointer-events-none';
+      right.innerHTML = '<i class="fas fa-money-bill-wave text-lg"></i>';
+      wrapper.appendChild(right);
+    }
+  })();
+
+  (function removeRateRightIconAndSpinner() {
+    const coach = document.getElementById('coach-fields-section');
+    if (!coach) return;
+
+    let rateInput = null, wrapper = null;
+    coach.querySelectorAll('input, textarea, select').forEach(el => {
+      const lbl = coach.querySelector(`label[for="${el.id}"]`);
+      const txt = (lbl?.textContent || '').toLowerCase();
+      const nm  = (el.name || '').toLowerCase();
+      if (/rate\s*per\s*session/.test(txt) || /(rate|tarif|harga|biaya)/.test(nm)) {
+        rateInput = el;
+        wrapper = el.closest('.text-left') || el.parentElement;
+      }
+    });
+    if (!rateInput || !wrapper) return;
+
+    wrapper.querySelectorAll('.absolute.inset-y-0.right-0').forEach(el => el.remove());
+
+    rateInput.classList.add('no-spinner');
+
+    rateInput.style.paddingRight = ''; 
+  })();
+
+  (function injectNoSpinnerCSS() {
+    const css = `
+      input.no-spinner[type=number]::-webkit-outer-spin-button,
+      input.no-spinner[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+      input.no-spinner[type=number]{ -moz-appearance:textfield; appearance:textfield; }
+    `;
+    const style = document.createElement('style');
+    style.textContent = css;
+    document.head.appendChild(style);
+  })();
+
+  (function addRateMoneyIcon() {
+    const coach = document.getElementById('coach-fields-section');
+    if (!coach) return;
+
+    let rateInput = null, wrapper = null;
+    coach.querySelectorAll('input, textarea, select').forEach(el => {
+      const lbl = coach.querySelector(`label[for="${el.id}"]`);
+      const txt = (lbl?.textContent || '').toLowerCase();
+      const nm  = (el.name || '').toLowerCase();
+      if (/rate\s*per\s*session/.test(txt) || /(rate|tarif|harga|biaya)/.test(nm)) {
+        rateInput = el;
+        wrapper = el.closest('.text-left') || el.parentElement;
+      }
+    });
+    if (!rateInput || !wrapper) return;
+
+
+    wrapper.querySelectorAll('.rate-right-icon').forEach(el => el.remove());
+    wrapper.classList.add('relative');
+
+    const right = document.createElement('span');
+    right.className = 'rate-right-icon absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 pointer-events-none';
+    right.innerHTML = '<i class="fas fa-coins text-base"></i>'; 
+    wrapper.appendChild(right);
+
+    rateInput.style.paddingRight = '3rem'; 
+  })();
+
 });
 </script>
 {% endblock %}

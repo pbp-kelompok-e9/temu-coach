@@ -5,6 +5,7 @@ from django.views.decorators.http import require_POST
 from .models import Report, AdminAction
 from coaches_book_catalog.models import Coach, CoachRequest
 
+@login_required
 def dashboard_simple(request):
     reports = Report.objects.select_related('reporter', 'coach__user').order_by('-created_at')
     pending_requests = CoachRequest.objects.filter(approved=False).select_related('user').order_by('-created_at')
@@ -45,7 +46,7 @@ def approve_coach(request, coach_id):
             note=f"Approved coach request for {req.user.username}",
         )
 
-        messages.success(request, f"Coach {req.name} approved successfully!")
+        messages.success(request, f"Coach {req.name} approved successfully!", extra_tags='admin')
     else:
         messages.info(request, f"Coach {req.name} is already approved.")
 
@@ -60,7 +61,7 @@ def reject_coach(request, coach_id):
     req.user.save()
     req.delete()
 
-    messages.info(request, f"Coach request from {username} rejected.")
+    messages.info(request, f"Coach request from {username} rejected.", extra_tags='admin')
     return redirect('my_admin:dashboard_simple')
 
 @require_POST
@@ -75,7 +76,7 @@ def ban_coach(request, coach_id):
         note=f"Banned coach {username}",
     )
 
-    messages.warning(request, f"Coach {username} has been banned and deleted.")
+    messages.warning(request, f"Coach {username} has been banned and deleted.", extra_tags='admin')
     return redirect('my_admin:dashboard_simple')
 
 @require_POST
@@ -89,5 +90,5 @@ def delete_report(request, report_id):
         note=f"Deleted report ID {report_id}",
     )
 
-    messages.success(request, "Report deleted successfully.")
+    messages.success(request, "Report deleted successfully.", extra_tags='admin')
     return redirect('my_admin:dashboard_simple')

@@ -1,10 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 from coaches_book_catalog.models import Coach
-import uuid
 from django.conf import settings
 class Report(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     reporter = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='reports_made')
     coach = models.ForeignKey(Coach, on_delete=models.CASCADE, related_name='reports_received')
     reason = models.TextField()

@@ -26,6 +26,7 @@ urlpatterns = [
     path('', include('accounts.urls')),
     path('', include('scheduler.urls')),
     path('reviews/', include('reviews_ratings.urls')),
+    path('chat/', include('chat.urls')),
     
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
