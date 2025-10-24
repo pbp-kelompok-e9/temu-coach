@@ -33,6 +33,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1","erico-putra-temucoach.pbp.cs.ui.ac.id"]
 
+CSRF_TRUSTED_ORIGINS = ['https://erico-putra-temucoach.pbp.cs.ui.ac.id']
 
 # Application definition
 
@@ -59,6 +60,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = 'temu_coach.urls'
