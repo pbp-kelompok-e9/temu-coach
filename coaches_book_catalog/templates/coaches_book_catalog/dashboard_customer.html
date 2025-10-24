@@ -96,9 +96,14 @@
 
       <div class="flex items-center gap-3">
       {#TODO report coach#}
-        <a href="#" class="flex items-center justify-center w-8 h-8 bg-[#E64500] text-white rounded-lg">
-          <i class="fas fa-exclamation-triangle text-sm"></i>
-        </a>
+<button onclick="openReportModal({{ booking.jadwal.coach.id }})"
+  class="flex items-center justify-center w-8 h-8 bg-[#E64500] text-white rounded-lg hover:bg-[#c43a00]"
+  title="Laporkan Coach">
+  <i class="fas fa-exclamation-triangle text-sm"></i>
+</button>
+
+<!-- Include modal report -->
+{% include 'reviews_ratings/report_modal.html' with coach=booking.jadwal.coach %}
       {# Review coach button #}
         <button onclick="openModal({{ booking.id }})"
           class="py-2 px-5 text-sm font-semibold bg-[#002B7F] text-white rounded-lg hover:bg-[#001C57] transition">

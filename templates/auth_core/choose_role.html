@@ -1,0 +1,57 @@
+{% extends "base_auth.html" %}
+{% load static %}
+
+{% block title %}Choose Role - TemuCoach{% endblock %}
+
+{% block content_style %}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'auth_core/register.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="auth-full">
+  <div class="auth-caption">
+    <h1 class="quote-title">
+      <span class="line">Dream it. Choose your path,</span>
+      <span class="line">Then make it happen.</span>
+    </h1>
+    <p>
+      <span>already have an account?</span><br>
+      <span>you can <a href="{% url 'auth_core:auth_login' %}">Login here!</a></span>
+    </p>
+  </div>
+
+  <div class="auth-form">
+    <div class="auth-brand">
+      <span class="auth-brand__title">Register</span>
+      <img src="{% static 'images/logo.png' %}" alt="TemuCoach" class="auth-brand__logo">
+      <span class="auth-brand__name">TemuCoach</span>
+    </div>
+
+    {% if messages %}
+      <div class="messages">
+        {% for message in messages %}
+          <p class="message {{ message.tags }}">{{ message }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <form method="post" action="{% url 'auth_core:auth_choose_role' %}">
+      {% csrf_token %}
+      <div class="field">
+        <label style="font-weight:600; display:block; margin-bottom:8px;">Register as</label>
+        <label style="margin-right:16px;">
+          <input type="radio" name="role" value="CUSTOMER" required> Customer
+        </label>
+        <label>
+          <input type="radio" name="role" value="COACH" required> Coach
+        </label>
+      </div>
+
+      <button type="submit" class="btn-primary mt-[10px]">Continue</button>
+    </form>
+  </div>
+</section>
+{% endblock %}

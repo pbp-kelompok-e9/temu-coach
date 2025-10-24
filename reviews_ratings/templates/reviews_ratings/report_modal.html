@@ -1,0 +1,91 @@
+<div id="report-modal-{{ coach.id }}" 
+     class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 hidden" 
+     style="z-index:50;">
+  <div class="bg-white rounded-2xl shadow-lg w-96 p-6" role="dialog" aria-modal="true">
+    <h2 class="text-2xl font-semibold mb-4 text-[#003E85]">Report Coach</h2>
+
+    <p class="text-sm text-gray-600 mb-4">
+      You are reporting <strong>{{ coach.name }}</strong>. Please describe your reason below.
+    </p>
+
+    <div class="mb-4">
+      <label class="block font-medium text-gray-700 mb-1">Reason</label>
+      <textarea id="report-reason-{{ coach.id }}"
+        class="w-full border rounded-lg p-2 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+        rows="4"
+        placeholder="Describe your reason..."></textarea>
+    </div>
+
+    <div class="flex justify-end space-x-3">
+      <button onclick="closeReportModal({{ coach.id }})"
+        class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100">
+        Cancel
+      </button>
+
+      <button onclick="submitReport({{ coach.id }})"
+        class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700">
+        Submit Report
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+window.openReportModal = function(coachId) {
+  const el = document.getElementById('report-modal-' + coachId);
+  if (el) el.classList.remove('hidden');
+}
+window.closeReportModal = function(coachId) {
+  const el = document.getElementById('report-modal-' + coachId);
+  if (el) el.classList.add('hidden');
+}
+
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+// Submit laporan via fetch ke create_report
+function submitReport(coachId) {
+  const reason = document.getElementById('report-reason-' + coachId).value.trim();
+  if (!reason) {
+    alert("Please provide a reason for your report.");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("reason", reason);
+
+  fetch(`/reviews/report/${coachId}/`, {
+    method: "POST",
+    credentials: "same-origin",
+    body: formData,
+    headers: {
+      "X-CSRFToken": getCookie("csrftoken")
+    }
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      if (data.success) {
+        closeReportModal(coachId);
+        location.reload();
+      } else {
+        alert(data.error || "Failed to submit report.");
+      }
+    })
+    .catch((err) => {
+      console.error(err);
+      alert("Error submitting report.");
+    });
+}
+</script>
