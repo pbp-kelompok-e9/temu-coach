@@ -71,10 +71,6 @@ def login_view(request):
                 if user.is_superuser:
                     return redirect('my_admin:dashboard_simple')
                 elif user.is_coach: 
-                     return redirect('show_catalog') 
-                if user.is_superuser:
-                    return redirect('my_admin:dashboard_simple')
-                elif user.is_coach: 
                      return redirect('coach_dashboard') 
                 elif user.is_customer:
                      return redirect('customer_dashboard')

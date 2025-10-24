@@ -54,6 +54,10 @@ def delete_schedule(request, id):
 
 @login_required
 def coach_dashboard(request):
+    if hasattr(request.user, 'is_customer') and request.user.is_customer:
+        return redirect('customer_dashboard') 
+    if request.user.is_superuser:
+        return redirect('my_admin:dashboard_simple')
     coach = get_object_or_404(Coach, user=request.user)
     jadwal_list = Jadwal.objects.filter(coach=coach).select_related('booking__customer').order_by('tanggal', 'jam_mulai')
     # coach = {
