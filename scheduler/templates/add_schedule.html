@@ -22,5 +22,18 @@
      <button class="open-btn" onclick="showModal()">Tambahkan Jadwal</button>
 
     {% include 'modal.html' %}
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const form = document.getElementById("form-jadwal");
+
+        form.addEventListener("submit", function (event) {
+          event.preventDefault(); // Mencegah reload halaman
+          alert("Jadwal berhasil ditambahkan!");
+          closeModal(); // Tutup modal
+          form.reset(); // Kosongkan form
+        });
+      });
+    </script>
 </body>
 </html>

@@ -5,6 +5,7 @@ from django.views.decorators.csrf import csrf_exempt
 from .models import Coach, Jadwal
 from datetime import date, time
 from django.http import JsonResponse
+from django.views.decorators.http import require_POST, require_http_methods
 
 @login_required
 def add_schedule(request):
@@ -18,7 +19,13 @@ def add_schedule(request):
             # jadwal.coach = get_object_or_404(Coach, user=request.user)
             jadwal.coach = coach 
             jadwal.save()
-            return redirect('coach_dashboard')
+            return JsonResponse({
+                'id': jadwal.id,
+                'tanggal': jadwal.tanggal.strftime("%Y-%m-%d"),
+                'jam_mulai': jadwal.jam_mulai.strftime("%H:%M"),
+                'jam_selesai': jadwal.jam_selesai.strftime("%H:%M"),
+                'is_booked': jadwal.is_booked,
+                })
 
             # kirim response ke JS
             # return JsonResponse({
@@ -38,6 +45,11 @@ def add_schedule(request):
 def success_page(request):
     return render(request, 'success.html')
 
+
+@require_http_methods(["DELETE"])
+def delete_schedule(request, id):
+    Jadwal.objects.filter(id=id).delete()
+    return JsonResponse({'status': 'deleted'})
 
 
 @login_required

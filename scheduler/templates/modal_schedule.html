@@ -90,32 +90,69 @@
 
     const formData = new FormData(this);
 
-    const response = await fetch("{% url 'add_schedule' %}", {
-      method: "POST",
-      body: formData,
-    });
+    try {
+      const response = await fetch("{% url 'add_schedule' %}", {
+        method: "POST",
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest', // biar view tahu ini AJAX
+        },
+        body: formData,
+      });
 
-    const result = await response.json();
+      if (!response.ok) throw new Error('Gagal menyimpan data');
 
-    if (result.success) {
-      // Tambahkan elemen baru ke daftar jadwal
-      const jadwalContainer = document.querySelector('.space-y-4');
-      const jadwalDiv = document.createElement('div');
-      jadwalDiv.className = 'border-2 border-blue-800 rounded-xl p-4 flex justify-between items-start';
-      jadwalDiv.innerHTML = `
-        <div>
-          <p class="font-bold text-lg text-blue-900">${result.tanggal}, ${result.jam_mulai} - ${result.jam_selesai}</p>
-          <p class="text-gray-700">
-            <span class="font-semibold text-green-600">Tersedia</span>
-          </p>
-        </div>
-      `;
-      jadwalContainer.appendChild(jadwalDiv);
+      const result = await response.json(); // pastikan view return JsonResponse
+      console.log('Response:', result);
 
+      alert('Jadwal berhasil ditambahkan!');
       this.reset();
       hideModal();
-    } else {
-      alert("Gagal menambahkan jadwal!");
+
+      // opsional: update jadwal list tanpa reload
+      // kamu bisa fetch ulang daftar jadwal di sini
+
+      const jadwalList = document.getElementById("jadwalList");
+      const jadwalHTML = `
+        <div id="jadwal-${result.id}" class="border-2 border-blue-800 rounded-xl p-4 flex justify-between items-start">
+          <div>
+            <p class="font-bold text-lg text-blue-900">${result.tanggal}, ${result.jam_mulai} - ${result.jam_selesai}</p>
+            <p class="text-gray-700"><span class="font-semibold text-green-600">Tersedia</span></p>
+          </div>
+          <button class="bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 rounded-lg transition delete-jadwal-btn" data-id="${result.id}">
+            Batalkan
+          </button>
+        </div>
+      `;
+      jadwalList.insertAdjacentHTML('beforeend', jadwalHTML);
+
+    } catch (error) {
+      console.error(error);
+      alert('Terjadi kesalahan saat menyimpan jadwal.');
     }
   });
+
+    document.addEventListener('click', async function(e) {
+    if (e.target.classList.contains('delete-jadwal-btn')) {
+      const id = e.target.dataset.id;
+      if (!confirm('Yakin ingin menghapus jadwal ini?')) return;
+
+      try {
+        const response = await fetch(`/delete_schedule/${id}/`, {
+          method: "DELETE",
+          headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+        });
+
+        if (!response.ok) throw new Error('Gagal menghapus jadwal');
+        document.getElementById(`jadwal-${id}`).remove();
+      } catch (err) {
+        console.error(err);
+        alert('Gagal menghapus jadwal.');
+      }
+    }
+  });
+
 </script>
+

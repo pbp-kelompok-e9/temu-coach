@@ -50,27 +50,29 @@
     <h2 class="text-2xl font-bold text-blue-900 mb-4 border-b-2 border-gray-200 pb-2">Janji Temu</h2>
 
     {% if jadwal_list %}
-      <div class="space-y-4">
+      <div id="jadwalList" class="space-y-4">
         {% for jadwal in jadwal_list %}
-          <div class="border-2 border-blue-800 rounded-xl p-4 flex justify-between items-start">
-            <div>
-              <p class="font-bold text-lg text-blue-900">{{ jadwal.tanggal|date:"F j" }}, {{ jadwal.jam_mulai|time:"H:i" }} - {{ jadwal.jam_selesai|time:"H:i" }}</p>
-              <p class="text-gray-700">
-                {% if jadwal.is_booked %}
-                  <span class="font-semibold text-red-600">Sudah dipesan</span>
-                {% else %}
-                  <span class="font-semibold text-green-600">Tersedia</span>
-                {% endif %}
-              </p>
+            <div id="jadwal-{{ jadwal.id }}" class="border-2 border-blue-800 rounded-xl p-4 flex justify-between items-start">
+                <div>
+                    <p class="font-bold text-lg text-blue-900">{{ jadwal.tanggal|date:"F j" }}, {{ jadwal.jam_mulai|time:"H:i" }} - {{ jadwal.jam_selesai|time:"H:i" }}</p>
+                    <p class="text-gray-700">
+                    {% if jadwal.is_booked %}
+                        <span class="font-semibold text-red-600">Sudah dipesan</span>
+                    {% else %}
+                        <span class="font-semibold text-green-600">Tersedia</span>
+                    {% endif %}
+                    </p>
+                </div>
+
+                <button 
+                    class="bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 rounded-lg transition delete-jadwal-btn" 
+                    data-id="{{ jadwal.id }}">
+                    Batalkan
+                </button>
             </div>
-            {% if jadwal.is_booked %}
-              <button class="bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 rounded-lg transition">
-                Batalkan
-              </button>
-            {% endif %}
-          </div>
         {% endfor %}
-      </div>
+    </div>
+
     {% else %}
       <p class="text-gray-500 italic">Belum ada jadwal.</p>
     {% endif %}
