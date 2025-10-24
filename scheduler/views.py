@@ -55,7 +55,7 @@ def delete_schedule(request, id):
 @login_required
 def coach_dashboard(request):
     coach = get_object_or_404(Coach, user=request.user)
-    jadwal_list = Jadwal.objects.filter(coach=coach).order_by('tanggal', 'jam_mulai')
+    jadwal_list = Jadwal.objects.filter(coach=coach).select_related('booking__customer').order_by('tanggal', 'jam_mulai')
     # coach = {
     #     'name': 'John Doe',
     #     'citizenship': 'Italy',
@@ -73,3 +73,23 @@ def coach_dashboard(request):
     #     {'tanggal': date(2025, 10, 24), 'jam_mulai': time(9, 0), 'jam_selesai': time(12, 0), 'is_booked': False},
     # ]
     return render(request, 'coach_dashboard.html', {'coach': coach, 'jadwal_list': jadwal_list})
+
+
+@login_required
+def update_coach_profile(request):
+    if request.method == 'POST' and request.user.is_authenticated:
+        coach = get_object_or_404(Coach, user=request.user)
+        coach.name = request.POST.get('name')
+        coach.age = request.POST.get('age')
+        coach.citizenship = request.POST.get('citizenship')
+        coach.club = request.POST.get('club')
+        coach.license = request.POST.get('license')
+        coach.preffered_formation = request.POST.get('preffered_formation')
+        coach.average_term_as_coach = request.POST.get('average_term_as_coach')
+        coach.rate_per_session = request.POST.get('rate_per_session')
+        coach.description = request.POST.get('description')
+        if 'foto' in request.FILES:
+            coach.foto = request.FILES['foto']
+        coach.save()
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'failed'}, status=400)
