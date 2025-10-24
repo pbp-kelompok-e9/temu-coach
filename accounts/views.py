@@ -68,7 +68,9 @@ def login_view(request):
             if user is not None:
                 login(request, user)
                 messages.info(request, f"Anda berhasil login sebagai {username}.")
-                if user.is_coach: 
+                if user.is_superuser:
+                    return redirect('my_admin:dashboard_simple')
+                elif user.is_coach: 
                      return redirect('show_catalog') 
                 elif user.is_customer:
                      return redirect('customer_dashboard')
