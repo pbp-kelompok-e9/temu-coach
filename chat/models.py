@@ -1,57 +1,52 @@
-from django.conf import settings
+# chat/models.py
 from django.db import models
-from django.utils import timezone
+from django.conf import settings
+from django.core.exceptions import ValidationError
 
+User = settings.AUTH_USER_MODEL
 
-class Conversation(models.Model):
-    participants = models.ManyToManyField(
-        settings.AUTH_USER_MODEL, related_name="conversations"
+class ChatRoom(models.Model):
+    # customer is always a 'customer' (or user without coach_profile)
+    customer = models.ForeignKey(
+        User, related_name='customer_rooms', on_delete=models.CASCADE
+    )
+    coach = models.ForeignKey(
+        User, related_name='coach_rooms', on_delete=models.CASCADE
     )
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    last_message = models.TextField(blank=True, default="")
-    last_message_at = models.DateTimeField(null=True, blank=True)
 
-    def has_participant(self, user):
-        return self.participants.filter(pk=user.pk).exists()
+    class Meta:
+        unique_together = ('customer', 'coach')
+        ordering = ['-created_at']
+
+    def clean(self):
+        # pastikan role benar: customer + coach
+        from accounts.models import CustomUser
+        if self.customer == self.coach:
+            raise ValidationError("Customer and coach must be different users.")
+        # allow only when .user_type sesuai
+        if getattr(self.customer, 'user_type', None) != 'customer':
+            raise ValidationError("customer field must be a customer user.")
+        if getattr(self.coach, 'user_type', None) != 'coach':
+            raise ValidationError("coach field must be a coach user.")
 
     def __str__(self):
-        ids = ",".join(map(str, self.participants.values_list("id", flat=True)))
-        return f"Conversation({ids})"
-
-
-class ParticipantState(models.Model):
-    conversation = models.ForeignKey(
-        Conversation, on_delete=models.CASCADE, related_name="participant_states"
-    )
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    last_read_at = models.DateTimeField(null=True, blank=True)
-
-    class Meta:
-        unique_together = ("conversation", "user")
-
+        return f'Room: {self.customer.username} <> {self.coach.username}'
 
 class Message(models.Model):
-    conversation = models.ForeignKey(
-        Conversation, on_delete=models.CASCADE, related_name="messages"
-    )
-    sender = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name="sent_crud_messages",
-    )
-    body = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
-    is_read = models.BooleanField(default=False)
-    deleted_at = models.DateTimeField(null=True, blank=True)
+    room = models.ForeignKey(ChatRoom, related_name='messages', on_delete=models.CASCADE)
+    sender = models.ForeignKey(User, related_name='sent_messages', on_delete=models.CASCADE)
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    read = models.BooleanField(default=False)
 
     class Meta:
-        ordering = ["created_at"]
-        indexes = [
-            models.Index(fields=["conversation", "created_at"]),
-            models.Index(fields=["conversation", "sender"]),
-        ]
+        ordering = ['created_at']
 
-    def soft_delete(self):
-        self.deleted_at = timezone.now()
-        self.save(update_fields=["deleted_at"])
+    def clean(self):
+        # pastikan sender adalah salah satu peserta di room
+        if self.sender_id not in (self.room.customer_id, self.room.coach_id):
+            raise ValidationError("Sender must be a participant of the room.")
+
+    def __str__(self):
+        return f'[{self.created_at}] {self.sender}: {self.text[:40]}'
