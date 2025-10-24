@@ -1,6 +1,7 @@
 from django.db import models
 from coaches_book_catalog.models import Coach
 
+
 class Jadwal(models.Model):
     coach = models.ForeignKey(Coach, on_delete=models.CASCADE, related_name="jadwal")
     tanggal = models.DateField()

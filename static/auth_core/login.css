@@ -301,3 +301,15 @@
   object-fit: contain;
   transform: translateY(-3px);
 }
+
+#togglePassword {
+  cursor: pointer;
+  user-select: none;
+}
+.form-inline-error{
+  margin: 4px 0 0 4px;  
+  font-size: 12px;     
+  line-height: 1.2;
+  color: #DC2626;     
+  text-align: left;
+}

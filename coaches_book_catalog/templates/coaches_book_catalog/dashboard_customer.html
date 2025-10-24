@@ -10,6 +10,12 @@
     Janji Temu Anda
   </h1>
 
+  {% if coach_request_pending %}
+  <div class="mb-6 p-4 rounded-lg bg-yellow-50 border border-yellow-200 text-yellow-800">
+    Permintaan Anda untuk menjadi coach sedang menunggu persetujuan admin. Anda bisa tetap menggunakan akun sebagai customer sampai disetujui.
+  </div>
+  {% endif %}
+
   <section class="mb-12">
     <h2 class="text-2xl font-bold text-[#E64500] mb-6">Mendatang</h2>
 
@@ -89,15 +95,21 @@
       </div>
 
       <div class="flex items-center gap-3">
-      {#TODO report coach#}
-        <a href="#" class="flex items-center justify-center w-8 h-8 bg-[#E64500] text-white rounded-lg">
-          <i class="fas fa-exclamation-triangle text-sm"></i>
-        </a>
-      {#TODO review coach#}
-        <a href="#"
+      <button onclick="openReportModal({{ booking.jadwal.coach.id }})"
+        class="flex items-center justify-center w-8 h-8 bg-[#E64500] text-white rounded-lg hover:bg-[#c43a00]"
+        title="Laporkan Coach">
+        <i class="fas fa-exclamation-triangle text-sm"></i>
+      </button>
+
+      {% include 'reviews_ratings/report_modal.html' with coach=booking.jadwal.coach %}
+      
+      {# Review coach button #}
+        <button onclick="openModal({{ booking.id }})"
           class="py-2 px-5 text-sm font-semibold bg-[#002B7F] text-white rounded-lg hover:bg-[#001C57] transition">
           Review
-        </a>
+        </button>
+
+        {% include 'reviews_ratings/modal.html' with booking=booking user_review=booking.user_review %}
       </div>
     </div>
     {% empty %}

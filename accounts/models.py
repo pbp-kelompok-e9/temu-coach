@@ -16,7 +16,9 @@ class CustomUser(AbstractUser):
 
     @property
     def is_customer(self):
-        return self.user_type == 'customer'
+        # Treat users who selected 'coach' but don't yet have a coach profile (pending approval)
+        # as customers for the purposes of navigation and dashboard access.
+        return self.user_type == 'customer' or (self.user_type == 'coach' and not hasattr(self, 'coach_profile'))
 
     @property
     def is_coach(self):
