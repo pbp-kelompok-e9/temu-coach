@@ -36,7 +36,6 @@ def approve_coach(request, coach_id):
         req.approved = True
         req.save()
 
-        # Ensure the user's type is set to coach so they are recognized as coach in the app
         req.user.user_type = 'coach'
         req.user.save()
 
@@ -55,7 +54,6 @@ def approve_coach(request, coach_id):
 def reject_coach(request, coach_id):
     req = get_object_or_404(CoachRequest, pk=coach_id)
     username = req.user.username
-    # if rejecting, make sure user stays/returns to customer role
     req.user.user_type = 'customer'
     req.user.save()
     req.delete()

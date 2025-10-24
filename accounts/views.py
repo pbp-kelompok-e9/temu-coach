@@ -68,8 +68,15 @@ def login_view(request):
             if user is not None:
                 login(request, user)
                 messages.info(request, f"Anda berhasil login sebagai {username}.")
+<<<<<<< Updated upstream
                 if user.is_coach: 
                      return redirect('show_catalog') 
+=======
+                if user.is_superuser:
+                    return redirect('my_admin:dashboard_simple')
+                elif user.is_coach: 
+                     return redirect('coach_dashboard') 
+>>>>>>> Stashed changes
                 elif user.is_customer:
                      return redirect('customer_dashboard')
                 else:
@@ -84,7 +91,7 @@ def login_view(request):
     else: # Jika GET request
          if request.user.is_authenticated:
               if request.user.is_coach:
-                   return redirect('show_catalog') 
+                   return redirect('coach_dashboard') 
               else:
                    return redirect('customer_dashboard') 
          form = AuthenticationForm()
