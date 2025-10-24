@@ -34,29 +34,3 @@ class Reviews(models.Model):
             "created_at": self.created_at,
             "updated_at": self.updated_at,
         }
-
-@login_required
-def create_report(request, coach_id):
-    coach = get_object_or_404(Coach, id=coach_id)
-
-    # Mencegah user melapor dirinya sendiri (kalau suatu saat coach juga user)
-    if request.user == coach.user:
-        messages.warning(request, "You cannot report yourself.")
-        return redirect('reviews_ratings:coach_reviews', coach_id=coach.id)
-
-    if request.method == 'POST':
-        form = ReportForm(request.POST)
-        if form.is_valid():
-            report = form.save(commit=False)
-            report.reporter = request.user
-            report.coach = coach
-            report.save()
-            messages.success(request, f"Report for coach {coach.user.username} has been submitted.")
-            return redirect('reviews_ratings:coach_reviews', coach_id=coach.id)
-    else:
-        form = ReportForm()
-
-    return render(request, 'reviews_ratings/create_report.html', {
-        'form': form,
-        'coach': coach,
-    })

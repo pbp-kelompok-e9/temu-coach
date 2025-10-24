@@ -3,6 +3,8 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST, require_GET
 from django.shortcuts import get_object_or_404
+
+from my_admin.models import Report
 from .models import Reviews
 from coaches_book_catalog.models import Coach
 from django.views.decorators.csrf import csrf_exempt
@@ -166,22 +168,25 @@ def get_reviews_by_coach(request, coach_id) :
         "reviews": data,
     })
     
+
 @login_required
 def create_report(request, coach_id):
     coach = get_object_or_404(Coach, id=coach_id)
 
+    # Handle AJAX / fetch POST request
     if request.method == "POST":
-        form = ReportForm(request.POST)
-        if form.is_valid():
-            report = form.save(commit=False)
-            report.reporter = request.user   
-            report.coach = coach          
-            report.save()
-            messages.success(request, f"Report for coach {coach.name} has been submitted.")
-    else:
-        form = ReportForm()
+        reason = request.POST.get("reason", "").strip()
+        if not reason:
+            return JsonResponse({"success": False, "error": "Reason is required."})
 
-    return render(request, 'reviews_ratings/create_report.html', {
-        'form': form,
-        'coach': coach,
-    })
+        # Buat Report langsung tanpa form
+        report = Report.objects.create(
+            reporter=request.user,
+            coach=coach,
+            reason=reason
+        )
+        messages.success(request, f"Report for coach {coach.name} has been submitted.")
+        return JsonResponse({"success": True})
+
+    # Optional: kalau bukan POST (misal buka lewat browser)
+    return JsonResponse({"success": False, "error": "Invalid request method."})

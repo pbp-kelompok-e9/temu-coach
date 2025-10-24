@@ -36,12 +36,16 @@ def approve_coach(request, coach_id):
         req.approved = True
         req.save()
 
+        # Ensure the user's type is set to coach so they are recognized as coach in the app
+        req.user.user_type = 'coach'
+        req.user.save()
+
         AdminAction.objects.create(
             action_type="APPROVE",
             note=f"Approved coach request for {req.user.username}",
         )
 
-        messages.success(request, f"Coach {req.name} approved successfully!")
+        messages.success(request, f"Coach {req.name} approved successfully!", extra_tags='admin')
     else:
         messages.info(request, f"Coach {req.name} is already approved.")
 
@@ -51,9 +55,12 @@ def approve_coach(request, coach_id):
 def reject_coach(request, coach_id):
     req = get_object_or_404(CoachRequest, pk=coach_id)
     username = req.user.username
+    # if rejecting, make sure user stays/returns to customer role
+    req.user.user_type = 'customer'
+    req.user.save()
     req.delete()
 
-    messages.info(request, f"Coach request from {username} rejected.")
+    messages.info(request, f"Coach request from {username} rejected.", extra_tags='admin')
     return redirect('my_admin:dashboard_simple')
 
 @require_POST
@@ -68,7 +75,7 @@ def ban_coach(request, coach_id):
         note=f"Banned coach {username}",
     )
 
-    messages.warning(request, f"Coach {username} has been banned and deleted.")
+    messages.warning(request, f"Coach {username} has been banned and deleted.", extra_tags='admin')
     return redirect('my_admin:dashboard_simple')
 
 @require_POST
@@ -82,5 +89,5 @@ def delete_report(request, report_id):
         note=f"Deleted report ID {report_id}",
     )
 
-    messages.success(request, "Report deleted successfully.")
+    messages.success(request, "Report deleted successfully.", extra_tags='admin')
     return redirect('my_admin:dashboard_simple')

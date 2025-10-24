@@ -72,10 +72,11 @@ def login_view(request):
                      return redirect('show_catalog') 
                 elif user.is_customer:
                      return redirect('customer_dashboard')
-                else: 
-                    messages.warning(request, "Akun Coach Anda belum disetujui oleh admin.")
-                    logout(request) 
-                    return redirect('login')
+                else:
+                    # User selected 'coach' at registration but hasn't been approved yet.
+                    # Allow them to log in and act as a customer meanwhile, but inform them.
+                    messages.info(request, "Permintaan menjadi coach Anda sedang menunggu persetujuan admin. Anda dapat menggunakan akun sebagai customer sampai disetujui.")
+                    return redirect('customer_dashboard')
             else:
                 messages.error(request,"Username atau password salah.")
         else:
