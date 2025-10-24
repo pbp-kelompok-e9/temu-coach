@@ -33,8 +33,9 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1","erico-putra-temucoach.pbp.cs.ui.ac.id"]
 
-CSRF_TRUSTED_ORIGINS = ['https://erico-putra-temucoach.pbp.cs.ui.ac.id']
-
+CSRF_TRUSTED_ORIGINS = [
+    'https://erico-putra-temucoach.pbp.cs.ui.ac.id'
+]
 # Application definition
 
 INSTALLED_APPS = [
@@ -49,11 +50,12 @@ INSTALLED_APPS = [
     'reviews_ratings',
     'scheduler',
     'my_admin',
-    'chat'
+    'chat',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -148,11 +150,13 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+
 STATIC_ROOT = os.path.join(BASE_DIR,  'staticfiles')
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 AUTH_USER_MODEL = 'accounts.CustomUser'
 LOGIN_URL = 'login' 
 LOGIN_REDIRECT_URL = 'show_catalog' 
