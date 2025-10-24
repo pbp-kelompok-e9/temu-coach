@@ -43,11 +43,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'accounts',
+    'accounts.apps.AccountsConfig',
     'coaches_book_catalog',
     'reviews_ratings',
     'scheduler',
     'my_admin',
+    'chat'
 ]
 
 MIDDLEWARE = [

@@ -5,6 +5,7 @@ from django.views.decorators.http import require_POST
 from .models import Report, AdminAction
 from coaches_book_catalog.models import Coach, CoachRequest
 
+@login_required
 def dashboard_simple(request):
     reports = Report.objects.select_related('reporter', 'coach__user').order_by('-created_at')
     pending_requests = CoachRequest.objects.filter(approved=False).select_related('user').order_by('-created_at')

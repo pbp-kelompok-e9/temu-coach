@@ -68,8 +68,9 @@ def login_view(request):
             if user is not None:
                 login(request, user)
                 messages.info(request, f"Anda berhasil login sebagai {username}.")
-<<<<<<< Updated upstream
-                if user.is_coach: 
+                if user.is_superuser:
+                    return redirect('my_admin:dashboard_simple')
+                elif user.is_coach: 
                      return redirect('show_catalog') 
 =======
                 if user.is_superuser:
@@ -80,15 +81,13 @@ def login_view(request):
                 elif user.is_customer:
                      return redirect('customer_dashboard')
                 else:
-                    # User selected 'coach' at registration but hasn't been approved yet.
-                    # Allow them to log in and act as a customer meanwhile, but inform them.
                     messages.info(request, "Permintaan menjadi coach Anda sedang menunggu persetujuan admin. Anda dapat menggunakan akun sebagai customer sampai disetujui.")
                     return redirect('customer_dashboard')
             else:
                 messages.error(request,"Username atau password salah.")
         else:
             messages.error(request,"Username atau password salah.")
-    else: # Jika GET request
+    else: 
          if request.user.is_authenticated:
               if request.user.is_coach:
                    return redirect('coach_dashboard') 
