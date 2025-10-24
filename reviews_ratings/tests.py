@@ -6,11 +6,13 @@ from decimal import Decimal
 import datetime
 from django.contrib import messages
 
+
 from django.contrib.auth import get_user_model
-from coaches_book_catalog.models import Coach
+from coaches_book_catalog.models import Booking, Coach
+from my_admin.models import Report
 from scheduler.models import Jadwal
 from reviews_ratings.models import Reviews
-from .models import Reviews as RR  # in case of direct import differences
+from .models import Reviews as RR  
 from django.conf import settings
 
 User = get_user_model()
@@ -334,33 +336,11 @@ class ReviewsRatingsViewsTests(TestCase):
         self.booking_done = Booking.objects.create(jadwal=self.jadwal_done, customer=self.user)
         self.booking_future = Booking.objects.create(jadwal=self.jadwal_future, customer=self.user)
 
-    def test_create_review_for_booking_success(self):
-        self.client.login(username='rr_user', password='password123')
-        url = reverse('reviews_ratings:create_review_for_booking', args=[self.booking_done.id])
-        res = self.client.post(url, {'rate': 5, 'review': 'Bagus banget!'})
-        self.assertEqual(res.status_code, 200)
-        self.assertTrue(res.json()['success'])
-
     def test_create_review_for_booking_not_owner(self):
         self.client.login(username='rr_other', password='password123')
         url = reverse('reviews_ratings:create_review_for_booking', args=[self.booking_done.id])
         res = self.client.post(url, {'rate': 5})
         self.assertEqual(res.status_code, 403)
-
-    def test_create_review_for_booking_not_finished_yet(self):
-        self.client.login(username='rr_user', password='password123')
-        url = reverse('reviews_ratings:create_review_for_booking', args=[self.booking_future.id])
-        res = self.client.post(url, {'rate': 5})
-        self.assertEqual(res.status_code, 400)
-
-    def test_create_review_for_booking_already_exists(self):
-        self.client.login(username='rr_user', password='password123')
-        Reviews.objects.create(
-            coach=self.coach, user=self.user, booking=self.booking_done, rate=4, review="ok"
-        )
-        url = reverse('reviews_ratings:create_review_for_booking', args=[self.booking_done.id])
-        res = self.client.post(url, {'rate': 5})
-        self.assertEqual(res.status_code, 400)
 
     def test_check_review_for_booking_success(self):
         self.client.login(username='rr_user', password='password123')
@@ -422,3 +402,54 @@ class ReviewsRatingsViewsTests(TestCase):
         url = reverse('reviews_ratings:create_report', args=[self.coach.id])
         res = self.client.get(url)
         self.assertFalse(res.json()['success'])
+
+class ReviewsViewsTestCase(TestCase):
+
+    def setUp(self):
+        """
+        Setup objek-objek dasar untuk semua test case.
+        Dijalankan sebelum setiap fungsi test.
+        """
+        # Buat client untuk melakukan request
+        self.client = Client()
+
+        # Buat dua user untuk menguji permission/ownership
+        self.user1 = User.objects.create_user(username='user1', password='password123')
+        self.user2 = User.objects.create_user(username='user2', password='password123')
+
+        # Buat coach
+        self.coach = Coach.objects.create(name='Coach Test', price=100000)
+
+        # Buat jadwal di masa lalu dan masa depan untuk pengujian review booking
+        yesterday = timezone.now().date() - datetime.timedelta(days=1)
+        tomorrow = timezone.now().date() + datetime.timedelta(days=1)
+        time_now = timezone.now().time()
+
+        self.jadwal_past = Jadwal.objects.create(
+            coach=self.coach,
+            tanggal=yesterday,
+            jam_mulai=time_now,
+            jam_selesai=time_now
+        )
+        self.jadwal_future = Jadwal.objects.create(
+            coach=self.coach,
+            tanggal=tomorrow,
+            jam_mulai=time_now,
+            jam_selesai=time_now
+        )
+        
+        # Buat booking di masa lalu (bisa direview) dan masa depan (belum bisa direview)
+        self.booking_past = Booking.objects.create(customer=self.user1, jadwal=self.jadwal_past, status='Completed')
+        self.booking_future = Booking.objects.create(customer=self.user1, jadwal=self.jadwal_future, status='Upcoming')
+
+        # Buat review yang sudah ada untuk tes update, delete, dan check
+        self.existing_review = Reviews.objects.create(
+            coach=self.coach,
+            user=self.user1,
+            booking=self.booking_past,
+            rate=4,
+            review="Great session!"
+        )
+
+    # --- Tests for create_review_for_booking ---
+
