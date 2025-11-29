@@ -210,3 +210,92 @@ def cancel_booking(request, booking_id):
         messages.error(request, f"Gagal membatalkan booking: {e}")
 
     return redirect('customer_dashboard')
+
+
+@login_required
+def api_coach_list(request):
+    """Return JSON list of coaches. Supports query params: search, citizenship, ordering"""
+    search = request.GET.get('search', '')
+    citizenship = request.GET.get('citizenship', '')
+    ordering = request.GET.get('ordering', '')
+
+    qs = Coach.objects.all()
+    if search:
+        qs = qs.filter(name__icontains=search)
+    if citizenship:
+        qs = qs.filter(citizenship=citizenship)
+
+    if ordering:
+        if ordering in ['rate', '-rate']:
+            # map 'rate' to rate_per_session
+            if ordering.startswith('-'):
+                qs = qs.order_by('-rate_per_session')
+            else:
+                qs = qs.order_by('rate_per_session')
+        else:
+            qs = qs.order_by('name')
+    else:
+        qs = qs.order_by('name')
+
+    data = []
+    for coach in qs:
+        foto_url = None
+        try:
+            if coach.foto and hasattr(coach.foto, 'url'):
+                foto_url = request.build_absolute_uri(coach.foto.url)
+        except Exception:
+            foto_url = None
+        # compute avg rate and total reviews
+        stats = Reviews.objects.filter(coach=coach).aggregate(avg_rate=Avg('rate'))
+        avg_rate = float(stats['avg_rate'] or 0.0)
+        total_reviews = Reviews.objects.filter(coach=coach).count()
+
+        data.append({
+            'id': coach.id,
+            'name': coach.name,
+            'age': coach.age,
+            'citizenship': coach.citizenship,
+            'foto': foto_url,
+            'club': coach.club,
+            'license': coach.license,
+            'preffered_formation': coach.preffered_formation,
+            'average_term_as_coach': coach.average_term_as_coach,
+            'description': coach.description,
+            'rate_per_session': float(coach.rate_per_session),
+            'avg_rate': avg_rate,
+            'total_reviews': total_reviews,
+        })
+
+    return JsonResponse(data, safe=False)
+
+
+@login_required
+def api_coach_detail(request, coach_id):
+    coach = get_object_or_404(Coach, pk=coach_id)
+    foto_url = None
+    try:
+        if coach.foto and hasattr(coach.foto, 'url'):
+            foto_url = request.build_absolute_uri(coach.foto.url)
+    except Exception:
+        foto_url = None
+
+    data = {
+        'id': coach.id,
+        'name': coach.name,
+        'age': coach.age,
+        'citizenship': coach.citizenship,
+        'foto': foto_url,
+        'club': coach.club,
+        'license': coach.license,
+        'preffered_formation': coach.preffered_formation,
+        'average_term_as_coach': coach.average_term_as_coach,
+        'description': coach.description,
+        'rate_per_session': float(coach.rate_per_session),
+    }
+
+    # add aggregate rating info
+    stats = Reviews.objects.filter(coach=coach).aggregate(avg_rate=Avg('rate'))
+    data['avg_rate'] = float(stats['avg_rate'] or 0.0)
+    data['total_reviews'] = Reviews.objects.filter(coach=coach).count()
+
+    return JsonResponse(data)
