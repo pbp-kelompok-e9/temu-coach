@@ -67,43 +67,44 @@ def login_view(request):
             username = form.cleaned_data.get('username')
             password = form.cleaned_data.get('password')
             user = authenticate(username=username, password=password)
+
             if user is not None:
-                login(request, user)
-                messages.info(request, f"Anda berhasil login sebagai {username}.")
-                
+                if hasattr(user, 'coach_request') and not user.coach_request.approved:
+                    messages.error(request, "Anda belum di-approve oleh admin sebagai coach.")
+                    return redirect('login')
+
                 if user.is_superuser:
+                    login(request, user)
+                    messages.info(request, f"Anda berhasil login sebagai admin: {username}.")
                     return redirect('my_admin:dashboard_simple')
-                
-                elif user.is_coach: 
-                    return redirect('coach_dashboard') 
-                
-                elif user.is_customer:
+
+                if user.is_coach:
+                    login(request, user)
+                    messages.info(request, f"Anda berhasil login sebagai coach: {username}.")
+                    return redirect('coach_dashboard')
+
+                if user.is_customer:
+                    login(request, user)
+                    messages.info(request, f"Anda berhasil login sebagai customer: {username}.")
                     return redirect('customer_dashboard')
-                
-                else: 
-                    messages.warning(request, "Akun Coach Anda sedang menunggu persetujuan admin.")
-                    logout(request) 
-                    return redirect('login') 
-            
-            else:
-                messages.error(request,"Username atau password salah.")
+
+            messages.error(request,"Username atau password salah.")
+            return redirect('login')
+
         else:
             messages.error(request,"Username atau password salah.")
-    else: 
-        if request.user.is_authenticated:
-             if user.is_superuser:
-                 return redirect('my_admin:dashboard_simple')
-             elif user.is_coach:
-                 return redirect('coach_dashboard') 
-             elif user.is_customer:
-                 return redirect('customer_dashboard')
-             else: 
-                 logout(request)
-                 return redirect('login')
-        form = AuthenticationForm()
-         
-    form = AuthenticationForm() 
-    return render(request, 'accounts/login.html', {'form': form})
+            return redirect('login')
+
+    if request.user.is_authenticated:
+        if request.user.is_superuser:
+            return redirect('my_admin:dashboard_simple')
+        elif request.user.is_coach:
+            return redirect('coach_dashboard')
+        elif request.user.is_customer:
+            return redirect('customer_dashboard')
+
+    return render(request, 'accounts/login.html', {'form': AuthenticationForm()})
+
 
 def logout_view(request):
     logout(request)
@@ -129,6 +130,11 @@ def login_api(request): # login dari flutter
             
             if user is not None:
                 if user.is_active:
+                    if hasattr(user, 'coach_request') and not user.coach_request.approved:
+                        return JsonResponse({
+                            'status': False,
+                            'message': 'Anda belum diapprove oleh admin sebagai coach.'
+                        }, status=403)
                     login(request, user)
                     return JsonResponse({
                         'status': True,
@@ -141,6 +147,7 @@ def login_api(request): # login dari flutter
                             'user_type': user.user_type,
                             'is_coach': user.is_coach,
                             'is_customer': user.is_customer,
+                            'is_admin': user.is_superuser
                         }
                     }, status=200)
                 else:
