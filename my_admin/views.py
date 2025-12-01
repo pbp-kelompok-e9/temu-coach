@@ -189,3 +189,35 @@ def delete_report_api(request, report_id):
 
     return JsonResponse({'status': True, 'message': 'Report berhasil dihapus'})
 
+@csrf_exempt
+def api_reports(request):
+    reports = Report.objects.select_related("reporter", "coach__user").all().order_by('-created_at')
+
+    data = []
+    for r in reports:
+        data.append({
+            "id": r.id,
+            "reason": r.reason,
+            "reported_by": r.reporter.username,
+            "coach_username": r.coach.user.username,
+            "coach_id": r.coach.id,
+            "created_at": r.created_at.isoformat(),
+        })
+
+    return JsonResponse({"reports": data}, status=200)
+
+@csrf_exempt
+def api_coach_requests(request):
+    pending = CoachRequest.objects.filter(approved=False).select_related("user")
+
+    data = []
+    for c in pending:
+        data.append({
+            "id": c.id,
+            "name": c.name,
+            "description": c.description,
+            "user_username": c.user.username,
+            "created_at": c.created_at.isoformat(),
+        })
+
+    return JsonResponse({"requests": data}, status=200)
