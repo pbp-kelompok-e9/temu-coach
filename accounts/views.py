@@ -310,3 +310,22 @@ def logout_api(request):
         'status': False,
         'message': 'Method tidak diizinkan'
     }, status=405) 
+
+
+def check_session_api(request):
+    if request.user.is_authenticated:
+        return JsonResponse({
+            'is_authenticated': True,
+            'user': {
+                'id': request.user.id,
+                'username': request.user.username,
+                'first_name': request.user.first_name,
+                'last_name': request.user.last_name,
+                'user_type': request.user.user_type,
+                'is_coach': request.user.is_coach,
+                'is_customer': request.user.is_customer,
+                'is_admin': request.user.is_superuser
+            }
+        })
+    else:
+        return JsonResponse({'is_authenticated': False})
