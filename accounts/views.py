@@ -221,8 +221,8 @@ def register_api(request):
                     if user_type == 'coach':
                         coach_data = data.get('coach_data', {})
                         
-                        required_fields = ['age', 'experience_years', 'expertise', 
-                                         'certifications', 'location', 'rate_per_session']
+                        required_fields = ['name', 'age', 'citizenship', 'club', 'license', 
+                                         'preffered_formation', 'average_term_as_coach', 'rate_per_session']
                         missing = [f for f in required_fields if not coach_data.get(f)]
                         
                         if missing:
@@ -233,13 +233,16 @@ def register_api(request):
                         
                         CoachRequest.objects.create(
                             user=user,
+                            name=coach_data.get('name'),
                             age=coach_data.get('age'),
-                            experience_years=coach_data.get('experience_years'),
-                            expertise=coach_data.get('expertise'),
-                            certifications=coach_data.get('certifications'),
-                            location=coach_data.get('location'),
-                            rate_per_session=coach_data.get('rate_per_session'),
+                            citizenship=coach_data.get('citizenship'),
+                            foto=None,  # foto bisa diupload nanti
+                            club=coach_data.get('club'),
+                            license=coach_data.get('license'),
+                            preffered_formation=coach_data.get('preffered_formation'),
+                            average_term_as_coach=coach_data.get('average_term_as_coach'),
                             description=coach_data.get('description', ''),
+                            rate_per_session=coach_data.get('rate_per_session'),
                             approved=False
                         )
                         
