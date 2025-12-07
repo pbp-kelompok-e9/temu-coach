@@ -10,6 +10,11 @@ from .views import (
     cancel_booking,
     api_coach_list,
     api_coach_detail,
+    api_booking_list,
+    api_booking_detail,
+    api_booking_create,
+    api_booking_update,
+    api_booking_delete,
 )
 
 
@@ -24,4 +29,11 @@ urlpatterns = [
     # API endpoints
     path('api/coach/', api_coach_list, name='api_coach_list'),
     path('api/coach/<int:coach_id>/', api_coach_detail, name='api_coach_detail'),
+    
+    # Booking API endpoints
+    path('api/booking/', api_booking_list, name='api_booking_list'),
+    path('api/booking/create/', api_booking_create, name='api_booking_create'),
+    path('api/booking/<int:booking_id>/', api_booking_detail, name='api_booking_detail'),
+    path('api/booking/<int:booking_id>/update/', api_booking_update, name='api_booking_update'),
+    path('api/booking/<int:booking_id>/delete/', api_booking_delete, name='api_booking_delete'),
 ]

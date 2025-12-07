@@ -16,6 +16,7 @@ from django.http import JsonResponse, HttpResponseForbidden
 from django.utils import timezone
 from django.db import transaction
 from django.contrib import messages
+from django.views.decorators.csrf import csrf_exempt
 # Create your views here.
 
 @login_required
@@ -299,3 +300,155 @@ def api_coach_detail(request, coach_id):
     data['total_reviews'] = Reviews.objects.filter(coach=coach).count()
 
     return JsonResponse(data)
+
+
+# ===== BOOKING API =====
+
+@csrf_exempt
+def api_booking_list(request):
+    """Get list of user's bookings"""
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Authentication required', 'bookings': []}, status=401)
+    
+    bookings = Booking.objects.filter(customer=request.user).select_related('jadwal', 'jadwal__coach')
+    
+    data = []
+    for booking in bookings:
+        if booking.jadwal:
+            data.append({
+                'id': booking.id,
+                'jadwal_id': booking.jadwal.id,
+                'customer_id': booking.customer.id,
+                'notes': booking.notes or '',
+                'coach_name': booking.jadwal.coach.name,
+                'date': booking.jadwal.tanggal.strftime('%Y-%m-%d'),
+                'start_time': booking.jadwal.jam_mulai.strftime('%H:%M:%S'),
+                'end_time': booking.jadwal.jam_selesai.strftime('%H:%M:%S'),
+                'rate': float(booking.jadwal.coach.rate_per_session),
+            })
+    
+    return JsonResponse({'bookings': data})
+
+
+@csrf_exempt
+def api_booking_detail(request, booking_id):
+    """Get single booking detail"""
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Authentication required'}, status=401)
+    
+    booking = get_object_or_404(Booking, id=booking_id, customer=request.user)
+    
+    data = {
+        'id': booking.id,
+        'jadwal_id': booking.jadwal.id if booking.jadwal else None,
+        'customer_id': booking.customer.id,
+        'notes': booking.notes or '',
+    }
+    
+    if booking.jadwal:
+        data['coach_name'] = booking.jadwal.coach.name
+        data['date'] = booking.jadwal.tanggal.strftime('%Y-%m-%d')
+        data['start_time'] = booking.jadwal.jam_mulai.strftime('%H:%M:%S')
+        data['end_time'] = booking.jadwal.jam_selesai.strftime('%H:%M:%S')
+        data['rate'] = float(booking.jadwal.coach.rate_per_session)
+    
+    return JsonResponse(data)
+
+
+@csrf_exempt
+@require_POST
+def api_booking_create(request):
+    """Create new booking"""
+    import json
+    
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Authentication required', 'success': False}, status=401)
+    
+    try:
+        data = json.loads(request.body)
+        jadwal_id = data.get('jadwal_id')
+        notes = data.get('notes', '')
+        
+        if not jadwal_id:
+            return JsonResponse({'error': 'jadwal_id is required', 'success': False}, status=400)
+        
+        # Get the jadwal
+        jadwal = get_object_or_404(Jadwal, id=jadwal_id)
+        
+        # Check if already booked
+        if jadwal.is_booked:
+            return JsonResponse({'error': 'Jadwal sudah dibooking', 'success': False}, status=400)
+        
+        # Create booking
+        with transaction.atomic():
+            booking = Booking.objects.create(
+                jadwal=jadwal,
+                customer=request.user,
+                notes=notes
+            )
+            jadwal.is_booked = True
+            jadwal.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Booking berhasil dibuat',
+            'booking_id': booking.id
+        })
+        
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON', 'success': False}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e), 'success': False}, status=500)
+
+
+@csrf_exempt
+@require_POST
+def api_booking_update(request, booking_id):
+    """Update booking notes"""
+    import json
+    
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Authentication required', 'success': False}, status=401)
+    
+    try:
+        booking = get_object_or_404(Booking, id=booking_id, customer=request.user)
+        data = json.loads(request.body)
+        
+        booking.notes = data.get('notes', booking.notes)
+        booking.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Booking berhasil diupdate'
+        })
+        
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON', 'success': False}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e), 'success': False}, status=500)
+
+
+@csrf_exempt
+@require_POST
+def api_booking_delete(request, booking_id):
+    """Delete booking"""
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Authentication required', 'success': False}, status=401)
+    
+    try:
+        booking = get_object_or_404(Booking, id=booking_id, customer=request.user)
+        
+        # Free up the jadwal
+        with transaction.atomic():
+            if booking.jadwal:
+                booking.jadwal.is_booked = False
+                booking.jadwal.save()
+            booking.delete()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Booking berhasil dihapus'
+        })
+        
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
