@@ -31,9 +31,10 @@ SECRET_KEY = 'django-insecure-ykg!sglrgw7k_q-^qyf5**i34qm)-l944+tac!c(ji%phs8x&8
 PRODUCTION = os.getenv('PRODUCTION', 'False').lower() == 'true'
 DEBUG = True
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1","erico-putra-temucoach.pbp.cs.ui.ac.id", "10.0.2.2"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1","localhost:8000", "10.0.2.2", "erico-putra-temucoach.pbp.cs.ui.ac.id"]
 
 CSRF_TRUSTED_ORIGINS = [
+    'https://localhost:8000',
     'https://erico-putra-temucoach.pbp.cs.ui.ac.id'
 ]
 # Application definition
@@ -174,9 +175,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8080",
     "http://127.0.0.1:8080",
-    "http://10.0.2.2:8000", 
+    "http://10.0.2.2:8000",
+    "https://erico-putra-temucoach.pbp.cs.ui.ac.id",
 ]
-
 EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
 EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '465'))
