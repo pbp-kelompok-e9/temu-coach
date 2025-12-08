@@ -1,9 +1,11 @@
+from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views.decorators.http import require_POST
 from .models import Report, AdminAction
 from coaches_book_catalog.models import Coach, CoachRequest
+from django.views.decorators.csrf import csrf_exempt
 
 @login_required
 def dashboard_simple(request):
@@ -95,3 +97,127 @@ def delete_report(request, report_id):
 
     messages.success(request, "Report deleted successfully.", extra_tags='admin')
     return redirect('my_admin:dashboard_simple')
+
+@csrf_exempt
+def approve_coach_api(request, coach_id):
+    if request.method != 'POST':
+        return JsonResponse({'status': False, 'message': 'Method tidak diizinkan'}, status=405)
+
+    req = get_object_or_404(CoachRequest, pk=coach_id)
+
+    if req.approved:
+        return JsonResponse({'status': False, 'message': 'Coach sudah disetujui'}, status=400)
+
+    # Create coach profile
+    Coach.objects.create(
+        user=req.user,
+        name=req.name,
+        age=req.age,
+        citizenship=req.citizenship,
+        foto=req.foto,
+        club=req.club,
+        license=req.license,
+        preffered_formation=req.preffered_formation,
+        average_term_as_coach=req.average_term_as_coach,
+        description=req.description,
+        rate_per_session=req.rate_per_session,
+    )
+
+    req.approved = True
+    req.save()
+
+    req.user.user_type = 'coach'
+    req.user.save()
+
+    AdminAction.objects.create(
+        action_type="APPROVE",
+        note=f"Approved coach request for {req.user.username}",
+    )
+
+    return JsonResponse({'status': True, 'message': 'Coach approved'})
+
+@csrf_exempt
+def reject_coach_api(request, coach_id):
+    if request.method != 'POST':
+        return JsonResponse({'status': False, 'message': 'Method tidak diizinkan'}, status=405)
+
+    req = get_object_or_404(CoachRequest, pk=coach_id)
+    username = req.user.username
+
+    req.user.user_type = 'customer'
+    req.user.save()
+    req.delete()
+
+    return JsonResponse({
+        'status': True,
+        'message': f'Coach request dari {username} telah ditolak'
+    })
+
+
+@csrf_exempt
+def ban_coach_api(request, coach_id):
+    if request.method != 'POST':
+        return JsonResponse({'status': False, 'message': 'Method tidak diizinkan'}, status=405)
+
+    coach = get_object_or_404(Coach, pk=coach_id)
+    username = coach.user.username
+
+    coach.user.delete()
+
+    AdminAction.objects.create(
+        action_type="BAN_COACH",
+        note=f"Banned coach {username}",
+    )
+
+    return JsonResponse({
+        'status': True,
+        'message': f'Coach {username} telah di-ban dan akunnya dihapus'
+    })
+
+@csrf_exempt
+def delete_report_api(request, report_id):
+    if request.method != 'POST':
+        return JsonResponse({'status': False, 'message': 'Method tidak diizinkan'}, status=405)
+
+    report = get_object_or_404(Report, pk=report_id)
+    report.delete()
+
+    AdminAction.objects.create(
+        action_type="DELETE_REPORT",
+        note=f"Deleted report ID {report_id}",
+    )
+
+    return JsonResponse({'status': True, 'message': 'Report berhasil dihapus'})
+
+@csrf_exempt
+def api_reports(request):
+    reports = Report.objects.select_related("reporter", "coach__user").all().order_by('-created_at')
+
+    data = []
+    for r in reports:
+        data.append({
+            "id": r.id,
+            "reason": r.reason,
+            "reported_by": r.reporter.username,
+            "coach_username": r.coach.user.username,
+            "coach_id": r.coach.id,
+            "created_at": r.created_at.isoformat(),
+        })
+
+    return JsonResponse({"reports": data}, status=200)
+
+@csrf_exempt
+def api_coach_requests(request):
+    pending = CoachRequest.objects.filter(approved=False).select_related("user")
+
+    data = []
+    for c in pending:
+        data.append({
+            "id": c.id,
+            "name": c.name,
+            "description": c.description,
+            "user_username": c.user.username,
+            "created_at": c.created_at.isoformat(),
+        })
+
+    return JsonResponse({"requests": data}, status=200)

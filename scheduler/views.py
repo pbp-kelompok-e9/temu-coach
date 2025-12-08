@@ -6,6 +6,30 @@ from .models import Coach, Jadwal
 from datetime import date, time
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST, require_http_methods
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.decorators import login_required
+from .models import Jadwal
+
+
+@login_required
+def api_schedule_list(request):
+    coach_id = request.GET.get('coach')
+    qs = Jadwal.objects.all()
+    if coach_id:
+        qs = qs.filter(coach_id=coach_id)
+
+    data = []
+    for j in qs.order_by('tanggal', 'jam_mulai'):
+        data.append({
+            'id': j.id,
+            'coach': j.coach_id,
+            'tanggal': j.tanggal.strftime('%Y-%m-%d'),
+            'jam_mulai': j.jam_mulai.strftime('%H:%M:%S'),
+            'jam_selesai': j.jam_selesai.strftime('%H:%M:%S'),
+            'is_booked': j.is_booked,
+        })
+
+    return JsonResponse(data, safe=False)
 
 @login_required
 def add_schedule(request):
