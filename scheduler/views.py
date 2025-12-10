@@ -9,9 +9,10 @@ from django.views.decorators.http import require_POST, require_http_methods
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .models import Jadwal
+from .decorators import api_login_required  
 
 
-@login_required
+@api_login_required
 def api_schedule_list(request):
     coach_id = request.GET.get('coach')
     qs = Jadwal.objects.all()
@@ -31,17 +32,25 @@ def api_schedule_list(request):
 
     return JsonResponse(data, safe=False)
 
-@login_required
+@csrf_exempt
+@api_login_required
 def add_schedule(request):
-    coach = Coach.objects.get(user=request.user)
+    """Add schedule - API endpoint"""
+    # Cek apakah coach sudah approved
+    try:
+        coach = Coach.objects.get(user=request.user)
+    except Coach.DoesNotExist:
+        return JsonResponse({
+            'status': 'error',
+            'error': 'not_found',
+            'message': 'Akun Anda masih menunggu persetujuan admin'
+        }, status=403)
 
     if request.method == 'POST':
         form = TambahkanJadwalForm(request.POST)
         if form.is_valid():
             jadwal = form.save(commit=False)
-            # nanti kalau login, ambil dari user:
-            # jadwal.coach = get_object_or_404(Coach, user=request.user)
-            jadwal.coach = coach 
+            jadwal.coach = coach
             jadwal.save()
             return JsonResponse({
                 'id': jadwal.id,
@@ -49,75 +58,177 @@ def add_schedule(request):
                 'jam_mulai': jadwal.jam_mulai.strftime("%H:%M"),
                 'jam_selesai': jadwal.jam_selesai.strftime("%H:%M"),
                 'is_booked': jadwal.is_booked,
-                })
+            })
 
-            # kirim response ke JS
-            # return JsonResponse({
-            #     'success': True,
-            #     'tanggal': jadwal.tanggal.strftime("%Y-%m-%d"),
-            #     'jam_mulai': jadwal.jam_mulai.strftime("%H:%M"),
-            #     'jam_selesai': jadwal.jam_selesai.strftime("%H:%M"),
-            #     'is_booked': jadwal.is_booked,
-            # })
-        else:
-            form = TambahkanJadwalForm()
-            # return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+        return JsonResponse({
+            'status': 'error',
+            'errors': form.errors
+        }, status=400)
 
-    return render(request, 'add_schedule.html', {'form': form})
-    # return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
+    return JsonResponse({
+        'status': 'error',
+        'message': 'Method not allowed'
+    }, status=405)
 
 def success_page(request):
+    """Public success page"""
     return render(request, 'success.html')
 
 
-@require_http_methods(["DELETE"])
+@csrf_exempt
+@require_http_methods(["POST"])
 def delete_schedule(request, id):
+    """Delete schedule - bisa dipanggil dari web atau API"""
+    if not request.user.is_authenticated:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Unauthorized'
+        }, status=401)
+    
     Jadwal.objects.filter(id=id).delete()
     return JsonResponse({'status': 'deleted'})
 
 
 @login_required
 def coach_dashboard(request):
+    """Web view untuk coach dashboard"""
     if hasattr(request.user, 'is_customer') and request.user.is_customer:
         return redirect('customer_dashboard') 
     if request.user.is_superuser:
         return redirect('my_admin:dashboard_simple')
+    
     coach = get_object_or_404(Coach, user=request.user)
     jadwal_list = Jadwal.objects.filter(coach=coach).select_related('booking__customer').order_by('tanggal', 'jam_mulai')
-    # coach = {
-    #     'name': 'John Doe',
-    #     'citizenship': 'Italy',
-    #     'age': 36,
-    #     'club': 'Barcelona',
-    #     'preffered_formation': '4-3-3 Attacking',
-    #     'average_term_as_coach': 3.5,
-    #     'license': 'IDUB Global',
-    #     'description': 'Lorem ipsum dolor sit amet...',
-    #     'foto': None,
-    # }
 
-    # jadwal_list = [
-    #     {'tanggal': date(2025, 10, 23), 'jam_mulai': time(14, 0), 'jam_selesai': time(17, 0), 'is_booked': True},
-    #     {'tanggal': date(2025, 10, 24), 'jam_mulai': time(9, 0), 'jam_selesai': time(12, 0), 'is_booked': False},
-    # ]
     return render(request, 'coach_dashboard.html', {'coach': coach, 'jadwal_list': jadwal_list})
 
 
-@login_required
+@csrf_exempt
+@api_login_required
 def update_coach_profile(request):
-    if request.method == 'POST' and request.user.is_authenticated:
-        coach = get_object_or_404(Coach, user=request.user)
+    """Update coach profile - API endpoint"""
+    if request.method == 'POST':
+        try:
+            coach = Coach.objects.get(user=request.user)
+        except Coach.DoesNotExist:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Coach profile not found'
+            }, status=404)
+
         coach.name = request.POST.get('name')
-        coach.age = request.POST.get('age')
+        coach.age = int(request.POST.get('age'))
         coach.citizenship = request.POST.get('citizenship')
         coach.club = request.POST.get('club')
         coach.license = request.POST.get('license')
         coach.preffered_formation = request.POST.get('preffered_formation')
-        coach.average_term_as_coach = request.POST.get('average_term_as_coach')
+        coach.average_term_as_coach = float(request.POST.get('average_term_as_coach'))
         coach.rate_per_session = request.POST.get('rate_per_session')
         coach.description = request.POST.get('description')
+
         if 'foto' in request.FILES:
             coach.foto = request.FILES['foto']
+
         coach.save()
         return JsonResponse({'status': 'success'})
-    return JsonResponse({'status': 'failed'}, status=400)
+
+    return JsonResponse({
+        'status': 'error',
+        'message': 'Method not allowed'
+    }, status=405)
+
+
+@api_login_required
+def api_coach_profile(request):
+    """
+    API untuk mendapatkan profile coach dan jadwal mereka
+    """
+    print(f"🔍 api_coach_profile called by user: {request.user.username}")
+    print(f"🔍 is_coach: {request.user.is_coach}")
+    print(f"🔍 user_type: {getattr(request.user, 'user_type', 'N/A')}")
+    
+    # Cek apakah user adalah coach
+    if not request.user.is_coach:
+        print(f"❌ User {request.user.username} is not a coach")
+        return JsonResponse({
+            'status': 'error',
+            'error': 'forbidden',
+            'message': 'User bukan coach'
+        }, status=403)
+    
+    # Cek apakah Coach object sudah dibuat (sudah di-approve admin)
+    try:
+        coach = Coach.objects.get(user=request.user)
+        print(f"✅ Coach found: {coach.name}")
+    except Coach.DoesNotExist:
+        print(f"⏳ Coach not found, checking CoachRequest...")
+        
+        # Cek apakah ada CoachRequest yang pending
+        if hasattr(request.user, 'coach_request'):
+            coach_request = request.user.coach_request
+            print(f"⏳ CoachRequest found, approved: {coach_request.approved}")
+            
+            if not coach_request.approved:
+                return JsonResponse({
+                    'status': 'pending',
+                    'message': 'Akun coach Anda masih menunggu persetujuan dari admin',
+                    'coach_data': {
+                        'name': coach_request.name,
+                        'age': coach_request.age,
+                        'citizenship': coach_request.citizenship,
+                        'club': coach_request.club,
+                        'license': coach_request.license,
+                    }
+                }, status=200)
+        
+        print(f"❌ No Coach or CoachRequest found for {request.user.username}")
+        return JsonResponse({
+            'status': 'error',
+            'error': 'not_found',
+            'message': 'Profile coach tidak ditemukan. Silakan hubungi admin.'
+        }, status=404)
+
+    # Ambil foto URL
+    foto_url = coach.foto.url if coach.foto else None
+
+    # Ambil jadwal list dengan booking info
+    jadwal_list = Jadwal.objects.filter(coach=coach).select_related('booking__customer').order_by('tanggal', 'jam_mulai')
+    
+    jadwal_data = []
+    for j in jadwal_list:
+        booking_data = None
+        if j.is_booked and hasattr(j, 'booking') and j.booking:
+            booking_data = {
+                'customer': {
+                    'username': j.booking.customer.username
+                }
+            }
+        
+        jadwal_data.append({
+            'id': j.id,
+            'tanggal': j.tanggal.strftime('%Y-%m-%d'),
+            'jam_mulai': j.jam_mulai.strftime('%H:%M'),
+            'jam_selesai': j.jam_selesai.strftime('%H:%M'),
+            'is_booked': j.is_booked,
+            'booking': booking_data
+        })
+
+    print(f"✅ Returning coach profile for {coach.name}")
+    
+    # Return response dengan struktur yang tepat
+    return JsonResponse({
+        'status': 'success',
+        'coach': {
+            'name': coach.name,
+            'age': coach.age,
+            'citizenship': coach.citizenship,
+            'club': coach.club,
+            'license': coach.license,
+            'preffered_formation': coach.preffered_formation,
+            'average_term_as_coach': coach.average_term_as_coach,
+            'description': coach.description,
+            'rate_per_session': str(coach.rate_per_session),
+            'foto': foto_url,
+        },
+        'jadwal_list': jadwal_data
+    })

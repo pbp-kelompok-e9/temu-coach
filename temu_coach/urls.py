@@ -24,7 +24,7 @@ urlpatterns = [
     path('my_admin/', include('my_admin.urls')),
     path('', include('coaches_book_catalog.urls')),
     path('accounts/', include('accounts.urls')),  # Includes both web views & API
-    path('', include('scheduler.urls')),
+    path('coach/', include('scheduler.urls')),
     path('reviews/', include('reviews_ratings.urls')),
     path('chat/', include('chat.urls')),
     
