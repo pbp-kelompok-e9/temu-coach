@@ -183,15 +183,8 @@
     const bookSessionButton = document.getElementById('bookSessionBtn'); 
 
     function initializeCalendar() {
-        const availableDates = Object.keys(scheduleData);
-        if (availableDates.length > 0) {
-            availableDates.sort();
-            const firstAvailableDate = new Date(availableDates[0] + 'T00:00:00');
-            currentDate = new Date(firstAvailableDate.getFullYear(), firstAvailableDate.getMonth(), 1);
-        } else {
-             const today = new Date();
-             currentDate = new Date(today.getFullYear(), today.getMonth(), 1);
-        }
+        const today = new Date();
+        currentDate = new Date(today.getFullYear(), today.getMonth(), 1);
         renderCalendar();
         updateBookButtonState(); 
     }

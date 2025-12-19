@@ -18,13 +18,24 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.shortcuts import render
+
+# Custom error handlers
+def custom_404(request, exception):
+    return render(request, '404.html', status=404)
+
+def custom_500(request):
+    return render(request, '500.html', status=500)
+
+handler404 = custom_404
+handler500 = custom_500
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('my_admin/', include('my_admin.urls')),
     path('', include('coaches_book_catalog.urls')),
     path('accounts/', include('accounts.urls')),  # Includes both web views & API
-    path('', include('scheduler.urls')),
+    path('coach/', include('scheduler.urls')),
     path('reviews/', include('reviews_ratings.urls')),
     path('chat/', include('chat.urls')),
     

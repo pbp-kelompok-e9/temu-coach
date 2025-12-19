@@ -20,7 +20,7 @@ class UserRegisterForm(UserCreationForm):
 class CoachRequestForm(forms.ModelForm):
     class Meta:
         model = CoachRequest
-        exclude = ['user', 'approved', 'created_at']
+        exclude = ['user', 'approved', 'created_at', 'name']  # name will be auto-generated from first_name + last_name
         widgets = {
             'description': forms.Textarea(attrs={'rows': 4}),
         }
