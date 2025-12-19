@@ -29,7 +29,9 @@ def register_view(request):
                     if user_type == 'coach':
                         if coach_form and coach_form.is_valid():
                             coach_request = coach_form.save(commit=False)
-                            coach_request.user = user 
+                            coach_request.user = user
+                            # Auto-generate name from first_name + last_name
+                            coach_request.name = f"{user.first_name} {user.last_name}".strip() or user.username
                             coach_request.save()
                             messages.success(request, f'Akun {user.username} dibuat. Permintaan menjadi coach sedang diproses admin.')
                             return redirect('login') 
@@ -228,7 +230,8 @@ def register_api(request):
                     if user_type == 'coach':
                         coach_data = data.get('coach_data', {})
                         
-                        required_fields = ['name', 'age', 'citizenship', 'club', 'license', 
+                        # name is auto-generated from first_name + last_name
+                        required_fields = ['age', 'citizenship', 'club', 'license', 
                                          'preffered_formation', 'average_term_as_coach', 'rate_per_session']
                         missing = [f for f in required_fields if not coach_data.get(f)]
                         
@@ -238,9 +241,12 @@ def register_api(request):
                                 'message': f'Field coach wajib diisi: {", ".join(missing)}'
                             }, status=400)
                         
+                        # Auto-generate name from first_name + last_name
+                        generated_name = f"{first_name} {last_name}".strip() or username
+                        
                         CoachRequest.objects.create(
                             user=user,
-                            name=coach_data.get('name'),
+                            name=generated_name,
                             age=coach_data.get('age'),
                             citizenship=coach_data.get('citizenship'),
                             foto=None,  # foto bisa diupload nanti
@@ -329,3 +335,26 @@ def check_session_api(request):
         })
     else:
         return JsonResponse({'is_authenticated': False})
+
+
+def get_current_user_api(request):
+    """Get current user info for mobile app session validation"""
+    if request.user.is_authenticated:
+        return JsonResponse({
+            'status': True,
+            'user': {
+                'id': request.user.id,
+                'username': request.user.username,
+                'first_name': request.user.first_name,
+                'last_name': request.user.last_name,
+                'user_type': request.user.user_type,
+                'is_coach': request.user.is_coach,
+                'is_customer': request.user.is_customer,
+                'is_admin': request.user.is_superuser
+            }
+        })
+    else:
+        return JsonResponse({
+            'status': False,
+            'message': 'Not authenticated'
+        }, status=401)
