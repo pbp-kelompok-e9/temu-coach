@@ -25,3 +25,16 @@ class TambahkanJadwalForm(forms.ModelForm):
                 }
             ),
         }
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        jam_mulai = cleaned_data.get('jam_mulai')
+        jam_selesai = cleaned_data.get('jam_selesai')
+        
+        if jam_mulai and jam_selesai:
+            if jam_selesai <= jam_mulai:
+                raise forms.ValidationError(
+                    'Jam selesai harus lebih besar dari jam mulai.'
+                )
+        
+        return cleaned_data
