@@ -10,4 +10,5 @@ urlpatterns = [
     path('api/register/', views.register_api, name='register_api'),
     path('api/logout/', views.logout_api, name='logout_api'),
     path('api/check-session/', views.check_session_api, name='check_session_api'),
+    path('api/user/', views.get_current_user_api, name='get_current_user_api'),
 ]
