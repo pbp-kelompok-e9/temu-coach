@@ -98,7 +98,12 @@ def coach_dashboard(request):
         return redirect('my_admin:dashboard_simple')
     
     coach = get_object_or_404(Coach, user=request.user)
-    jadwal_list = Jadwal.objects.filter(coach=coach).select_related('booking__customer').order_by('tanggal', 'jam_mulai')
+    # Filter to only show upcoming jadwal (tanggal >= hari ini)
+    today = date.today()
+    jadwal_list = Jadwal.objects.filter(
+        coach=coach,
+        tanggal__gte=today
+    ).select_related('booking__customer').order_by('tanggal', 'jam_mulai')
 
     return render(request, 'coach_dashboard.html', {'coach': coach, 'jadwal_list': jadwal_list})
 
