@@ -118,9 +118,21 @@ def logout_view(request):
 def login_api(request): # login dari flutter
     if request.method == 'POST':
         try:
-            data = json.loads(request.body)
-            username = data.get('username')
-            password = data.get('password')
+            data = None
+            raw_body = (request.body or b'').strip()
+
+            if raw_body:
+                try:
+                    data = json.loads(raw_body)
+                except json.JSONDecodeError:
+                    data = None
+
+            if isinstance(data, dict):
+                username = data.get('username')
+                password = data.get('password')
+            else:
+                username = request.POST.get('username')
+                password = request.POST.get('password')
             
             if not username or not password:
                 return JsonResponse({
@@ -163,11 +175,11 @@ def login_api(request): # login dari flutter
                     'message': 'Username atau password salah'
                 }, status=401)
                 
-        except json.JSONDecodeError:
+        except Exception:
             return JsonResponse({
                 'status': False,
-                'message': 'Format JSON tidak valid'
-            }, status=400)
+                'message': 'Terjadi kesalahan pada server'
+            }, status=500)
         except Exception as e:
             return JsonResponse({
                 'status': False,
@@ -230,19 +242,16 @@ def register_api(request):
                     if user_type == 'coach':
                         coach_data = data.get('coach_data', {})
                         
-                        # name is auto-generated from first_name + last_name
+                        # name can be provided or auto-generated from first_name + last_name
                         required_fields = ['age', 'citizenship', 'club', 'license', 
                                          'preffered_formation', 'average_term_as_coach', 'rate_per_session']
                         missing = [f for f in required_fields if not coach_data.get(f)]
                         
                         if missing:
-                            return JsonResponse({
-                                'status': False,
-                                'message': f'Field coach wajib diisi: {", ".join(missing)}'
-                            }, status=400)
+                            raise Exception(f'Field coach wajib diisi: {", ".join(missing)}')
                         
-                        # Auto-generate name from first_name + last_name
-                        generated_name = f"{first_name} {last_name}".strip() or username
+                        # Use name from coach_data if provided, otherwise auto-generate
+                        generated_name = coach_data.get('name', '').strip() or f"{first_name} {last_name}".strip() or username
                         
                         CoachRequest.objects.create(
                             user=user,
