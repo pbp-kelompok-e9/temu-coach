@@ -272,41 +272,44 @@ def get_reviews_by_coach(request, coach_id):
         # Tangkap error lain (misal codingan error) dan jadikan JSON
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
-@csrf_exempt  # Tambahkan ini kalau request dari HP sering kena 403 Forbidden
-# @login_required # Hapus atau ganti dengan pengecekan manual user.is_authenticated kalau dari API
+@csrf_exempt  # 1. PENTING: Biar ga diblokir CSRF Django
 def create_report(request, coach_id):
-    # 1. Cek Login Manual (Biar return JSON, bukan redirect login HTML)
+    # 2. Cek Login Manual (Return JSON, bukan Redirect HTML)
     if not request.user.is_authenticated:
-        return JsonResponse({'success': False, 'error': 'Unauthorized'}, status=401)
+        return JsonResponse({'success': False, 'error': 'Unauthorized: Silakan login kembali.'}, status=401)
 
-    # 2. Cek Coach Ada/Nggak (Pakai Try-Except biar return JSON)
+    # 3. Cek Coach Ada/Nggak (Return JSON, bukan 404 HTML)
     try:
         coach = Coach.objects.get(id=coach_id)
     except Coach.DoesNotExist:
-        # INI KUNCINYA: Return JSON kalau ID gak ketemu (termasuk ID 0)
-        return JsonResponse({'success': False, 'error': 'Coach not found (Invalid ID)'}, status=404)
+        return JsonResponse({'success': False, 'error': f'Coach dengan ID {coach_id} tidak ditemukan.'}, status=404)
 
-    # 3. Handle POST
+    # 4. Handle POST
     if request.method == "POST":
-        # Handle JSON body (Flutter biasanya kirim JSON, bukan Form Data biasa)
-        import json
-        try:
-            # Coba baca dari body JSON dulu
-            data = json.loads(request.body)
-            reason = data.get("reason", "").strip()
-        except:
-            # Fallback ke Form Data biasa
-            reason = request.POST.get("reason", "").strip()
+        # Handle form-data standard dari Flutter
+        reason = request.POST.get("reason", "").strip()
+        
+        # Jaga-jaga kalau Flutter kirim JSON body (opsional, tapi bagus ada)
+        if not reason:
+            import json
+            try:
+                data = json.loads(request.body)
+                reason = data.get("reason", "").strip()
+            except:
+                pass
 
         if not reason:
-            return JsonResponse({"success": False, "error": "Reason is required."})
+            return JsonResponse({"success": False, "error": "Alasan laporan wajib diisi."})
 
-        # Buat Report
-        Report.objects.create(
-            reporter=request.user,
-            coach=coach,
-            reason=reason
-        )
-        return JsonResponse({"success": True, "message": "Report submitted."})
+        # Create Report
+        try:
+            Report.objects.create(
+                reporter=request.user,
+                coach=coach,
+                reason=reason
+            )
+            return JsonResponse({"success": True, "message": "Laporan berhasil dikirim."})
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)}, status=500)
 
     return JsonResponse({"success": False, "error": "Invalid request method."}, status=405)
