@@ -237,24 +237,27 @@ def check_review(request, coach_id) :
 
 # function buat ngambil semua review dari coach tertentu
 @require_GET
-def get_reviews_by_coach(request, coach_id) :
-
+def get_reviews_by_coach(request, coach_id):
+    
     coach = get_object_or_404(Coach, id=coach_id)
-    reviews = Reviews.objects.filter(coach=coach)
+    
+    reviews = Reviews.objects.filter(coach=coach).order_by('-created_at')
 
     data = []
-
-    for review in reviews : 
+    for review in reviews:
         data.append({
             "id": review.id,
+            "coach": review.coach.name,
             "user": review.user.username,
             "rate": review.rate,
             "review": review.review,
+            "created_at": review.created_at.isoformat() if review.created_at else None,
+            "updated_at": review.updated_at.isoformat() if review.updated_at else None,
         })
 
     return JsonResponse({
+        "status": "success",
         "coach": coach.name,
-        "coach_id": coach.id,
         "total_reviews": len(data),
         "reviews": data,
     })
