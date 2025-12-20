@@ -148,30 +148,18 @@ def api_coach_profile(request):
     """
     API untuk mendapatkan profile coach dan jadwal mereka
     """
-    print(f"🔍 api_coach_profile called by user: {request.user.username}")
-    print(f"🔍 is_coach: {request.user.is_coach}")
-    print(f"🔍 user_type: {getattr(request.user, 'user_type', 'N/A')}")
-    
-    # Cek apakah user adalah coach
     if not request.user.is_coach:
-        print(f"❌ User {request.user.username} is not a coach")
         return JsonResponse({
             'status': 'error',
             'error': 'forbidden',
             'message': 'User bukan coach'
         }, status=403)
     
-    # Cek apakah Coach object sudah dibuat (sudah di-approve admin)
     try:
         coach = Coach.objects.get(user=request.user)
-        print(f"✅ Coach found: {coach.name}")
     except Coach.DoesNotExist:
-        print(f"⏳ Coach not found, checking CoachRequest...")
-        
-        # Cek apakah ada CoachRequest yang pending
         if hasattr(request.user, 'coach_request'):
             coach_request = request.user.coach_request
-            print(f"⏳ CoachRequest found, approved: {coach_request.approved}")
             
             if not coach_request.approved:
                 return JsonResponse({
@@ -186,17 +174,14 @@ def api_coach_profile(request):
                     }
                 }, status=200)
         
-        print(f"❌ No Coach or CoachRequest found for {request.user.username}")
         return JsonResponse({
             'status': 'error',
             'error': 'not_found',
             'message': 'Profile coach tidak ditemukan. Silakan hubungi admin.'
         }, status=404)
 
-    # Ambil foto URL
     foto_url = coach.foto.url if coach.foto else None
 
-    # Ambil jadwal list dengan booking info
     jadwal_list = Jadwal.objects.filter(coach=coach).select_related('booking__customer').order_by('tanggal', 'jam_mulai')
     
     jadwal_data = []
@@ -206,7 +191,8 @@ def api_coach_profile(request):
             booking_data = {
                 'customer': {
                     'username': j.booking.customer.username
-                }
+                },
+                'notes': j.booking.notes if j.booking.notes else ''
             }
         
         jadwal_data.append({
@@ -217,10 +203,7 @@ def api_coach_profile(request):
             'is_booked': j.is_booked,
             'booking': booking_data
         })
-
-    print(f"✅ Returning coach profile for {coach.name}")
     
-    # Return response dengan struktur yang tepat
     return JsonResponse({
         'status': 'success',
         'coach': {
