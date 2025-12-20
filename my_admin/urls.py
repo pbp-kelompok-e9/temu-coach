@@ -9,7 +9,6 @@ urlpatterns = [
     path('coach/<int:coach_id>/reject/', views.reject_coach, name='reject_coach'),
     path('coach/<int:coach_id>/ban/', views.ban_coach, name='ban_coach'),
     path('report/<int:report_id>/delete/', views.delete_report, name='delete_report'),
-    path('api/report/create/coach/<int:coach_id>/', views.create_report, name='create_report_with_id'),
 
     path('api/reports/', views.api_reports, name='api_reports'),
     path('api/coach-requests/', views.api_coach_requests, name='api_coach_requests'),
