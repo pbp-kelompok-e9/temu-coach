@@ -17,5 +17,6 @@ urlpatterns = [
     path('api/coach/<int:coach_id>/reject/', views.reject_coach_api, name='reject_coach_api'),
     path('api/coach/<int:coach_id>/ban/', views.ban_coach_api, name='ban_coach_api'),
     path('api/report/<int:report_id>/delete/', views.delete_report_api, name='delete_report_api'),
-    path('api/report/create/', views.create_report_api, name='create_report_api'),
+    path('reports/create/coach/<int:coach_id>/', views.api_create_report, name='api_create_report'),
+
 ]
