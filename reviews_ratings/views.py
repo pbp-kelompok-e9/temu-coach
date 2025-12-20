@@ -72,12 +72,37 @@ def create_review_for_booking(request, booking_id):
     try:
         booking = Booking.objects.get(id=booking_id)
         
+        # 1. Validasi Pemilik
         if booking.customer != request.user:
             return JsonResponse({'success': False, 'error': 'User mismatch'}, status=403)
 
-        if Reviews.objects.filter(booking=booking).exists():
-            return JsonResponse({'success': False, 'error': 'Review already exists for this booking.'}, status=400)
+        # 2. VALIDASI WAKTU (SUDAH KEMBALI!)
+        # Gabungkan tanggal & jam selesai jadwal
+        jadwal = booking.jadwal
+        dt = datetime.datetime.combine(jadwal.tanggal, jadwal.jam_selesai)
+        
+        # Pastikan timezone aware biar akurat
+        schedule_end = timezone.make_aware(dt) if timezone.is_naive(dt) else dt
+        
+        # Kalau waktu sekarang BELUM melewati waktu selesai -> Error
+        if timezone.now() < schedule_end:
+             return JsonResponse({
+                 'success': False, 
+                 'error': 'Sesi coaching belum selesai. Anda baru bisa memberi review setelah sesi berakhir.'
+             }, status=400)
 
+        # 3. Validasi Duplicate (Smart Mode: Kirim ID kalau ada)
+        existing_review = Reviews.objects.filter(booking=booking).first()
+        
+        if existing_review:
+            # RETURN ID biar Flutter bisa langsung Update (Jalan Tol)
+            return JsonResponse({
+                'success': False, 
+                'error': 'Review already exists',
+                'existing_id': existing_review.id 
+            }, status=409) 
+
+        # 4. Create Review Baru
         rate = int(request.POST.get('rate'))
         review_text = request.POST.get('review', '')
 
