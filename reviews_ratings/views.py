@@ -272,24 +272,41 @@ def get_reviews_by_coach(request, coach_id):
         # Tangkap error lain (misal codingan error) dan jadikan JSON
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
-@login_required
+@csrf_exempt  # Tambahkan ini kalau request dari HP sering kena 403 Forbidden
+# @login_required # Hapus atau ganti dengan pengecekan manual user.is_authenticated kalau dari API
 def create_report(request, coach_id):
-    coach = get_object_or_404(Coach, id=coach_id)
+    # 1. Cek Login Manual (Biar return JSON, bukan redirect login HTML)
+    if not request.user.is_authenticated:
+        return JsonResponse({'success': False, 'error': 'Unauthorized'}, status=401)
 
-    # Handle AJAX / fetch POST request
+    # 2. Cek Coach Ada/Nggak (Pakai Try-Except biar return JSON)
+    try:
+        coach = Coach.objects.get(id=coach_id)
+    except Coach.DoesNotExist:
+        # INI KUNCINYA: Return JSON kalau ID gak ketemu (termasuk ID 0)
+        return JsonResponse({'success': False, 'error': 'Coach not found (Invalid ID)'}, status=404)
+
+    # 3. Handle POST
     if request.method == "POST":
-        reason = request.POST.get("reason", "").strip()
+        # Handle JSON body (Flutter biasanya kirim JSON, bukan Form Data biasa)
+        import json
+        try:
+            # Coba baca dari body JSON dulu
+            data = json.loads(request.body)
+            reason = data.get("reason", "").strip()
+        except:
+            # Fallback ke Form Data biasa
+            reason = request.POST.get("reason", "").strip()
+
         if not reason:
             return JsonResponse({"success": False, "error": "Reason is required."})
 
-        # Buat Report langsung tanpa form
-        report = Report.objects.create(
+        # Buat Report
+        Report.objects.create(
             reporter=request.user,
             coach=coach,
             reason=reason
         )
-        messages.success(request, f"Report for coach {coach.name} has been submitted.")
-        return JsonResponse({"success": True})
+        return JsonResponse({"success": True, "message": "Report submitted."})
 
-    # Optional: kalau bukan POST (misal buka lewat browser)
-    return JsonResponse({"success": False, "error": "Invalid request method."})
+    return JsonResponse({"success": False, "error": "Invalid request method."}, status=405)
