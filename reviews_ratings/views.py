@@ -60,68 +60,27 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 import datetime
 
+# --- CREATE REVIEW (VALIDASI MANUAL) ---
 @csrf_exempt 
-# JANGAN PAKE @login_required DULU (Ini biang kerok redirect HTML)
-# JANGAN PAKE @require_POST DULU (Biar kita bisa tau kalau requestnya keganti jadi GET)
 def create_review_for_booking(request, booking_id):
-    # 1. DEBUG: Cek Method
     if request.method != 'POST':
-        return JsonResponse({
-            'success': False, 
-            'error': f'Wrong method: {request.method}. Expecting POST. Check trailing slash (/) in Flutter URL.'
-        }, status=400)
+        return JsonResponse({'success': False, 'error': 'Expecting POST'}, status=400)
 
-    # 2. DEBUG: Cek Auth Manual
-    # Kita cek manual biar ga redirect ke HTML login page
     if not request.user.is_authenticated:
-        return JsonResponse({
-            'success': False, 
-            'error': 'User not authenticated. Session cookie might be missing or expired.'
-        }, status=401)
+        return JsonResponse({'success': False, 'error': 'Unauthorized'}, status=401)
 
     try:
-        # Import di dalam biar aman
-        from coaches_book_catalog.models import Booking
-        from .models import Reviews
-
-        # 3. DEBUG: Cek Booking ID
-        try:
-            booking = Booking.objects.get(id=booking_id)
-        except Booking.DoesNotExist:
-            return JsonResponse({'success': False, 'error': f'Booking ID {booking_id} not found.'}, status=404)
-
-        # 4. Validasi User
+        booking = Booking.objects.get(id=booking_id)
+        
         if booking.customer != request.user:
-            return JsonResponse({
-                'success': False, 
-                'error': f'User mismatch. Booking owner: {booking.customer.username}, Request user: {request.user.username}'
-            }, status=403)
+            return JsonResponse({'success': False, 'error': 'User mismatch'}, status=403)
 
-        # 5. Validasi Waktu (Gw comment dulu biar lolos debug, uncomment kalau JSON udah kebaca)
-        # jadwal = booking.jadwal
-        # dt = datetime.datetime.combine(jadwal.tanggal, jadwal.jam_selesai)
-        # schedule_end = timezone.make_aware(dt) if timezone.is_naive(dt) else dt
-        # if schedule_end > timezone.now():
-        #    return JsonResponse({'success': False, 'error': 'Booking not finished yet'}, status=400)
-
-        # 6. Validasi Duplicate
         if Reviews.objects.filter(booking=booking).exists():
             return JsonResponse({'success': False, 'error': 'Review already exists for this booking.'}, status=400)
 
-        # 7. Ambil Data POST
-        rate_raw = request.POST.get('rate')
+        rate = int(request.POST.get('rate'))
         review_text = request.POST.get('review', '')
 
-        # Debugging data input
-        if not rate_raw:
-             return JsonResponse({'success': False, 'error': 'Rate parameter is missing.'}, status=400)
-
-        try:
-            rate = int(rate_raw)
-        except ValueError:
-            return JsonResponse({'success': False, 'error': f'Invalid rate format: {rate_raw}'}, status=400)
-
-        # 8. Create Review
         review = Reviews.objects.create(
             coach=booking.jadwal.coach,
             user=request.user,
@@ -133,23 +92,22 @@ def create_review_for_booking(request, booking_id):
         return JsonResponse({'success': True, 'review_id': review.id, 'message': 'Success created!'})
 
     except Exception as e:
-        # INI KUNCINYA: Tangkap semua error server dan kirim sebagai JSON
-        # Jadi lo bisa liat error python aslinya di HP lo
-        return JsonResponse({
-            'success': False, 
-            'error': f'SERVER EXCEPTION: {str(e)}',
-            'type': str(type(e))
-        }, status=500)
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
+# --- UPDATE REVIEW (UNIVERSAL JSON) ---
+# Mengembalikan JSON agar Web Modal & Flutter sama-sama jalan
 @csrf_exempt
 @require_POST
 def update_review(request, id):
-    # Cek login manual biar ga redirect HTML
     if not request.user.is_authenticated:
         return JsonResponse({'success': False, 'error': 'Unauthorized'}, status=401)
 
     try:
-        review = Reviews.objects.get(id=id, user=request.user)
+        # Gunakan filter().first() juga disini untuk keamanan ekstra
+        review = Reviews.objects.filter(id=id, user=request.user).first()
+        
+        if not review:
+             return JsonResponse({'success': False, 'error': 'Review not found'}, status=404)
         
         rate_raw = request.POST.get('rate')
         if rate_raw:
@@ -158,20 +116,17 @@ def update_review(request, id):
         review.review = request.POST.get('review', review.review)
         review.save()
 
-        # Web JS lo butuh success: true buat nutup modal
+        # RETURN JSON (Web JS akan baca success:true lalu tutup modal)
         return JsonResponse({
             "success": True, 
             "review_id": review.id, 
             "message": "Review updated successfully"
         })
 
-    except Reviews.DoesNotExist:
-        return JsonResponse({'success': False, 'error': 'Review not found'}, status=404)
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
-
-# --- DELETE REVIEW (FULL JSON) ---
+# --- DELETE REVIEW (UNIVERSAL JSON) ---
 @csrf_exempt
 @require_POST
 def delete_review(request, id):
@@ -179,12 +134,14 @@ def delete_review(request, id):
         return JsonResponse({'success': False, 'error': 'Unauthorized'}, status=401)
 
     try:
-        review = Reviews.objects.get(id=id, user=request.user)
+        review = Reviews.objects.filter(id=id, user=request.user).first()
+        
+        if not review:
+            return JsonResponse({'success': False, 'error': 'Review not found'}, status=404)
+
         review.delete()
         return JsonResponse({"success": True, "message": "Review deleted"})
 
-    except Reviews.DoesNotExist:
-        return JsonResponse({'success': False, 'error': 'Review not found'}, status=404)
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
@@ -198,7 +155,6 @@ def check_review_for_booking(request, booking_id):
     if booking.customer != request.user:
         return JsonResponse({'success': False, 'error': 'Not allowed'}, status=403)
 
-    # PENTING: Pakai .first() biar kalau ada duplikat gak Error 500 HTML
     review = Reviews.objects.filter(booking=booking).first()
 
     if review:
