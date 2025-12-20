@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404
 
 from my_admin.models import Report
 from .models import Reviews
-from coaches_book_catalog.models import Coach
+from coaches_book_catalog.models import Booking, Coach
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
 from django.contrib import messages
@@ -141,32 +141,24 @@ def create_review_for_booking(request, booking_id):
             'type': str(type(e))
         }, status=500)
 
-# ... import yang sudah ada ...
-
-# --- UPDATE REVIEW (UNIVERSAL JSON) ---
-# Kembali return JSON biar Web Modal & Flutter sama-sama senang
 @csrf_exempt
 @require_POST
 def update_review(request, id):
-    # 1. Cek Login Manual (Supaya ga redirect HTML ke Flutter/Web AJAX)
+    # Cek login manual biar ga redirect HTML
     if not request.user.is_authenticated:
         return JsonResponse({'success': False, 'error': 'Unauthorized'}, status=401)
 
     try:
-        # Ambil review (Filter first optional disini karena ID review pasti unik, tapi get aman)
         review = Reviews.objects.get(id=id, user=request.user)
         
-        # Logic Update
         rate_raw = request.POST.get('rate')
         if rate_raw:
              review.rate = int(rate_raw)
         
-        # Update text review
         review.review = request.POST.get('review', review.review)
         review.save()
 
-        # RETURN JSON UNTUK SEMUA (WEB & FLUTTER)
-        # Web JS lo akan baca success:true dan reload halaman sendiri
+        # Web JS lo butuh success: true buat nutup modal
         return JsonResponse({
             "success": True, 
             "review_id": review.id, 
@@ -175,12 +167,11 @@ def update_review(request, id):
 
     except Reviews.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Review not found'}, status=404)
-        
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
-# --- DELETE REVIEW (UNIVERSAL JSON) ---
+# --- DELETE REVIEW (FULL JSON) ---
 @csrf_exempt
 @require_POST
 def delete_review(request, id):
@@ -190,22 +181,15 @@ def delete_review(request, id):
     try:
         review = Reviews.objects.get(id=id, user=request.user)
         review.delete()
-
-        # RETURN JSON UNTUK SEMUA
         return JsonResponse({"success": True, "message": "Review deleted"})
 
     except Reviews.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Review not found'}, status=404)
-        
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 @login_required
-# @csrf_exempt # Opsional tergantung setup lo, tapi buat GET biasanya aman
 def check_review_for_booking(request, booking_id):
-    from coaches_book_catalog.models import Booking
-    
-    # Gunakan get_object_or_404 atau try-except biasa untuk Booking
     try:
         booking = Booking.objects.get(id=booking_id)
     except Booking.DoesNotExist:
@@ -214,6 +198,7 @@ def check_review_for_booking(request, booking_id):
     if booking.customer != request.user:
         return JsonResponse({'success': False, 'error': 'Not allowed'}, status=403)
 
+    # PENTING: Pakai .first() biar kalau ada duplikat gak Error 500 HTML
     review = Reviews.objects.filter(booking=booking).first()
 
     if review:
