@@ -140,77 +140,65 @@ def create_review_for_booking(request, booking_id):
             'error': f'SERVER EXCEPTION: {str(e)}',
             'type': str(type(e))
         }, status=500)
-# test
-# UPDATE PAKSA: INI SUPAYA GIT SADAR ADA PERUBAHAN
-# --- UPDATE REVIEW HYBRID (AMAN BUAT WEB & FLUTTER) ---
+
+# ... import yang sudah ada ...
+
+# --- UPDATE REVIEW (UNIVERSAL JSON) ---
+# Kembali return JSON biar Web Modal & Flutter sama-sama senang
 @csrf_exempt
 @require_POST
 def update_review(request, id):
-    # Cek apakah user login
+    # 1. Cek Login Manual (Supaya ga redirect HTML ke Flutter/Web AJAX)
     if not request.user.is_authenticated:
-        # Kalo request dari Web (bukan API), lempar ke login page
-        if not request.headers.get('Content-Type') == 'application/json':
-            return redirect('accounts:login') # Sesuaikan nama URL login kamu
         return JsonResponse({'success': False, 'error': 'Unauthorized'}, status=401)
 
     try:
+        # Ambil review (Filter first optional disini karena ID review pasti unik, tapi get aman)
         review = Reviews.objects.get(id=id, user=request.user)
         
         # Logic Update
         rate_raw = request.POST.get('rate')
         if rate_raw:
              review.rate = int(rate_raw)
+        
+        # Update text review
         review.review = request.POST.get('review', review.review)
         review.save()
 
-        # --- PEMISAH FLUTTER VS WEB ---
-        # Kalau request datang dari Flutter/JSON
-        if request.headers.get('Content-Type') == 'application/json' or request.GET.get('format') == 'json':
-            return JsonResponse({"success": True, "review_id": review.id, "message": "Updated"})
-        
-        # Kalau request datang dari Web (Form Submit biasa)
-        messages.success(request, "Review berhasil diupdate!")
-        # Redirect balik ke halaman detail coach atau list review
-        return redirect('coaches_book_catalog:coach_detail', coach_id=review.coach.id) 
+        # RETURN JSON UNTUK SEMUA (WEB & FLUTTER)
+        # Web JS lo akan baca success:true dan reload halaman sendiri
+        return JsonResponse({
+            "success": True, 
+            "review_id": review.id, 
+            "message": "Review updated successfully"
+        })
 
     except Reviews.DoesNotExist:
-        if request.headers.get('Content-Type') == 'application/json':
-            return JsonResponse({'success': False, 'error': 'Review not found'}, status=404)
-        return redirect('some_error_page') # Atau redirect back
+        return JsonResponse({'success': False, 'error': 'Review not found'}, status=404)
         
     except Exception as e:
-        if request.headers.get('Content-Type') == 'application/json':
-             return JsonResponse({'success': False, 'error': str(e)}, status=500)
-        messages.error(request, f"Error: {str(e)}")
-        return redirect('some_error_page')
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
-# --- DELETE REVIEW HYBRID ---
+# --- DELETE REVIEW (UNIVERSAL JSON) ---
 @csrf_exempt
 @require_POST
 def delete_review(request, id):
     if not request.user.is_authenticated:
-        if not request.headers.get('Content-Type') == 'application/json':
-             return redirect('accounts:login')
         return JsonResponse({'success': False, 'error': 'Unauthorized'}, status=401)
 
     try:
         review = Reviews.objects.get(id=id, user=request.user)
-        coach_id = review.coach.id # Simpan ID buat redirect
         review.delete()
 
-        # Flutter/API Response
-        if request.headers.get('Content-Type') == 'application/json' or request.GET.get('format') == 'json':
-            return JsonResponse({"success": True, "message": "Deleted"})
-        
-        # Web Response
-        messages.success(request, "Review berhasil dihapus!")
-        return redirect('coaches_book_catalog:coach_detail', coach_id=coach_id)
+        # RETURN JSON UNTUK SEMUA
+        return JsonResponse({"success": True, "message": "Review deleted"})
 
     except Reviews.DoesNotExist:
-        if request.headers.get('Content-Type') == 'application/json':
-            return JsonResponse({'success': False, 'error': 'Review not found'}, status=404)
-        return redirect('some_error_page')
+        return JsonResponse({'success': False, 'error': 'Review not found'}, status=404)
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 @login_required
 # @csrf_exempt # Opsional tergantung setup lo, tapi buat GET biasanya aman
