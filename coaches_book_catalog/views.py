@@ -320,6 +320,7 @@ def api_booking_list(request):
                 'jadwal_id': booking.jadwal.id,
                 'customer_id': booking.customer.id,
                 'notes': booking.notes or '',
+                'coach_id': booking.jadwal.coach.id,
                 'coach_name': booking.jadwal.coach.name,
                 'date': booking.jadwal.tanggal.strftime('%Y-%m-%d'),
                 'start_time': booking.jadwal.jam_mulai.strftime('%H:%M:%S'),
