@@ -151,11 +151,11 @@ def api_chat_messages(request, receiver_id):
 
 @csrf_exempt
 def api_edit_message(request, message_id):
-    """PUT /api/chat/message/<message_id>/ - Edit a message"""
+    """PUT or POST /api/chat/message/<message_id>/edit/ - Edit a message"""
     if not request.user.is_authenticated:
         return JsonResponse({'error': 'Unauthorized'}, status=401)
     
-    if request.method != 'PUT':
+    if request.method not in ['PUT', 'POST']:
         return JsonResponse({'error': 'Method not allowed'}, status=405)
     
     try:
@@ -192,11 +192,11 @@ def api_edit_message(request, message_id):
 
 @csrf_exempt
 def api_delete_message(request, message_id):
-    """DELETE /api/chat/message/<message_id>/ - Delete a message"""
+    """DELETE or POST /api/chat/message/<message_id>/delete/ - Delete a message"""
     if not request.user.is_authenticated:
         return JsonResponse({'error': 'Unauthorized'}, status=401)
     
-    if request.method != 'DELETE':
+    if request.method not in ['DELETE', 'POST']:
         return JsonResponse({'error': 'Method not allowed'}, status=405)
     
     try:
