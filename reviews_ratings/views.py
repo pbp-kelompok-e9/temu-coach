@@ -145,7 +145,6 @@ def delete_review(request, id):
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
-@login_required
 def check_review_for_booking(request, booking_id):
     try:
         booking = Booking.objects.get(id=booking_id)
