@@ -41,10 +41,7 @@ def create_review(request, coach_id):
         "review_id": review_obj[0].id,
         })
 
-
 # New: create review tied to a booking/session. Validates ownership and schedule end time.
-@csrf_exempt
-@require_POST
 @login_required
 @csrf_exempt
 @require_POST
