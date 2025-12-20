@@ -41,55 +41,55 @@ def create_review(request, coach_id):
         "review_id": review_obj[0].id,
         })
 
+
 # New: create review tied to a booking/session. Validates ownership and schedule end time.
-@login_required
 @csrf_exempt
 @require_POST
+@login_required
 def create_review_for_booking(request, booking_id):
-    from coaches_book_catalog.models import Booking
-    import json
-
-    if not request.user.is_authenticated:
-        return JsonResponse(
-            {'success': False, 'error': 'Authentication required'},
-            status=401
-        )
-
-    booking = get_object_or_404(Booking, id=booking_id)
-    if booking.customer != request.user:
-        return JsonResponse(
-            {'success': False, 'error': 'Not allowed'},
-            status=403
-        )
-
     try:
-        data = json.loads(request.body.decode())
-        rate = int(data.get('rate'))
-        review_text = data.get('review', '')
+        from coaches_book_catalog.models import Booking
+
+        booking = get_object_or_404(Booking, id=booking_id)
+
+        if booking.customer != request.user:
+            return JsonResponse({'success': False, 'error': 'Not allowed'}, status=403)
+
+        jadwal = booking.jadwal
+        dt = datetime.datetime.combine(jadwal.tanggal, jadwal.jam_selesai)
+        schedule_end = timezone.make_aware(dt) if timezone.is_naive(dt) else dt
+
+        if schedule_end > timezone.now():
+            return JsonResponse(
+                {'success': False, 'error': 'Booking not finished yet'},
+                status=400
+            )
+
+        if Reviews.objects.filter(booking=booking).exists():
+            return JsonResponse(
+                {'success': False, 'error': 'Review already exists'},
+                status=400
+            )
+
+        rate = int(request.POST.get('rate'))
+        review_text = request.POST.get('review', '')
+
+        review = Reviews.objects.create(
+            coach=booking.jadwal.coach,
+            user=request.user,
+            booking=booking,
+            rate=rate,
+            review=review_text,
+        )
+
+        return JsonResponse({'success': True, 'review_id': review.id})
+
     except Exception as e:
         return JsonResponse(
-            {'success': False, 'error': 'Invalid JSON body'},
-            status=400
+            {'success': False, 'error': str(e)},
+            status=500
         )
 
-    if Reviews.objects.filter(booking=booking).exists():
-        return JsonResponse(
-            {'success': False, 'error': 'Review already exists'},
-            status=400
-        )
-
-    review = Reviews.objects.create(
-        coach=booking.jadwal.coach,
-        user=request.user,
-        booking=booking,
-        rate=rate,
-        review=review_text,
-    )
-
-    return JsonResponse({
-        'success': True,
-        'review_id': review.id,
-    })
 
 # function buat handle update review (cuma bisa update kalo user udah pernah review coach tsb)
 @csrf_exempt
@@ -97,7 +97,7 @@ def create_review_for_booking(request, booking_id):
 def update_review(request, id) :
     review = Reviews.objects.get(id=id, user=request.user)
     # review = Reviews.objects.get(id=id, user=User.objects.first())  # Buat testing
-    review.rate = request.POST.get('rate')
+    review.rate = int(request.POST.get('rate'))
     review.review = request.POST.get('review')
     review.save()
     return JsonResponse({
