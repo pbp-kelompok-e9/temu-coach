@@ -50,20 +50,11 @@ def create_review_for_booking(request, booking_id):
     from coaches_book_catalog.models import Booking
     import json
 
+    print("AUTH:", request.user, request.user.is_authenticated)
+
     booking = get_object_or_404(Booking, id=booking_id)
     if booking.customer != request.user:
         return JsonResponse({'success': False, 'error': 'Not allowed'}, status=403)
-
-    # waktu selesai booking
-    jadwal = booking.jadwal
-    dt = datetime.datetime.combine(jadwal.tanggal, jadwal.jam_selesai)
-    schedule_end = timezone.make_aware(dt) if timezone.is_naive(dt) else dt
-
-    if schedule_end > timezone.now():
-        return JsonResponse({'success': False, 'error': 'Booking not finished yet'}, status=400)
-
-    if Reviews.objects.filter(booking=booking).exists():
-        return JsonResponse({'success': False, 'error': 'Review already exists'}, status=400)
 
     data = json.loads(request.body.decode('utf-8'))
     rate = int(data.get('rate'))
