@@ -235,33 +235,42 @@ def check_review(request, coach_id) :
     except Reviews.DoesNotExist :
         return JsonResponse({'has_review': False})
 
-# function buat ngambil semua review dari coach tertentu
+# reviews_ratings/views.py
+
 @require_GET
 def get_reviews_by_coach(request, coach_id):
-    
-    coach = get_object_or_404(Coach, id=coach_id)
-    
-    reviews = Reviews.objects.filter(coach=coach).order_by('-created_at')
+    try:
+        # Gunakan try-except manual daripada get_object_or_404 biar bisa return JSON
+        try:
+            coach = Coach.objects.get(id=coach_id)
+        except Coach.DoesNotExist:
+             return JsonResponse({'status': 'error', 'message': 'Coach not found'}, status=404)
 
-    data = []
-    for review in reviews:
-        data.append({
-            "id": review.id,
-            "coach": review.coach.name,
-            "user": review.user.username,
-            "rate": review.rate,
-            "review": review.review,
-            "created_at": review.created_at.isoformat() if review.created_at else None,
-            "updated_at": review.updated_at.isoformat() if review.updated_at else None,
+        # Logic ambil review
+        reviews = Reviews.objects.filter(coach=coach).order_by('-created_at')
+
+        data = []
+        for review in reviews:
+            data.append({
+                "id": review.id,
+                "coach": review.coach.name, 
+                "user": review.user.username,
+                "rate": review.rate,
+                "review": review.review,
+                "created_at": review.created_at.isoformat() if review.created_at else None,
+                "updated_at": review.updated_at.isoformat() if review.updated_at else None,
+            })
+
+        return JsonResponse({
+            "status": "success",
+            "coach": coach.name,
+            "total_reviews": len(data),
+            "reviews": data,
         })
 
-    return JsonResponse({
-        "status": "success",
-        "coach": coach.name,
-        "total_reviews": len(data),
-        "reviews": data,
-    })
-    
+    except Exception as e:
+        # Tangkap error lain (misal codingan error) dan jadikan JSON
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 @login_required
 def create_report(request, coach_id):
