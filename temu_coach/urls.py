@@ -29,7 +29,6 @@ def custom_500(request):
 
     return render(request, '500.html', status=500)
 
-
 handler404 = custom_404
 handler500 = custom_500
 

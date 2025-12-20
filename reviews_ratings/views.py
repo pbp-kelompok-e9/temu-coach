@@ -166,16 +166,23 @@ def delete_review(request, id) :
     review.delete()
     return JsonResponse({"success": True})
 
-# function buat ngecek apakah user udah pernah review booking ini
 @login_required
+# @csrf_exempt # Opsional tergantung setup lo, tapi buat GET biasanya aman
 def check_review_for_booking(request, booking_id):
     from coaches_book_catalog.models import Booking
-    booking = get_object_or_404(Booking, id=booking_id)
+    
+    # Gunakan get_object_or_404 atau try-except biasa untuk Booking
+    try:
+        booking = Booking.objects.get(id=booking_id)
+    except Booking.DoesNotExist:
+        return JsonResponse({'has_review': False, 'error': 'Booking not found'}, status=404)
+
     if booking.customer != request.user:
         return JsonResponse({'success': False, 'error': 'Not allowed'}, status=403)
 
-    try:
-        review = Reviews.objects.get(booking=booking)
+    review = Reviews.objects.filter(booking=booking).first()
+
+    if review:
         return JsonResponse({
             'has_review': True,
             'review': {
@@ -184,7 +191,7 @@ def check_review_for_booking(request, booking_id):
                 'review': review.review,
             }
         })
-    except Reviews.DoesNotExist:
+    else:
         return JsonResponse({'has_review': False})
 
 # keeping old coach-based review check for backward compatibility
