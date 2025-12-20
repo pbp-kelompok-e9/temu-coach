@@ -141,6 +141,7 @@ def create_review_for_booking(request, booking_id):
             'type': str(type(e))
         }, status=500)
 # test
+# UPDATE PAKSA: INI SUPAYA GIT SADAR ADA PERUBAHAN
 # --- UPDATE REVIEW HYBRID (AMAN BUAT WEB & FLUTTER) ---
 @csrf_exempt
 @require_POST
