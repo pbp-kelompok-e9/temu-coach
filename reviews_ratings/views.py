@@ -141,30 +141,75 @@ def create_review_for_booking(request, booking_id):
             'type': str(type(e))
         }, status=500)
 
-# function buat handle update review (cuma bisa update kalo user udah pernah review coach tsb)
+# --- UPDATE REVIEW HYBRID (AMAN BUAT WEB & FLUTTER) ---
 @csrf_exempt
-@login_required
 @require_POST
-def update_review(request, id) :
-    review = Reviews.objects.get(id=id, user=request.user)
-    # review = Reviews.objects.get(id=id, user=User.objects.first())  # Buat testing
-    review.rate = int(request.POST.get('rate'))
-    review.review = request.POST.get('review')
-    review.save()
-    return JsonResponse({
-        "success": True,
-        "review_id": review.id,
-        })
+def update_review(request, id):
+    # Cek apakah user login
+    if not request.user.is_authenticated:
+        # Kalo request dari Web (bukan API), lempar ke login page
+        if not request.headers.get('Content-Type') == 'application/json':
+            return redirect('accounts:login') # Sesuaikan nama URL login kamu
+        return JsonResponse({'success': False, 'error': 'Unauthorized'}, status=401)
 
-# function buat handle delete review (cuma bisa delete kalo user udah pernah review coach tsb)
+    try:
+        review = Reviews.objects.get(id=id, user=request.user)
+        
+        # Logic Update
+        rate_raw = request.POST.get('rate')
+        if rate_raw:
+             review.rate = int(rate_raw)
+        review.review = request.POST.get('review', review.review)
+        review.save()
+
+        # --- PEMISAH FLUTTER VS WEB ---
+        # Kalau request datang dari Flutter/JSON
+        if request.headers.get('Content-Type') == 'application/json' or request.GET.get('format') == 'json':
+            return JsonResponse({"success": True, "review_id": review.id, "message": "Updated"})
+        
+        # Kalau request datang dari Web (Form Submit biasa)
+        messages.success(request, "Review berhasil diupdate!")
+        # Redirect balik ke halaman detail coach atau list review
+        return redirect('coaches_book_catalog:coach_detail', coach_id=review.coach.id) 
+
+    except Reviews.DoesNotExist:
+        if request.headers.get('Content-Type') == 'application/json':
+            return JsonResponse({'success': False, 'error': 'Review not found'}, status=404)
+        return redirect('some_error_page') # Atau redirect back
+        
+    except Exception as e:
+        if request.headers.get('Content-Type') == 'application/json':
+             return JsonResponse({'success': False, 'error': str(e)}, status=500)
+        messages.error(request, f"Error: {str(e)}")
+        return redirect('some_error_page')
+
+
+# --- DELETE REVIEW HYBRID ---
 @csrf_exempt
-@login_required
 @require_POST
-def delete_review(request, id) :
-    review = Reviews.objects.get(id=id, user=request.user)
-    # review = Reviews.objects.get(id=id, user=User.objects.first()) # BUAT TEST
-    review.delete()
-    return JsonResponse({"success": True})
+def delete_review(request, id):
+    if not request.user.is_authenticated:
+        if not request.headers.get('Content-Type') == 'application/json':
+             return redirect('accounts:login')
+        return JsonResponse({'success': False, 'error': 'Unauthorized'}, status=401)
+
+    try:
+        review = Reviews.objects.get(id=id, user=request.user)
+        coach_id = review.coach.id # Simpan ID buat redirect
+        review.delete()
+
+        # Flutter/API Response
+        if request.headers.get('Content-Type') == 'application/json' or request.GET.get('format') == 'json':
+            return JsonResponse({"success": True, "message": "Deleted"})
+        
+        # Web Response
+        messages.success(request, "Review berhasil dihapus!")
+        return redirect('coaches_book_catalog:coach_detail', coach_id=coach_id)
+
+    except Reviews.DoesNotExist:
+        if request.headers.get('Content-Type') == 'application/json':
+            return JsonResponse({'success': False, 'error': 'Review not found'}, status=404)
+        return redirect('some_error_page')
 
 @login_required
 # @csrf_exempt # Opsional tergantung setup lo, tapi buat GET biasanya aman
