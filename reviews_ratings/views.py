@@ -145,28 +145,52 @@ def delete_review(request, id):
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
+# reviews_ratings/views.py
+
+# Hapus decorator apapun diatasnya biar aman
 def check_review_for_booking(request, booking_id):
+    # 1. Debugging Awal
+    if not request.user.is_authenticated:
+         # Kita return JSON biar tau kalo ini masalah login
+        return JsonResponse({'has_review': False, 'debug_message': 'User not authenticated'})
+
     try:
-        booking = Booking.objects.get(id=booking_id)
-    except Booking.DoesNotExist:
-        return JsonResponse({'has_review': False, 'error': 'Booking not found'}, status=404)
+        # Import manual di dalam biar anti 'NameError'
+        from coaches_book_catalog.models import Booking
+        from .models import Reviews
 
-    if booking.customer != request.user:
-        return JsonResponse({'success': False, 'error': 'Not allowed'}, status=403)
+        # 2. Logic Utama
+        try:
+            booking = Booking.objects.get(id=booking_id)
+        except Booking.DoesNotExist:
+            return JsonResponse({'has_review': False, 'error': 'Booking not found'}, status=404)
 
-    review = Reviews.objects.filter(booking=booking).first()
+        if booking.customer != request.user:
+            return JsonResponse({'has_review': False, 'error': 'Not allowed'}, status=403)
 
-    if review:
+        review = Reviews.objects.filter(booking=booking).first()
+
+        if review:
+            return JsonResponse({
+                'has_review': True,
+                'review': {
+                    'id': review.id,
+                    'rate': review.rate,
+                    'review': review.review,
+                }
+            })
+        else:
+            return JsonResponse({'has_review': False})
+
+    except Exception as e:
+        # 3. INI PENYELAMATNYA!
+        # Kalau ada crash python, kita tangkap dan kirim sebagai JSON.
+        # Flutter lu bakal bisa baca ini dan kita tau error aslinya apa.
         return JsonResponse({
-            'has_review': True,
-            'review': {
-                'id': review.id,
-                'rate': review.rate,
-                'review': review.review,
-            }
-        })
-    else:
-        return JsonResponse({'has_review': False})
+            'has_review': False, 
+            'CRASH_ERROR': str(e),
+            'CRASH_TYPE': str(type(e))
+        }, status=200)
 
 # keeping old coach-based review check for backward compatibility
 def check_review(request, coach_id) :
