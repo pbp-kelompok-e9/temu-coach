@@ -46,19 +46,40 @@ def create_review(request, coach_id):
 @csrf_exempt
 @require_POST
 @login_required
+@csrf_exempt
+@require_POST
 def create_review_for_booking(request, booking_id):
     from coaches_book_catalog.models import Booking
     import json
 
-    print("AUTH:", request.user, request.user.is_authenticated)
+    if not request.user.is_authenticated:
+        return JsonResponse(
+            {'success': False, 'error': 'Authentication required'},
+            status=401
+        )
 
     booking = get_object_or_404(Booking, id=booking_id)
     if booking.customer != request.user:
-        return JsonResponse({'success': False, 'error': 'Not allowed'}, status=403)
+        return JsonResponse(
+            {'success': False, 'error': 'Not allowed'},
+            status=403
+        )
 
-    data = json.loads(request.body.decode('utf-8'))
-    rate = int(data.get('rate'))
-    review_text = data.get('review', '')
+    try:
+        data = json.loads(request.body.decode())
+        rate = int(data.get('rate'))
+        review_text = data.get('review', '')
+    except Exception as e:
+        return JsonResponse(
+            {'success': False, 'error': 'Invalid JSON body'},
+            status=400
+        )
+
+    if Reviews.objects.filter(booking=booking).exists():
+        return JsonResponse(
+            {'success': False, 'error': 'Review already exists'},
+            status=400
+        )
 
     review = Reviews.objects.create(
         coach=booking.jadwal.coach,
