@@ -1,3 +1,4 @@
+from functools import wraps
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
@@ -43,36 +44,49 @@ def create_review(request, coach_id):
         })
 
 
-# New: create review tied to a booking/session. Validates ownership and schedule end time.
+# Helper untuk handle login check khusus API (agar tidak redirect ke HTML)
+def api_login_required(view_func):
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return JsonResponse({'success': False, 'error': 'Unauthorized'}, status=401)
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view
+
 @csrf_exempt
+@api_login_required # Ganti login_required biasa dengan helper ini
 @require_POST
-@login_required
 def create_review_for_booking(request, booking_id):
     try:
-        from coaches_book_catalog.models import Booking
+        from coaches_book_catalog.models import Booking # Pastikan ini path yg benar
 
         booking = get_object_or_404(Booking, id=booking_id)
 
         if booking.customer != request.user:
             return JsonResponse({'success': False, 'error': 'Not allowed'}, status=403)
 
+        # Validasi waktu selesai
         jadwal = booking.jadwal
         dt = datetime.datetime.combine(jadwal.tanggal, jadwal.jam_selesai)
-        schedule_end = timezone.make_aware(dt) if timezone.is_naive(dt) else dt
+        
+        # Tambahkan timezone jika perlu
+        if timezone.is_naive(dt):
+            schedule_end = timezone.make_aware(dt)
+        else:
+            schedule_end = dt
 
         if schedule_end > timezone.now():
-            return JsonResponse(
-                {'success': False, 'error': 'Booking not finished yet'},
-                status=400
-            )
+            return JsonResponse({'success': False, 'error': 'Sesi belum berakhir'}, status=400)
 
         if Reviews.objects.filter(booking=booking).exists():
-            return JsonResponse(
-                {'success': False, 'error': 'Review already exists'},
-                status=400
-            )
+            return JsonResponse({'success': False, 'error': 'Review sudah ada'}, status=400)
 
-        rate = int(request.POST.get('rate'))
+        # Validasi input rate
+        try:
+            rate = int(request.POST.get('rate', 0))
+        except (ValueError, TypeError):
+            return JsonResponse({'success': False, 'error': 'Rating harus angka'}, status=400)
+            
         review_text = request.POST.get('review', '')
 
         review = Reviews.objects.create(
@@ -86,10 +100,8 @@ def create_review_for_booking(request, booking_id):
         return JsonResponse({'success': True, 'review_id': review.id})
 
     except Exception as e:
-        return JsonResponse(
-            {'success': False, 'error': str(e)},
-            status=500
-        )
+        print(f"Error create_review: {e}") # Log di terminal backend
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
 # function buat handle update review (cuma bisa update kalo user udah pernah review coach tsb)
