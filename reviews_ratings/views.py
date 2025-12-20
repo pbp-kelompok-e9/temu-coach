@@ -20,6 +20,7 @@ from django.utils import timezone
 
 # function buat handle create review (cuma bisa sekali kalo user belum pernah review coach tsb)
 @csrf_exempt
+@login_required
 @require_POST
 def create_review(request, coach_id):
     rate = request.POST.get('rate')
@@ -93,6 +94,7 @@ def create_review_for_booking(request, booking_id):
 
 # function buat handle update review (cuma bisa update kalo user udah pernah review coach tsb)
 @csrf_exempt
+@login_required
 @require_POST
 def update_review(request, id) :
     review = Reviews.objects.get(id=id, user=request.user)
@@ -107,6 +109,7 @@ def update_review(request, id) :
 
 # function buat handle delete review (cuma bisa delete kalo user udah pernah review coach tsb)
 @csrf_exempt
+@login_required
 @require_POST
 def delete_review(request, id) :
     review = Reviews.objects.get(id=id, user=request.user)
@@ -115,6 +118,7 @@ def delete_review(request, id) :
     return JsonResponse({"success": True})
 
 # function buat ngecek apakah user udah pernah review booking ini
+@login_required
 def check_review_for_booking(request, booking_id):
     from coaches_book_catalog.models import Booking
     booking = get_object_or_404(Booking, id=booking_id)
