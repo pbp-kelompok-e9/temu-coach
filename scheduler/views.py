@@ -36,7 +36,7 @@ def api_schedule_list(request):
 @api_login_required
 def add_schedule(request):
     """Add schedule - API endpoint"""
-    # Cek apakah coach sudah approved
+    
     try:
         coach = Coach.objects.get(user=request.user)
     except Coach.DoesNotExist:
@@ -98,7 +98,7 @@ def coach_dashboard(request):
         return redirect('my_admin:dashboard_simple')
     
     coach = get_object_or_404(Coach, user=request.user)
-    # Filter to only show upcoming jadwal (tanggal >= hari ini)
+    
     today = date.today()
     jadwal_list = Jadwal.objects.filter(
         coach=coach,
@@ -111,37 +111,149 @@ def coach_dashboard(request):
 @csrf_exempt
 @api_login_required
 def update_coach_profile(request):
-    """Update coach profile - API endpoint"""
-    if request.method == 'POST':
-        try:
-            coach = Coach.objects.get(user=request.user)
-        except Coach.DoesNotExist:
-            return JsonResponse({
-                'status': 'error',
-                'message': 'Coach profile not found'
-            }, status=404)
+    """
+    Update coach profile - Support both JSON and multipart/form-data
+    """
+    if request.method != 'POST':
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Method not allowed'
+        }, status=405)
+    
+    try:
+        coach = Coach.objects.get(user=request.user)
+    except Coach.DoesNotExist:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Coach profile not found'
+        }, status=404)
 
-        coach.name = request.POST.get('name')
-        coach.age = int(request.POST.get('age'))
-        coach.citizenship = request.POST.get('citizenship')
-        coach.club = request.POST.get('club')
-        coach.license = request.POST.get('license')
-        coach.preffered_formation = request.POST.get('preffered_formation')
-        coach.average_term_as_coach = float(request.POST.get('average_term_as_coach'))
-        coach.rate_per_session = request.POST.get('rate_per_session')
-        coach.description = request.POST.get('description')
+    try:
+       
+        if 'name' in request.POST and request.POST.get('name').strip():
+            coach.name = request.POST.get('name').strip()
+        
+        if 'age' in request.POST:
+            try:
+                age = int(request.POST.get('age'))
+                if age < 18 or age > 100:
+                    return JsonResponse({
+                        'status': 'error',
+                        'message': 'Age must be between 18 and 100'
+                    }, status=400)
+                coach.age = age
+            except (ValueError, TypeError):
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Age must be a valid number'
+                }, status=400)
+        
+        if 'citizenship' in request.POST:
+            coach.citizenship = request.POST.get('citizenship', '').strip()
+        
+        if 'club' in request.POST:
+            coach.club = request.POST.get('club', '').strip()
+        
+        if 'license' in request.POST:
+            coach.license = request.POST.get('license', '').strip()
+        
+        if 'preffered_formation' in request.POST:
+            coach.preffered_formation = request.POST.get('preffered_formation', '').strip()
+        
+        if 'average_term_as_coach' in request.POST:
+            try:
+                term = float(request.POST.get('average_term_as_coach'))
+                if term < 0 or term > 50:
+                    return JsonResponse({
+                        'status': 'error',
+                        'message': 'Average term must be between 0 and 50 years'
+                    }, status=400)
+                coach.average_term_as_coach = term
+            except (ValueError, TypeError):
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Average term must be a valid number'
+                }, status=400)
+        
+        if 'rate_per_session' in request.POST:
+            rate = request.POST.get('rate_per_session', '').strip()
+            if rate:
+                coach.rate_per_session = rate
+        
+        if 'description' in request.POST:
+            coach.description = request.POST.get('description', '').strip()
 
+        
         if 'foto' in request.FILES:
-            coach.foto = request.FILES['foto']
+            foto_file = request.FILES['foto']
+            
+          
+            if foto_file.size > 5 * 1024 * 1024:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'File size too large. Maximum 5MB allowed.'
+                }, status=400)
+            
+         
+            allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+            if foto_file.content_type not in allowed_types:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Invalid file type. Only JPEG, PNG, GIF, and WebP allowed.'
+                }, status=400)
+            
+            
+            if coach.foto:
+                try:
+                    
+                    import os
+                    from django.conf import settings
+                    
+                    
+                    old_foto_path = os.path.join(settings.MEDIA_ROOT, str(coach.foto))
+                    
+                 
+                    if os.path.exists(old_foto_path):
+                        os.remove(old_foto_path)
+                        print(f"✅ Old photo deleted: {old_foto_path}")
+                except Exception as e:
+                    print(f"⚠️ Error deleting old photo: {e}")
+                    
+            
+            coach.foto = foto_file
+            print(f"✅ New photo uploaded: {foto_file.name} ({foto_file.size} bytes)")
 
         coach.save()
-        return JsonResponse({'status': 'success'})
-
-    return JsonResponse({
-        'status': 'error',
-        'message': 'Method not allowed'
-    }, status=405)
-
+        
+        foto_url = coach.foto.url if coach.foto else None
+        
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Profile updated successfully',
+            'foto_url': foto_url,
+            'coach': {
+                'name': coach.name,
+                'age': coach.age,
+                'citizenship': coach.citizenship,
+                'club': coach.club,
+                'license': coach.license,
+                'preffered_formation': coach.preffered_formation,
+                'average_term_as_coach': coach.average_term_as_coach,
+                'description': coach.description,
+                'rate_per_session': str(coach.rate_per_session),
+                'foto': foto_url,
+            }
+        })
+        
+    except Exception as e:
+        print(f"❌ Error updating coach profile: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        
+        return JsonResponse({
+            'status': 'error',
+            'message': f'Internal server error: {str(e)}'
+        }, status=500)
 
 @api_login_required
 def api_coach_profile(request):

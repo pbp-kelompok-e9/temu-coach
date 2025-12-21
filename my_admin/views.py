@@ -212,48 +212,30 @@ def api_reports(request):
         "reports": data
     })
 
+
 @csrf_exempt
 @login_required
-def create_report_api(request):
-    if request.method != "POST":
-        return JsonResponse(
-            {'status': False, 'message': 'Invalid method'},
-            status=405
-        )
+@require_POST
+def create_report_api(request, coach_id):
+    try:
+        data = json.loads(request.body)
+        reason = data.get('reason', '').strip()
+    except Exception:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON format'}, status=400)
 
-    coach_id = request.POST.get('coach_id')
-    reason = request.POST.get('reason')
+    if not reason:
+        return JsonResponse({'success': False, 'error': 'Alasan laporan tidak boleh kosong'}, status=400)
 
-    if not coach_id or not reason:
-        return JsonResponse(
-            {
-                'status': False,
-                'message': 'coach_id and reason required'
-            },
-            status=400
-        )
+    coach = get_object_or_404(Coach, id=coach_id)
 
-    coach = Coach.objects.filter(id=coach_id).first()
-    if not coach:
-        return JsonResponse(
-            {'status': False, 'message': 'Coach not found'},
-            status=404
-        )
-
-    report = Report.objects.create(
+    Report.objects.create(
         reporter=request.user,
         coach=coach,
         reason=reason
     )
 
-    return JsonResponse(
-        {
-            'status': True,
-            'message': 'Report created',
-            'report_id': report.id
-        },
-        status=201
-    )
+    return JsonResponse({'success': True})
+
 
 @login_required
 def list_reports_api(request):
