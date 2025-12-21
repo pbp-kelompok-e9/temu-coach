@@ -115,7 +115,8 @@ def logout_view(request):
 
 
 @csrf_exempt 
-def login_api(request): # login dari flutter
+def login_api(request):
+    """Login dari Flutter - dengan explicit cookie setting"""
     if request.method == 'POST':
         try:
             data = None
@@ -149,8 +150,15 @@ def login_api(request): # login dari flutter
                             'status': False,
                             'message': 'Anda belum diapprove oleh admin sebagai coach.'
                         }, status=403)
+                    
+                    # Login user (creates session)
                     login(request, user)
-                    return JsonResponse({
+                    
+                    # Ensure session is saved
+                    request.session.save()
+                    
+                    # Prepare response data
+                    response_data = {
                         'status': True,
                         'message': 'Login berhasil',
                         'user': {
@@ -163,7 +171,49 @@ def login_api(request): # login dari flutter
                             'is_customer': user.is_customer,
                             'is_admin': user.is_superuser
                         }
-                    }, status=200)
+                    }
+                    
+                    response = JsonResponse(response_data, status=200)
+                    
+                    # Get session key
+                    session_key = request.session.session_key
+                    
+                    # Set session cookie explicitly
+                    response.set_cookie(
+                        'sessionid',
+                        session_key,
+                        max_age=1209600,      # 2 weeks
+                        httponly=False,       # Allow JS access for Flutter web
+                        secure=True,          # HTTPS only
+                        samesite='None',      # Cross-origin support
+                        domain=None,          # Let Django handle domain
+                    )
+                    
+                    # Set CSRF cookie explicitly
+                    from django.middleware.csrf import get_token
+                    csrf_token = get_token(request)
+                    
+                    response.set_cookie(
+                        'csrftoken',
+                        csrf_token,
+                        max_age=31449600,     # 1 year
+                        httponly=False,       # Allow JS access
+                        secure=True,          # HTTPS only
+                        samesite='None',      # Cross-origin support
+                        domain=None,
+                    )
+                    
+                    # Debug logging
+                    print('═══════════════════════════════════════')
+                    print('🔐 LOGIN API SUCCESS')
+                    print('═══════════════════════════════════════')
+                    print(f'✓ User: {username}')
+                    print(f'✓ Session key: {session_key}')
+                    print(f'✓ CSRF token: {csrf_token[:20]}...')
+                    print(f'✓ Cookies set in response')
+                    print('═══════════════════════════════════════')
+                    
+                    return response
                 else:
                     return JsonResponse({
                         'status': False,
@@ -175,15 +225,15 @@ def login_api(request): # login dari flutter
                     'message': 'Username atau password salah'
                 }, status=401)
                 
-        except Exception:
+        except Exception as e:
+            # Log error with traceback
+            print(f'❌ Login API error: {e}')
+            import traceback
+            traceback.print_exc()
+            
             return JsonResponse({
                 'status': False,
                 'message': 'Terjadi kesalahan pada server'
-            }, status=500)
-        except Exception as e:
-            return JsonResponse({
-                'status': False,
-                'message': f'Terjadi kesalahan: {str(e)}'
             }, status=500)
     
     return JsonResponse({
