@@ -108,8 +108,8 @@ def coach_dashboard(request):
     return render(request, 'coach_dashboard.html', {'coach': coach, 'jadwal_list': jadwal_list})
 
 
-@csrf_exempt
 @api_login_required
+@csrf_exempt  
 def update_coach_profile(request):
     """
     Update coach profile - Support both JSON and multipart/form-data
@@ -120,6 +120,18 @@ def update_coach_profile(request):
             'message': 'Method not allowed'
         }, status=405)
     
+    if not request.user.is_authenticated:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Sesi berakhir. Silakan login lagi.'
+        }, status=401)
+    
+    
+    print(f"📥 Received update request from user: {request.user.username}")
+    print(f"📥 Content-Type: {request.content_type}")
+    print(f"📥 Session key: {request.session.session_key}")
+    print(f"📥 Cookies: {request.COOKIES.keys()}")
+    
     try:
         coach = Coach.objects.get(user=request.user)
     except Coach.DoesNotExist:
@@ -129,7 +141,7 @@ def update_coach_profile(request):
         }, status=404)
 
     try:
-       
+        # Update fields
         if 'name' in request.POST and request.POST.get('name').strip():
             coach.name = request.POST.get('name').strip()
         
@@ -183,18 +195,18 @@ def update_coach_profile(request):
         if 'description' in request.POST:
             coach.description = request.POST.get('description', '').strip()
 
-        
+       
         if 'foto' in request.FILES:
             foto_file = request.FILES['foto']
             
-          
+            
             if foto_file.size > 5 * 1024 * 1024:
                 return JsonResponse({
                     'status': 'error',
                     'message': 'File size too large. Maximum 5MB allowed.'
                 }, status=400)
             
-         
+            
             allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
             if foto_file.content_type not in allowed_types:
                 return JsonResponse({
@@ -205,21 +217,17 @@ def update_coach_profile(request):
             
             if coach.foto:
                 try:
-                    
                     import os
                     from django.conf import settings
                     
-                    
                     old_foto_path = os.path.join(settings.MEDIA_ROOT, str(coach.foto))
                     
-                 
                     if os.path.exists(old_foto_path):
                         os.remove(old_foto_path)
                         print(f"✅ Old photo deleted: {old_foto_path}")
                 except Exception as e:
                     print(f"⚠️ Error deleting old photo: {e}")
                     
-            
             coach.foto = foto_file
             print(f"✅ New photo uploaded: {foto_file.name} ({foto_file.size} bytes)")
 
@@ -232,13 +240,14 @@ def update_coach_profile(request):
             'message': 'Profile updated successfully',
             'foto_url': foto_url,
             'coach': {
+                'id': coach.id, 
                 'name': coach.name,
                 'age': coach.age,
                 'citizenship': coach.citizenship,
                 'club': coach.club,
                 'license': coach.license,
                 'preffered_formation': coach.preffered_formation,
-                'average_term_as_coach': coach.average_term_as_coach,
+                'average_term_as_coach': float(coach.average_term_as_coach) if coach.average_term_as_coach else 0.0,
                 'description': coach.description,
                 'rate_per_session': str(coach.rate_per_session),
                 'foto': foto_url,
@@ -252,7 +261,7 @@ def update_coach_profile(request):
         
         return JsonResponse({
             'status': 'error',
-            'message': f'Internal server error: {str(e)}'
+            'message': 'An error occurred while updating profile' 
         }, status=500)
 
 @api_login_required
