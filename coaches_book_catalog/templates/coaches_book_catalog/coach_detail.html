@@ -106,11 +106,35 @@
     </main>
 
     <section class="w-full order-3 mt-8 bg-white border border-gray-200 rounded-xl shadow-sm p-8">
-        <h2 class="text-2xl font-bold text-[#003E85] mb-6">Reviews ({{ total_reviews }})</h2>
-        <div class="flex gap-6 overflow-x-auto pb-6 snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
+            <h2 class="text-2xl font-bold text-[#003E85]">Reviews ({{ total_reviews }})</h2>
+            
+            <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                <button onclick="filterReviews('all')" class="filter-btn active px-4 py-2 rounded-full text-sm font-semibold border transition-all duration-200 bg-[#003E85] text-white border-[#003E85]" data-filter="all">
+                    Semua
+                </button>
+                <button onclick="filterReviews('5')" class="filter-btn px-4 py-2 rounded-full text-sm font-semibold border border-gray-200 text-gray-600 hover:bg-gray-50 transition-all duration-200 flex items-center gap-1" data-filter="5">
+                    5 <i class="fas fa-star text-yellow-400 text-xs"></i>
+                </button>
+                <button onclick="filterReviews('4')" class="filter-btn px-4 py-2 rounded-full text-sm font-semibold border border-gray-200 text-gray-600 hover:bg-gray-50 transition-all duration-200 flex items-center gap-1" data-filter="4">
+                    4 <i class="fas fa-star text-yellow-400 text-xs"></i>
+                </button>
+                <button onclick="filterReviews('3')" class="filter-btn px-4 py-2 rounded-full text-sm font-semibold border border-gray-200 text-gray-600 hover:bg-gray-50 transition-all duration-200 flex items-center gap-1" data-filter="3">
+                    3 <i class="fas fa-star text-yellow-400 text-xs"></i>
+                </button>
+                <button onclick="filterReviews('2')" class="filter-btn px-4 py-2 rounded-full text-sm font-semibold border border-gray-200 text-gray-600 hover:bg-gray-50 transition-all duration-200 flex items-center gap-1" data-filter="2">
+                    2 <i class="fas fa-star text-yellow-400 text-xs"></i>
+                </button>
+                <button onclick="filterReviews('1')" class="filter-btn px-4 py-2 rounded-full text-sm font-semibold border border-gray-200 text-gray-600 hover:bg-gray-50 transition-all duration-200 flex items-center gap-1" data-filter="1">
+                    1 <i class="fas fa-star text-yellow-400 text-xs"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="reviewsContainer" class="flex gap-6 overflow-x-auto pb-6 snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {% if reviews %}
                 {% for review in reviews %}
-                    <div class="flex-[0_0_300px] snap-start bg-white border border-gray-200 rounded-xl shadow-sm p-6">
+                    <div class="review-item flex-[0_0_300px] snap-start bg-white border border-gray-200 rounded-xl shadow-sm p-6" data-rating="{{ review.rate }}">
                         <div class="text-yellow-400 mb-2">
                             {% for i in "12345" %}
                                 {% if forloop.counter <= review.rate %}
@@ -130,6 +154,11 @@
                     <p class="text-[#34495e] text-sm leading-relaxed mb-2">Belum ada review.</p>
                 </div>
             {% endif %}
+        </div>
+
+        <div id="noReviewsFilterMsg" class="hidden text-center py-8 text-gray-500 bg-gray-50 rounded-xl border border-dashed border-gray-300">
+            <i class="far fa-sad-tear text-2xl mb-2 text-gray-400"></i>
+            <p class="text-sm">Tidak ada review dengan rating ini.</p>
         </div>
 
         <div class="mt-8 text-center">
@@ -152,6 +181,7 @@
 </div>
 
 <script>
+    // --- JS Calendar Logic (Tidak Berubah) ---
     const scheduleData = {
         {% for tanggal, jadwal_list in grouped_schedules.items %}
         "{{ tanggal|date:'Y-m-d' }}": [
@@ -210,43 +240,43 @@
         today.setHours(0, 0, 0, 0);
         
         for (let day = 1; day <= daysInMonth; day++) {
-            const dayDate = new Date(year, month, day); 
-            dayDate.setHours(0, 0, 0, 0);
-            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            
-            const dayCell = document.createElement('div');
-            dayCell.className = 'calendar-day aspect-square flex items-center justify-center rounded-full text-sm cursor-pointer transition-all duration-200 border-2 border-transparent bg-white text-gray-600';
-            dayCell.textContent = day;
-            dayCell.dataset.date = dateStr;
-            
-            const hasSlots = scheduleData[dateStr] && scheduleData[dateStr].length > 0;
-            const isPast = dayDate < today;
-            
-            if (isPast) {
-                dayCell.className += ' text-gray-400 cursor-not-allowed line-through opacity-60';
-            } else if (hasSlots) {
-                dayCell.className += ' font-semibold text-[#003E85] relative hover:bg-[#EBF4FF]';
-                dayCell.innerHTML = `${day}<span class="absolute bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-[#003E85] rounded-full"></span>`;
-                dayCell.addEventListener('click', () => handleDateClick(dateStr, dayDate));
-            } else {
-                dayCell.className += ' text-gray-300 cursor-not-allowed';
-            }
-            
-            if (selectedDate === dateStr) { 
-                dayCell.className = dayCell.className.replace('hover:bg-[#EBF4FF]', ''); 
+            const dayDate = new Date(year, month, day); 
+            dayDate.setHours(0, 0, 0, 0);
+            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            
+            const dayCell = document.createElement('div');
+            dayCell.className = 'calendar-day aspect-square flex items-center justify-center rounded-full text-sm cursor-pointer transition-all duration-200 border-2 border-transparent bg-white text-gray-600';
+            dayCell.textContent = day;
+            dayCell.dataset.date = dateStr;
+            
+            const hasSlots = scheduleData[dateStr] && scheduleData[dateStr].length > 0;
+            const isPast = dayDate < today;
+            
+            if (isPast) {
+                dayCell.className += ' text-gray-400 cursor-not-allowed line-through opacity-60';
+            } else if (hasSlots) {
+                dayCell.className += ' font-semibold text-[#003E85] relative hover:bg-[#EBF4FF]';
+                dayCell.innerHTML = `${day}<span class="absolute bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-[#003E85] rounded-full"></span>`;
+                dayCell.addEventListener('click', () => handleDateClick(dateStr, dayDate));
+            } else {
+                dayCell.className += ' text-gray-300 cursor-not-allowed';
+            }
+            
+            if (selectedDate === dateStr) { 
+                dayCell.className = dayCell.className.replace('hover:bg-[#EBF4FF]', ''); 
 
-                dayCell.className = dayCell.className.replace('bg-white', 'bg-[#003E85]');
-                dayCell.className = dayCell.className.replace('text-[#003E85]', 'text-white');
-                dayCell.className = dayCell.className.replace('text-gray-600', 'text-white'); 
-                dayCell.className = dayCell.className.replace('border-transparent', 'border-[#003E85]');
-                dayCell.className += ' font-bold';
-                if (hasSlots) {
-                    dayCell.innerHTML = `${day}<span class="absolute bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-white rounded-full"></span>`;
-                }
-            }
-            
-            calendarGrid.appendChild(dayCell);
-        }
+                dayCell.className = dayCell.className.replace('bg-white', 'bg-[#003E85]');
+                dayCell.className = dayCell.className.replace('text-[#003E85]', 'text-white');
+                dayCell.className = dayCell.className.replace('text-gray-600', 'text-white'); 
+                dayCell.className = dayCell.className.replace('border-transparent', 'border-[#003E85]');
+                dayCell.className += ' font-bold';
+                if (hasSlots) {
+                    dayCell.innerHTML = `${day}<span class="absolute bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-white rounded-full"></span>`;
+                }
+            }
+            
+            calendarGrid.appendChild(dayCell);
+        }
     }
 
     function handleDateClick(dateStr, dateObj) {
@@ -336,6 +366,47 @@
         renderCalendar();
         displayTimeSlots(null, null); 
     });
+
+    // --- NEW: REVIEW FILTER LOGIC ---
+    function filterReviews(rating) {
+        const buttons = document.querySelectorAll('.filter-btn');
+        const reviews = document.querySelectorAll('.review-item');
+        const emptyMsg = document.getElementById('noReviewsFilterMsg');
+        const reviewsContainer = document.getElementById('reviewsContainer');
+        let visibleCount = 0;
+
+        // 1. Update Button Styles
+        buttons.forEach(btn => {
+            if(btn.dataset.filter === rating) {
+                // Style Active
+                btn.classList.add('bg-[#003E85]', 'text-white', 'border-[#003E85]');
+                btn.classList.remove('bg-white', 'text-gray-600', 'border-gray-200', 'hover:bg-gray-50');
+            } else {
+                // Style Inactive
+                btn.classList.remove('bg-[#003E85]', 'text-white', 'border-[#003E85]');
+                btn.classList.add('bg-white', 'text-gray-600', 'border-gray-200', 'hover:bg-gray-50');
+            }
+        });
+
+        // 2. Show/Hide Reviews
+        reviews.forEach(review => {
+            if (rating === 'all' || review.dataset.rating === rating) {
+                review.style.display = 'block';
+                visibleCount++;
+            } else {
+                review.style.display = 'none';
+            }
+        });
+
+        // 3. Handle Empty State
+        if (visibleCount === 0) {
+            emptyMsg.classList.remove('hidden');
+            reviewsContainer.classList.add('hidden');
+        } else {
+            emptyMsg.classList.add('hidden');
+            reviewsContainer.classList.remove('hidden');
+        }
+    }
 
     initializeCalendar();
 </script>
