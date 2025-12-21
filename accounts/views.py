@@ -178,6 +178,7 @@ def login_api(request):
                     # Get session key
                     session_key = request.session.session_key
                     
+                    # ✅ FIX: Set cookies dengan settings yang benar untuk production
                     # Set session cookie explicitly
                     response.set_cookie(
                         'sessionid',
@@ -186,7 +187,8 @@ def login_api(request):
                         httponly=False,       # Allow JS access for Flutter web
                         secure=True,          # HTTPS only
                         samesite='None',      # Cross-origin support
-                        domain=None,          # Let Django handle domain
+                        domain='.pbp.cs.ui.ac.id',  # ← PENTING: Domain production
+                        path='/',             # Available on all paths
                     )
                     
                     # Set CSRF cookie explicitly
@@ -200,7 +202,8 @@ def login_api(request):
                         httponly=False,       # Allow JS access
                         secure=True,          # HTTPS only
                         samesite='None',      # Cross-origin support
-                        domain=None,
+                        domain='.pbp.cs.ui.ac.id',  # ← PENTING: Domain production
+                        path='/',             # Available on all paths
                     )
                     
                     # Debug logging
@@ -210,7 +213,10 @@ def login_api(request):
                     print(f'✓ User: {username}')
                     print(f'✓ Session key: {session_key}')
                     print(f'✓ CSRF token: {csrf_token[:20]}...')
-                    print(f'✓ Cookies set in response')
+                    print(f'✓ Cookies set with domain: .pbp.cs.ui.ac.id')
+                    print(f'✓ httponly=False (JS accessible)')
+                    print(f'✓ secure=True (HTTPS only)')
+                    print(f'✓ samesite=None (cross-origin)')
                     print('═══════════════════════════════════════')
                     
                     return response
