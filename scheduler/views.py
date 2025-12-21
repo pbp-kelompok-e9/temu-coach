@@ -108,8 +108,8 @@ def coach_dashboard(request):
     return render(request, 'coach_dashboard.html', {'coach': coach, 'jadwal_list': jadwal_list})
 
 
-@api_login_required
 @csrf_exempt  
+@api_login_required
 def update_coach_profile(request):
     """
     Update coach profile - Support both JSON and multipart/form-data
