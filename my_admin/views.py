@@ -6,6 +6,7 @@ from django.views.decorators.http import require_POST
 from .models import Report, AdminAction
 from coaches_book_catalog.models import Coach, CoachRequest
 from django.views.decorators.csrf import csrf_exempt
+import json
 
 @login_required
 def dashboard_simple(request):
@@ -191,20 +192,75 @@ def delete_report_api(request, report_id):
 
 @csrf_exempt
 def api_reports(request):
-    reports = Report.objects.select_related("reporter", "coach__user").all().order_by('-created_at')
+    reports = Report.objects.filter(
+        is_reviewed=False,
+        is_approved=False
+    )
 
     data = []
     for r in reports:
         data.append({
             "id": r.id,
             "reason": r.reason,
-            "reported_by": r.reporter.username,
-            "coach_username": r.coach.user.username,
             "coach_id": r.coach.id,
+            "coach_username": r.coach.user.username,
+            "reporter": r.reporter.username,
             "created_at": r.created_at.isoformat(),
         })
 
-    return JsonResponse({"reports": data}, status=200)
+    return JsonResponse({
+        "reports": data
+    })
+
+
+@csrf_exempt
+@login_required
+@require_POST
+def create_report_api(request, coach_id):
+    try:
+        data = json.loads(request.body)
+        reason = data.get('reason', '').strip()
+    except Exception:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON format'}, status=400)
+
+    if not reason:
+        return JsonResponse({'success': False, 'error': 'Alasan laporan tidak boleh kosong'}, status=400)
+
+    coach = get_object_or_404(Coach, id=coach_id)
+
+    Report.objects.create(
+        reporter=request.user,
+        coach=coach,
+        reason=reason
+    )
+
+    return JsonResponse({'success': True})
+
+
+@login_required
+def list_reports_api(request):
+    if not request.user.is_superuser:
+        return JsonResponse({'status': False, 'message': 'Forbidden'}, status=403)
+
+    reports = Report.objects.select_related('coach', 'reporter')
+
+    data = [
+        {
+            'id': r.id,
+            'coach_id': r.coach.id,
+            'coach_name': r.coach.name,
+            'coach_username': r.coach.user.username,
+            'reporter': r.reporter.username,
+            'reason': r.reason,
+            'created_at': r.created_at,
+        }
+        for r in reports
+    ]
+
+    return JsonResponse({
+        'status': True,
+        'reports': data
+    })
 
 @csrf_exempt
 def api_coach_requests(request):
@@ -221,3 +277,4 @@ def api_coach_requests(request):
         })
 
     return JsonResponse({"requests": data}, status=200)
+
