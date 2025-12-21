@@ -112,7 +112,7 @@ def coach_dashboard(request):
 @api_login_required
 def update_coach_profile(request):
     """
-    Update coach profile - Support both JSON and multipart/form-data
+    Update coach profile - Support both multipart and base64
     """
     if request.method != 'POST':
         return JsonResponse({
@@ -126,11 +126,8 @@ def update_coach_profile(request):
             'message': 'Sesi berakhir. Silakan login lagi.'
         }, status=401)
     
-    
     print(f"📥 Received update request from user: {request.user.username}")
     print(f"📥 Content-Type: {request.content_type}")
-    print(f"📥 Session key: {request.session.session_key}")
-    print(f"📥 Cookies: {request.COOKIES.keys()}")
     
     try:
         coach = Coach.objects.get(user=request.user)
@@ -195,18 +192,64 @@ def update_coach_profile(request):
         if 'description' in request.POST:
             coach.description = request.POST.get('description', '').strip()
 
-       
-        if 'foto' in request.FILES:
+        # ✅ Handle foto base64
+        if 'foto_base64' in request.POST:
+            import base64
+            from django.core.files.base import ContentFile
+            
+            base64_data = request.POST.get('foto_base64')
+            foto_name = request.POST.get('foto_name', 'profile.jpg')
+            
+            print(f'📷 Received base64 image: {len(base64_data)} chars')
+            
+            try:
+                # Decode base64
+                image_data = base64.b64decode(base64_data)
+                
+                # Validate size (5MB max)
+                if len(image_data) > 5 * 1024 * 1024:
+                    return JsonResponse({
+                        'status': 'error',
+                        'message': 'File size too large. Maximum 5MB allowed.'
+                    }, status=400)
+                
+                # Delete old photo if exists
+                if coach.foto:
+                    try:
+                        import os
+                        from django.conf import settings
+                        
+                        old_foto_path = os.path.join(settings.MEDIA_ROOT, str(coach.foto))
+                        
+                        if os.path.exists(old_foto_path):
+                            os.remove(old_foto_path)
+                            print(f"✅ Old photo deleted: {old_foto_path}")
+                    except Exception as e:
+                        print(f"⚠️ Error deleting old photo: {e}")
+                
+                # Save new photo
+                coach.foto.save(foto_name, ContentFile(image_data), save=False)
+                print(f"✅ New photo saved: {foto_name} ({len(image_data)} bytes)")
+                
+            except Exception as e:
+                print(f"❌ Error processing base64 image: {e}")
+                return JsonResponse({
+                    'status': 'error',
+                    'message': f'Error processing image: {str(e)}'
+                }, status=400)
+        
+        # ✅ Handle foto multipart (fallback)
+        elif 'foto' in request.FILES:
             foto_file = request.FILES['foto']
             
-            
+            # Validate size
             if foto_file.size > 5 * 1024 * 1024:
                 return JsonResponse({
                     'status': 'error',
                     'message': 'File size too large. Maximum 5MB allowed.'
                 }, status=400)
             
-            
+            # Validate type
             allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
             if foto_file.content_type not in allowed_types:
                 return JsonResponse({
@@ -214,7 +257,7 @@ def update_coach_profile(request):
                     'message': 'Invalid file type. Only JPEG, PNG, GIF, and WebP allowed.'
                 }, status=400)
             
-            
+            # Delete old photo
             if coach.foto:
                 try:
                     import os
@@ -263,7 +306,7 @@ def update_coach_profile(request):
             'status': 'error',
             'message': 'An error occurred while updating profile' 
         }, status=500)
-
+    
 @api_login_required
 def api_coach_profile(request):
     """
