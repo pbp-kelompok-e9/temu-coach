@@ -328,6 +328,7 @@ def api_coach_profile(request):
     return JsonResponse({
         'status': 'success',
         'coach': {
+            'id': coach.id,
             'name': coach.name,
             'age': coach.age,
             'citizenship': coach.citizenship,
